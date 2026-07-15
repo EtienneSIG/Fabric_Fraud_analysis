@@ -8,7 +8,7 @@ patterns:
     graph_signature: high-degree IP node connecting accounts and merchants
     visual_signal: amber-red IP tower
   - id: velocity_anomaly
-    behavior: more than 10 transactions in minutes vs baseline
+    behavior: more than 10 transactions within 5 minutes vs baseline
     graph_signature: dense temporal edges
     visual_signal: pulsing transaction edges
   - id: mule_chain

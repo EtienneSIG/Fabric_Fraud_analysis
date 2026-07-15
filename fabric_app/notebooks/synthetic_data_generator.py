@@ -25,7 +25,15 @@ OUTPUT_FIELDS: List[str] = [
 
 
 def build_generation_plan(seed: int = 42) -> Dict[str, Any]:
-    """Return deterministic generation settings for notebook orchestration."""
+    """Return deterministic generation settings for notebook orchestration.
+
+    Returns a dictionary with:
+    - seed (int): deterministic randomization seed.
+    - domains (dict[str, int]): synthetic entity/transaction target sizes.
+    - inject_patterns (list[str]): fraud pattern IDs to inject.
+    - output_fields (list[str]): standardized fraud scoring output columns.
+    - targets (dict[str, str]): historical and stream sink destinations.
+    """
     return {
         "seed": seed,
         "domains": DomainSize().__dict__,

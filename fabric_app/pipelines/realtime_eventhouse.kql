@@ -1,18 +1,15 @@
 // Eventhouse rolling features for fraud detection windows.
-let tx_5m = Transactions
-| where Timestamp > ago(5m)
-| summarize tx_count_5m = count(), amount_5m = sum(Amount) by SourceAccount;
-
-let tx_1h = Transactions
-| where Timestamp > ago(1h)
-| summarize tx_count_1h = count(), amount_1h = sum(Amount) by SourceAccount;
-
-let tx_24h = Transactions
+let rolling_features = Transactions
 | where Timestamp > ago(24h)
-| summarize tx_count_24h = count(), amount_24h = sum(Amount) by SourceAccount;
+| summarize
+    tx_count_5m = countif(Timestamp > ago(5m)),
+    amount_5m = sumif(Amount, Timestamp > ago(5m)),
+    tx_count_1h = countif(Timestamp > ago(1h)),
+    amount_1h = sumif(Amount, Timestamp > ago(1h)),
+    tx_count_24h = count(),
+    amount_24h = sum(Amount)
+  by SourceAccount;
 
 Transactions
-| lookup kind=leftouter tx_5m on SourceAccount
-| lookup kind=leftouter tx_1h on SourceAccount
-| lookup kind=leftouter tx_24h on SourceAccount
+| lookup kind=leftouter rolling_features on SourceAccount
 | project Timestamp, TransactionId, SourceAccount, MerchantId, DeviceId, IpId, Amount, tx_count_5m, tx_count_1h, tx_count_24h, amount_5m, amount_1h, amount_24h;
