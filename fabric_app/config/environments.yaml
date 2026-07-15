@@ -22,4 +22,4 @@ environments:
     security:
       auth: entra
       rls_enabled: true
-      pii_mode: synthetic_only
+      pii_mode: protected

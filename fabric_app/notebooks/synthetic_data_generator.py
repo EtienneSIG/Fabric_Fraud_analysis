@@ -1,6 +1,6 @@
 """Starter notebook logic for synthetic fraud data generation in Fabric."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, List
 
 
@@ -36,7 +36,7 @@ def build_generation_plan(seed: int = 42) -> Dict[str, Any]:
     """
     return {
         "seed": seed,
-        "domains": DomainSize().__dict__,
+        "domains": asdict(DomainSize()),
         "inject_patterns": [
             "shared_device_ring",
             "shared_ip_burst",

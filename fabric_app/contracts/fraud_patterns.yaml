@@ -1,6 +1,9 @@
 patterns:
   - id: shared_device_ring
-    behavior: 20-50 accounts use a shared fingerprint
+    behavior: shared fingerprint used by a typical range of 20-50 accounts
+    thresholds:
+      trigger_min_accounts: 20
+      review_upper_bound_accounts: 50
     graph_signature: high-degree device hub linked to many accounts
     visual_signal: red device hub with account spokes
   - id: shared_ip_burst
