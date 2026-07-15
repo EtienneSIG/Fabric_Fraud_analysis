@@ -1,0 +1,15 @@
+screen: Root Cause Analysis
+purpose: Explain why a selected cluster is risky and why it changed now
+core_views:
+  - causal_chain
+  - baseline_vs_current
+  - feature_contribution
+  - raw_transaction_timeline
+toggles:
+  - rule_based_explanation
+  - ml_feature_contribution
+  - graph_evidence
+panels:
+  - why_now
+  - what_changed
+  - model_traceability

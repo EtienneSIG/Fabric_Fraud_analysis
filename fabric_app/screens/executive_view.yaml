@@ -1,0 +1,14 @@
+screen: Executive View
+purpose: Portfolio-level fraud exposure and trend monitoring
+core_views:
+  - portfolio_risk_map
+  - kpi_cards
+  - trend_lines
+  - typology_rankings
+time_ranges:
+  - today
+  - week
+  - month
+  - quarter
+drillthrough:
+  - fraud_graph_detection

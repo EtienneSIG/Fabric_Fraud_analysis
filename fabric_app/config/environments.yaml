@@ -1,0 +1,25 @@
+environments:
+  local:
+    fabric_workspace: local-dev
+    lakehouse:
+      name: fraud_lakehouse_dev
+      mode: append
+    eventhouse:
+      database: fraud_rti_dev
+      ingestion_mode: simulated_stream
+    security:
+      auth: entra
+      rls_enabled: true
+      pii_mode: synthetic_only
+  fabric:
+    fabric_workspace: fraud-prod-workspace
+    lakehouse:
+      name: fraud_lakehouse_prod
+      mode: medallion
+    eventhouse:
+      database: fraud_rti_prod
+      ingestion_mode: eventstream
+    security:
+      auth: entra
+      rls_enabled: true
+      pii_mode: synthetic_only

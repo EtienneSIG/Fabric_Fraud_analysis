@@ -1,0 +1,16 @@
+storyline:
+  - generate_synthetic_transactions_in_notebook
+  - stream_events_via_eventstreams_to_eventhouse
+  - compute_scores_and_graph_features
+  - detect_population_risk_cluster_in_graph_screen
+  - explain_root_cause_drivers
+  - review_portfolio_impact_in_executive_view
+  - remediate_case_and_writeback_to_onelake
+  - verify_feedback_enters_model_iteration_loop
+
+validation_checklist:
+  - role_based_access_verified
+  - governance_and_data_lineage_verified
+  - end_to_end_latency_within_target
+  - ontology_refresh_expectation_documented
+  - explainability_outputs_present

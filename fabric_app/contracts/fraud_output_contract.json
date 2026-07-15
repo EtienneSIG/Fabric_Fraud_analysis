@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fraud Output Contract",
+  "type": "object",
+  "required": [
+    "fraud_flag",
+    "risk_score",
+    "population_risk_score",
+    "cluster_id",
+    "risk_drivers",
+    "explainability_vector"
+  ],
+  "properties": {
+    "fraud_flag": { "type": "integer", "enum": [0, 1] },
+    "risk_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "population_risk_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "cluster_id": { "type": "string" },
+    "risk_drivers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "explainability_vector": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["driver", "weight"],
+        "properties": {
+          "driver": { "type": "string" },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}

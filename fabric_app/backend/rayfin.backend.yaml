@@ -1,0 +1,26 @@
+backend:
+  name: fabric-fraud-management
+  platform: rayfin
+  auth:
+    provider: microsoft-entra
+    roles:
+      - fraud_analyst
+      - fraud_manager
+      - executive_viewer
+      - remediation_operator
+  storage:
+    onelake_tables:
+      - case_table
+      - action_table
+      - decision_table
+      - analyst_feedback_table
+      - saved_investigation_view
+  apis:
+    - name: getGraphClusters
+      source: eventhouse
+    - name: getClusterRootCause
+      source: graph_ontology
+    - name: getExecutivePortfolioRisk
+      source: semantic_model
+    - name: upsertCaseDecision
+      source: lakehouse
