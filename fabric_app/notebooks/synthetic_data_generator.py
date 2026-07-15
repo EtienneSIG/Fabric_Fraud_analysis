@@ -1,7 +1,7 @@
 """Starter notebook logic for synthetic fraud data generation in Fabric."""
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Any, Dict, List
 
 
 @dataclass(frozen=True)
@@ -24,7 +24,7 @@ OUTPUT_FIELDS: List[str] = [
 ]
 
 
-def build_generation_plan(seed: int = 42) -> Dict[str, object]:
+def build_generation_plan(seed: int = 42) -> Dict[str, Any]:
     """Return deterministic generation settings for notebook orchestration."""
     return {
         "seed": seed,
