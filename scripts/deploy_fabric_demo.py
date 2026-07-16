@@ -50,7 +50,12 @@ def authenticate(tenant: str, interactive: bool) -> None:
     if interactive:
         print(f"Interactive login to tenant {tenant}...")
         # Keep direct subprocess execution so Azure CLI can show interactive prompts in terminal.
-        subprocess.run(["az", "login", "--tenant", tenant], check=True)
+        try:
+            subprocess.run(["az", "login", "--tenant", tenant], check=True)
+        except subprocess.CalledProcessError as exc:
+            raise RuntimeError(
+                "Interactive Azure login failed. Please check your credentials and tenant ID."
+            ) from exc
     else:
         print("Validating existing Azure CLI session...")
         run_command(["az", "account", "show"])
@@ -138,8 +143,12 @@ def main() -> int:
         manifest = write_manifest(args.tenant, args.workspace, assets)
     except (RuntimeError, subprocess.CalledProcessError) as exc:
         extra_details = ""
-        if isinstance(exc, subprocess.CalledProcessError) and isinstance(exc.stderr, str) and exc.stderr:
-            extra_details = f"\n{exc.stderr.strip()}"
+        if isinstance(exc, subprocess.CalledProcessError):
+            if isinstance(exc.stderr, str) and exc.stderr:
+                extra_details = f"\n{exc.stderr.strip()}"
+            else:
+                failed_command = " ".join(exc.cmd) if isinstance(exc.cmd, list) else str(exc.cmd)
+                extra_details = f"\nCommand failed: {failed_command} (exit code {exc.returncode})"
         print(f"❌ Assisted deployment failed: {exc}{extra_details}", file=sys.stderr)
         return 1
 
