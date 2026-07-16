@@ -1,0 +1,28 @@
+patterns:
+  - id: shared_device_ring
+    behavior: shared fingerprint used by a typical range of 20-50 accounts
+    thresholds:
+      trigger_min_accounts: 20
+      review_upper_bound_accounts: 50
+    graph_signature: high-degree device hub linked to many accounts
+    visual_signal: red device hub with account spokes
+  - id: shared_ip_burst
+    behavior: many accounts transact from same IP/ASN in short window
+    graph_signature: high-degree IP node connecting accounts and merchants
+    visual_signal: amber-red IP tower
+  - id: velocity_anomaly
+    behavior: more than 10 transactions within 5 minutes vs baseline
+    graph_signature: dense temporal edges
+    visual_signal: pulsing transaction edges
+  - id: mule_chain
+    behavior: account-to-account-to-account chain ending at cash-out merchant
+    graph_signature: directed path or cycle across accounts
+    visual_signal: red directed chain
+  - id: merchant_collusion
+    behavior: many risky accounts transact with same merchant
+    graph_signature: merchant hub with concentrated risky flows
+    visual_signal: glowing red merchant node
+  - id: account_takeover
+    behavior: new device + new IP + unusual merchant + high amount
+    graph_signature: multi-signal convergence around one account
+    visual_signal: warning halo around account

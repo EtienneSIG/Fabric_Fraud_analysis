@@ -1,0 +1,28 @@
+transaction_scoring:
+  sources:
+    - behavioral_features
+    - model_probability
+    - rules_engine
+  output: transaction_risk_score
+
+cluster_scoring:
+  community_features:
+    - avg_member_risk
+    - shared_device_count
+    - shared_ip_count
+    - merchant_concentration
+    - path_to_known_fraud
+    - temporal_burst_score
+  output: population_risk_score
+
+combined_signal:
+  formula: weighted(transaction_risk_score, population_risk_score, rules_score, anomaly_score)
+  outputs:
+    - risk_score
+    - alert_severity
+    - risk_drivers
+
+alert_thresholds:
+  high: 0.75
+  critical: 0.9
+  activator_target: fraud_alert_topic

@@ -1,0 +1,13 @@
+workflow:
+  - event: risk_threshold_crossed
+    component: Activator
+    output: alert_created
+  - event: alert_created
+    component: RayfinApp
+    output: case_created_or_updated
+  - event: analyst_decision_saved
+    component: OneLakeWriteback
+    output: case_table_updated
+  - event: feedback_captured
+    component: ModelTrainingInput
+    output: retraining_backlog_updated

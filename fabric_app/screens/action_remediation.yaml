@@ -1,0 +1,26 @@
+screen: Action & Remediation
+purpose: Case lifecycle management and operational write-back
+workflow_lanes:
+  - New
+  - Investigating
+  - Pending Customer Contact
+  - Blocked/Held
+  - Resolved
+  - False Positive
+actions:
+  - convert_alert_to_case
+  - assign_owner_sla
+  - hold_transaction
+  - freeze_account
+  - step_up_authentication
+  - contact_customer
+  - mark_false_positive
+writeback:
+  table: fraud_cases
+  required_fields:
+    - case_id
+    - alert_id
+    - status
+    - decision
+    - remediation_action
+    - analyst_feedback

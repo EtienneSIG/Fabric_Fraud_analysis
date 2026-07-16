@@ -1,0 +1,20 @@
+screen: Fraud Graph Detection
+purpose: Primary operations cockpit for population-risk cluster detection
+core_views:
+  - 3d_transaction_graph
+  - cluster_details_panel
+  - timeline_scrubber
+filters:
+  - channel
+  - merchant_category
+  - region
+  - segment
+  - device_trust
+  - risk_threshold
+  - time_window
+actions:
+  - expand_1_hop
+  - expand_2_hop
+  - expand_3_hop
+  - isolate_shared_device
+  - show_shortest_fraud_path

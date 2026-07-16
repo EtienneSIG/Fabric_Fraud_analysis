@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fabric Fraud Canonical Entities",
+  "type": "object",
+  "properties": {
+    "Customer": {
+      "type": "object",
+      "required": ["customer_id", "segment", "region", "tenure", "kyc_status", "risk_baseline"],
+      "properties": {
+        "customer_id": { "type": "string" },
+        "segment": { "type": "string" },
+        "region": { "type": "string" },
+        "tenure": { "type": "integer", "minimum": 0 },
+        "kyc_status": { "type": "string" },
+        "risk_baseline": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "Account": {
+      "type": "object",
+      "required": ["account_id", "customer_id", "account_type", "open_date", "balance", "status"],
+      "properties": {
+        "account_id": { "type": "string" },
+        "customer_id": { "type": "string" },
+        "account_type": { "type": "string" },
+        "open_date": { "type": "string", "format": "date" },
+        "balance": { "type": "number" },
+        "status": { "type": "string" }
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "required": ["transaction_id", "source_account", "merchant_id", "amount", "timestamp", "channel", "geo", "currency"],
+      "properties": {
+        "transaction_id": { "type": "string" },
+        "source_account": { "type": "string" },
+        "merchant_id": { "type": "string" },
+        "amount": { "type": "number", "exclusiveMinimum": 0 },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "channel": { "type": "string" },
+        "geo": { "type": "string" },
+        "currency": { "type": "string" }
+      }
+    },
+    "Device": {
+      "type": "object",
+      "required": ["device_id", "fingerprint_hash", "os", "browser", "trust_score"],
+      "properties": {
+        "device_id": { "type": "string" },
+        "fingerprint_hash": { "type": "string" },
+        "os": { "type": "string" },
+        "browser": { "type": "string" },
+        "trust_score": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "IP": {
+      "type": "object",
+      "required": ["ip_id", "asn", "geo_country", "geo_city", "proxy_flag", "tor_vpn_flag"],
+      "properties": {
+        "ip_id": { "type": "string" },
+        "asn": { "type": "string" },
+        "geo_country": { "type": "string" },
+        "geo_city": { "type": "string" },
+        "proxy_flag": { "type": "boolean" },
+        "tor_vpn_flag": { "type": "boolean" }
+      }
+    },
+    "Merchant": {
+      "type": "object",
+      "required": ["merchant_id", "mcc", "merchant_geo", "merchant_risk_score"],
+      "properties": {
+        "merchant_id": { "type": "string" },
+        "mcc": { "type": "string" },
+        "merchant_geo": { "type": "string" },
+        "merchant_risk_score": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "Behavior": {
+      "type": "object",
+      "required": ["rolling_velocity", "amount_deviation", "channel_shift", "geo_shift", "session_age"],
+      "properties": {
+        "rolling_velocity": { "type": "number", "minimum": 0 },
+        "amount_deviation": { "type": "number", "minimum": 0 },
+        "channel_shift": { "type": "number", "minimum": 0 },
+        "geo_shift": { "type": "number", "minimum": 0 },
+        "session_age": { "type": "number", "minimum": 0 }
+      }
+    },
+    "RiskSignal": {
+      "type": "object",
+      "required": ["signal_id", "signal_type", "severity", "confidence", "model_version"],
+      "properties": {
+        "signal_id": { "type": "string" },
+        "signal_type": { "type": "string" },
+        "severity": { "type": "string", "enum": ["Low", "Medium", "High", "Critical"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "model_version": { "type": "string" }
+      }
+    },
+    "AlertCase": {
+      "type": "object",
+      "required": ["alert_id", "case_id", "status", "owner", "remediation_action"],
+      "properties": {
+        "alert_id": { "type": "string" },
+        "case_id": { "type": "string" },
+        "status": { "type": "string" },
+        "owner": { "type": "string" },
+        "remediation_action": { "type": "string" }
+      }
+    }
+  },
+  "required": ["Customer", "Account", "Transaction", "Device", "IP", "Merchant", "Behavior", "RiskSignal", "AlertCase"]
+}
