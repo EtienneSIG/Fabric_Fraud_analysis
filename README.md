@@ -25,6 +25,7 @@ Microsoft Fabric / Rayfin fraud management workspace scaffold.
    - Install Python 3.10+.
    - Install Azure CLI (`az`) if you want to automate Entra ID sign-in.
    - Verify you have access to the target tenant and Fabric workspace.
+   - If needed on Unix systems, make the script executable: `chmod +x scripts/deploy_fabric_demo.py`.
    - Use either `./scripts/deploy_fabric_demo.py ...` (executable mode) or `python3 scripts/deploy_fabric_demo.py ...`.
 2. **Generate the deployment inventory**
    - Run the script:

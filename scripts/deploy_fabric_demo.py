@@ -41,7 +41,7 @@ def run_command(command: list[str], capture_output: bool = False) -> subprocess.
 def ensure_az_installed() -> None:
     if shutil.which("az") is None:
         raise RuntimeError(
-            "Azure CLI (`az`) not found. Install it or use --skip-auth to skip authentication checks."
+            "Azure CLI (`az`) not found. Install it or use --skip-auth only if authentication is already handled externally."
         )
 
 
@@ -86,7 +86,10 @@ def get_validated_assets() -> list[DeploymentAsset]:
 def write_manifest(tenant: str, workspace: str, assets: list[DeploymentAsset]) -> Path:
     artifacts_dir = REPO_ROOT / "artifacts"
     artifacts_dir.mkdir(parents=True, exist_ok=True)
-    workspace_slug = re.sub(r"[^a-z0-9_-]+", "_", workspace.lower()).strip("_") or "workspace"
+    tenant_slug = re.sub(r"[^a-z0-9]+", "", tenant.lower())[-6:] or "tenant"
+    workspace_slug = re.sub(r"[^a-z0-9_-]+", "_", workspace.lower()).strip("_")
+    if not workspace_slug:
+        workspace_slug = f"workspace_{tenant_slug}"
     manifest = artifacts_dir / f"deployment_manifest_{workspace_slug}.md"
 
     lines = [
@@ -144,6 +147,7 @@ def main() -> int:
     except (RuntimeError, subprocess.CalledProcessError) as exc:
         extra_details = ""
         if isinstance(exc, subprocess.CalledProcessError):
+            # run_command uses text=True, so stderr is str when capture_output=True.
             if isinstance(exc.stderr, str) and exc.stderr:
                 extra_details = f"\n{exc.stderr.strip()}"
             else:
