@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import subprocess
 import sys
@@ -76,7 +77,7 @@ def validate_assets() -> list[DeploymentAsset]:
 def write_manifest(tenant: str, workspace: str, assets: list[DeploymentAsset]) -> Path:
     artifacts_dir = REPO_ROOT / "artifacts"
     artifacts_dir.mkdir(parents=True, exist_ok=True)
-    workspace_slug = workspace.lower().replace(" ", "_")
+    workspace_slug = re.sub(r"[^a-z0-9_-]+", "_", workspace.lower()).strip("_") or "workspace"
     manifest = artifacts_dir / f"deployment_manifest_{workspace_slug}.md"
 
     lines = [
@@ -132,7 +133,10 @@ def main() -> int:
         assets = validate_assets()
         manifest = write_manifest(args.tenant, args.workspace, assets)
     except (RuntimeError, subprocess.CalledProcessError) as exc:
-        print(f"❌ Assisted deployment failed: {exc}", file=sys.stderr)
+        extra_details = ""
+        if isinstance(exc, subprocess.CalledProcessError) and exc.stderr:
+            extra_details = f"\n{exc.stderr.strip()}"
+        print(f"❌ Assisted deployment failed: {exc}{extra_details}", file=sys.stderr)
         return 1
 
     print("✅ Deployment preparation complete.")
