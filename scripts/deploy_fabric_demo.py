@@ -45,9 +45,9 @@ def ensure_az_installed() -> None:
         )
 
 
-def authenticate(tenant: str, interactive_login: bool) -> None:
+def authenticate(tenant: str, interactive: bool) -> None:
     ensure_az_installed()
-    if interactive_login:
+    if interactive:
         print(f"Interactive login to tenant {tenant}...")
         # Keep direct subprocess execution so Azure CLI can show interactive prompts in terminal.
         subprocess.run(["az", "login", "--tenant", tenant], check=True)
@@ -70,7 +70,7 @@ def authenticate(tenant: str, interactive_login: bool) -> None:
         )
 
 
-def validate_assets() -> list[DeploymentAsset]:
+def get_validated_assets() -> list[DeploymentAsset]:
     missing = [asset for asset in ASSETS if not asset.path.exists()]
     if missing:
         missing_text = "\n".join(f"- {asset.label}: {asset.path}" for asset in missing)
@@ -134,11 +134,11 @@ def main() -> int:
         if not args.skip_auth:
             authenticate(args.tenant, args.interactive_login)
 
-        assets = validate_assets()
+        assets = get_validated_assets()
         manifest = write_manifest(args.tenant, args.workspace, assets)
     except (RuntimeError, subprocess.CalledProcessError) as exc:
         extra_details = ""
-        if isinstance(exc, subprocess.CalledProcessError) and exc.stderr:
+        if isinstance(exc, subprocess.CalledProcessError) and isinstance(exc.stderr, str) and exc.stderr:
             extra_details = f"\n{exc.stderr.strip()}"
         print(f"❌ Assisted deployment failed: {exc}{extra_details}", file=sys.stderr)
         return 1
