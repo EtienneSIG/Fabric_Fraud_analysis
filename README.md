@@ -19,35 +19,35 @@ Microsoft Fabric / Rayfin fraud management workspace scaffold.
 - This repository currently contains architecture assets and scaffolding only.
 - No project-specific lint/build/test commands are defined yet.
 
-## Step-by-step setup de la démo Fabric
+## Step-by-step Fabric demo setup
 
-1. **Préparer les prérequis**
-   - Installer Python 3.10+.
-   - Installer Azure CLI (`az`) si vous voulez automatiser la connexion Entra ID.
-   - Vérifier que vous avez accès au tenant et au workspace Fabric cible.
-2. **Créer l'inventaire de déploiement**
-   - Lancer le script :
+1. **Prepare prerequisites**
+   - Install Python 3.10+.
+   - Install Azure CLI (`az`) if you want to automate Entra ID sign-in.
+   - Verify you have access to the target tenant and Fabric workspace.
+2. **Generate the deployment inventory**
+   - Run the script:
      - `./scripts/deploy_fabric_demo.py --tenant <tenant-id> --workspace <workspace-name> --interactive-login`
-   - Le script valide les assets de démo et génère un manifeste dans `./artifacts/deployment_manifest_<workspace>.md`.
-3. **Configurer le workspace cible**
-   - Reporter les paramètres workspace/lakehouse/eventhouse dans `fabric_app/config/environments.yaml` (section `fabric`).
-4. **Déployer les assets fonctionnels**
-   - Notebook de génération : `fabric_app/notebooks/synthetic_data_generator.py`
-   - Lakehouse SQL : `fabric_app/pipelines/historical_lakehouse.sql`
-   - Eventhouse KQL : `fabric_app/pipelines/realtime_eventhouse.kql`
-   - Contrats/ontologie/remédiation/écrans : `fabric_app/contracts`, `fabric_app/ontology`, `fabric_app/remediation`, `fabric_app/screens`
-5. **Exécuter le parcours démo**
-   - Suivre le runbook : `fabric_app/demo/e2e_demo_validation.yaml`
-   - Vérifier la checklist de validation (RLS, gouvernance, latence, explainabilité).
+   - The script validates demo assets and writes a manifest in `./artifacts/deployment_manifest_<workspace>.md`.
+3. **Configure the target workspace**
+   - Report workspace/lakehouse/eventhouse parameters in `fabric_app/config/environments.yaml` (section `fabric`).
+4. **Deploy functional assets**
+   - Generator notebook: `fabric_app/notebooks/synthetic_data_generator.py`
+   - Lakehouse SQL: `fabric_app/pipelines/historical_lakehouse.sql`
+   - Eventhouse KQL: `fabric_app/pipelines/realtime_eventhouse.kql`
+   - Contracts/ontology/remediation/screens: `fabric_app/contracts`, `fabric_app/ontology`, `fabric_app/remediation`, `fabric_app/screens`
+5. **Run demo walkthrough**
+   - Follow the runbook: `fabric_app/demo/e2e_demo_validation.yaml`
+   - Validate the checklist (RLS, governance, latency, explainability).
 
-### Exécutable d'orchestration
+### Deployment helper executable
 
-Commande recommandée :
+Recommended command:
 
 `./scripts/deploy_fabric_demo.py --tenant <tenant-id> --workspace <workspace-name> --interactive-login`
 
-Options principales :
-- `--tenant` : tenant Entra ID (obligatoire)
-- `--workspace` : workspace Fabric cible (obligatoire)
-- `--interactive-login` : force `az login --tenant ...`
-- `--skip-auth` : n'exécute pas la partie login Azure CLI
+Main options:
+- `--tenant`: target Entra ID tenant (required)
+- `--workspace`: target Fabric workspace (required)
+- `--interactive-login`: forces `az login --tenant ...`
+- `--skip-auth`: skips Azure CLI login/auth checks

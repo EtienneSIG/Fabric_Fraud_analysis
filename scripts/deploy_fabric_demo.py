@@ -39,23 +39,23 @@ def run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
 
 def ensure_az_installed() -> None:
     if shutil.which("az") is None:
-        raise RuntimeError("Azure CLI (`az`) introuvable. Installez-le ou utilisez --skip-auth.")
+        raise RuntimeError("Azure CLI (`az`) not found. Install it or use --skip-auth.")
 
 
 def authenticate(tenant: str, interactive_login: bool) -> None:
     ensure_az_installed()
     if interactive_login:
-        print(f"Connexion interactive au tenant {tenant}...")
+        print(f"Interactive login to tenant {tenant}...")
         subprocess.run(["az", "login", "--tenant", tenant], check=True)
     else:
-        print("Validation de la session Azure CLI existante...")
+        print("Validating existing Azure CLI session...")
         run_command(["az", "account", "show"])
 
     tenant_result = run_command(["az", "account", "show", "--query", "tenantId", "-o", "tsv"])
     current_tenant = tenant_result.stdout.strip()
     if current_tenant.lower() != tenant.lower():
         print(
-            f"⚠ Tenant actif '{current_tenant}' différent du tenant demandé '{tenant}'.",
+            f"⚠ Active tenant '{current_tenant}' differs from requested tenant '{tenant}'.",
             file=sys.stderr,
         )
 
@@ -64,7 +64,7 @@ def validate_assets() -> list[DeploymentAsset]:
     missing = [asset for asset in ASSETS if not asset.path.exists()]
     if missing:
         missing_text = "\n".join(f"- {asset.label}: {asset.path}" for asset in missing)
-        raise RuntimeError(f"Assets manquants:\n{missing_text}")
+        raise RuntimeError(f"Missing assets:\n{missing_text}")
     return ASSETS
 
 
@@ -89,11 +89,11 @@ def write_manifest(tenant: str, workspace: str, assets: list[DeploymentAsset]) -
             "",
             "## Runtime sequence",
             "",
-            "1. Importer le notebook de génération de données synthétiques dans le workspace.",
-            "2. Déployer le script SQL Lakehouse pour initialiser les tables de curation/cases.",
-            "3. Déployer la requête KQL Eventhouse pour les features temps réel.",
-            "4. Publier les contrats, l'ontologie, les specs de scoring et les écrans.",
-            "5. Exécuter la validation E2E (`fabric_app/demo/e2e_demo_validation.yaml`).",
+            "1. Import the synthetic data notebook into the workspace.",
+            "2. Deploy the Lakehouse SQL script to initialize curated/case tables.",
+            "3. Deploy the Eventhouse KQL query for realtime features.",
+            "4. Publish contracts, ontology, scoring specs, and UX screens.",
+            "5. Run end-to-end validation (`fabric_app/demo/e2e_demo_validation.yaml`).",
         ]
     )
     manifest.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -101,18 +101,18 @@ def write_manifest(tenant: str, workspace: str, assets: list[DeploymentAsset]) -
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Déploiement assisté de la démo Fabric.")
-    parser.add_argument("--tenant", required=True, help="Tenant Entra ID cible.")
-    parser.add_argument("--workspace", required=True, help="Nom du workspace Fabric cible.")
+    parser = argparse.ArgumentParser(description="Assisted deployment of Fabric demo.")
+    parser.add_argument("--tenant", required=True, help="Target Entra ID tenant.")
+    parser.add_argument("--workspace", required=True, help="Target Fabric workspace name.")
     parser.add_argument(
         "--interactive-login",
         action="store_true",
-        help="Ouvre une connexion interactive via `az login --tenant`.",
+        help="Opens an interactive login via `az login --tenant`.",
     )
     parser.add_argument(
         "--skip-auth",
         action="store_true",
-        help="Ignore la phase d'authentification Azure CLI.",
+        help="Skips the Azure CLI authentication phase.",
     )
     return parser.parse_args()
 
@@ -127,12 +127,12 @@ def main() -> int:
         assets = validate_assets()
         manifest = write_manifest(args.tenant, args.workspace, assets)
     except (RuntimeError, subprocess.CalledProcessError) as exc:
-        print(f"❌ Échec du déploiement assisté: {exc}", file=sys.stderr)
+        print(f"❌ Assisted deployment failed: {exc}", file=sys.stderr)
         return 1
 
-    print("✅ Préparation de déploiement terminée.")
-    print(f"Manifeste généré: {manifest}")
-    print("Suivez ensuite la séquence du manifeste pour déployer dans Fabric.")
+    print("✅ Deployment preparation complete.")
+    print(f"Generated manifest: {manifest}")
+    print("Follow the manifest runtime sequence to complete deployment in Fabric.")
     return 0
 
 
