@@ -147,8 +147,8 @@ def main() -> int:
             if isinstance(exc.stderr, str) and exc.stderr:
                 extra_details = f"\n{exc.stderr.strip()}"
             else:
-                failed_command = " ".join(exc.cmd) if isinstance(exc.cmd, list) else str(exc.cmd)
-                extra_details = f"\nCommand failed: {failed_command} (exit code {exc.returncode})"
+                cmd_str = " ".join(exc.cmd) if isinstance(exc.cmd, list) else str(exc.cmd)
+                extra_details = f"\nCommand failed: {cmd_str} (exit code {exc.returncode})"
         print(f"❌ Assisted deployment failed: {exc}{extra_details}", file=sys.stderr)
         return 1
 
