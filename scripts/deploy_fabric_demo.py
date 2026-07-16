@@ -21,15 +21,15 @@ class DeploymentAsset:
 
 
 ASSETS = [
-    DeploymentAsset("Environment config", REPO_ROOT / "fabric_app/config/environments.yaml"),
-    DeploymentAsset("Synthetic notebook", REPO_ROOT / "fabric_app/notebooks/synthetic_data_generator.py"),
-    DeploymentAsset("Lakehouse SQL pipeline", REPO_ROOT / "fabric_app/pipelines/historical_lakehouse.sql"),
-    DeploymentAsset("Eventhouse KQL pipeline", REPO_ROOT / "fabric_app/pipelines/realtime_eventhouse.kql"),
-    DeploymentAsset("Fraud contracts", REPO_ROOT / "fabric_app/contracts/fraud_output_contract.json"),
-    DeploymentAsset("Fraud patterns", REPO_ROOT / "fabric_app/contracts/fraud_patterns.yaml"),
+    DeploymentAsset("Environment Config", REPO_ROOT / "fabric_app/config/environments.yaml"),
+    DeploymentAsset("Synthetic Notebook", REPO_ROOT / "fabric_app/notebooks/synthetic_data_generator.py"),
+    DeploymentAsset("Lakehouse SQL Pipeline", REPO_ROOT / "fabric_app/pipelines/historical_lakehouse.sql"),
+    DeploymentAsset("Eventhouse KQL Pipeline", REPO_ROOT / "fabric_app/pipelines/realtime_eventhouse.kql"),
+    DeploymentAsset("Fraud Contracts", REPO_ROOT / "fabric_app/contracts/fraud_output_contract.json"),
+    DeploymentAsset("Fraud Patterns", REPO_ROOT / "fabric_app/contracts/fraud_patterns.yaml"),
     DeploymentAsset("Ontology", REPO_ROOT / "fabric_app/ontology/fraud_ontology.yaml"),
-    DeploymentAsset("Remediation loop", REPO_ROOT / "fabric_app/remediation/alert_case_loop.yaml"),
-    DeploymentAsset("Demo validation runbook", REPO_ROOT / "fabric_app/demo/e2e_demo_validation.yaml"),
+    DeploymentAsset("Remediation Loop", REPO_ROOT / "fabric_app/remediation/alert_case_loop.yaml"),
+    DeploymentAsset("Demo Validation Runbook", REPO_ROOT / "fabric_app/demo/e2e_demo_validation.yaml"),
 ]
 
 
@@ -39,7 +39,9 @@ def run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
 
 def ensure_az_installed() -> None:
     if shutil.which("az") is None:
-        raise RuntimeError("Azure CLI (`az`) not found. Install it or use --skip-auth.")
+        raise RuntimeError(
+            "Azure CLI (`az`) not found. Install it or use --skip-auth to skip authentication checks."
+        )
 
 
 def authenticate(tenant: str, interactive_login: bool) -> None:
@@ -55,7 +57,10 @@ def authenticate(tenant: str, interactive_login: bool) -> None:
     current_tenant = tenant_result.stdout.strip()
     if current_tenant.lower() != tenant.lower():
         print(
-            f"⚠ Active tenant '{current_tenant}' differs from requested tenant '{tenant}'.",
+            (
+                f"⚠ Active tenant '{current_tenant}' differs from requested tenant '{tenant}'. "
+                f"Run `az login --tenant {tenant}` to switch tenants."
+            ),
             file=sys.stderr,
         )
 

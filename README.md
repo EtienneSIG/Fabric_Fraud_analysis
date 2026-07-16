@@ -30,7 +30,7 @@ Microsoft Fabric / Rayfin fraud management workspace scaffold.
      - `./scripts/deploy_fabric_demo.py --tenant <tenant-id> --workspace <workspace-name> --interactive-login`
    - The script validates demo assets and writes a manifest in `./artifacts/deployment_manifest_<workspace>.md`.
 3. **Configure the target workspace**
-   - Report workspace/lakehouse/eventhouse parameters in `fabric_app/config/environments.yaml` (section `fabric`).
+   - Configure workspace/lakehouse/eventhouse parameters in `fabric_app/config/environments.yaml` (section `fabric`).
 4. **Deploy functional assets**
    - Generator notebook: `fabric_app/notebooks/synthetic_data_generator.py`
    - Lakehouse SQL: `fabric_app/pipelines/historical_lakehouse.sql`
