@@ -34,8 +34,8 @@ ASSETS = [
 ]
 
 
-def run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(command, check=True, text=True, capture_output=True)
+def run_command(command: list[str], capture_output: bool = False) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(command, check=True, text=True, capture_output=capture_output)
 
 
 def ensure_az_installed() -> None:
@@ -49,12 +49,16 @@ def authenticate(tenant: str, interactive_login: bool) -> None:
     ensure_az_installed()
     if interactive_login:
         print(f"Interactive login to tenant {tenant}...")
+        # Keep direct subprocess execution so Azure CLI can show interactive prompts in terminal.
         subprocess.run(["az", "login", "--tenant", tenant], check=True)
     else:
         print("Validating existing Azure CLI session...")
         run_command(["az", "account", "show"])
 
-    tenant_result = run_command(["az", "account", "show", "--query", "tenantId", "-o", "tsv"])
+    tenant_result = run_command(
+        ["az", "account", "show", "--query", "tenantId", "-o", "tsv"],
+        capture_output=True,
+    )
     current_tenant = tenant_result.stdout.strip()
     if current_tenant.lower() != tenant.lower():
         print(
