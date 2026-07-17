@@ -119,7 +119,7 @@ export function FraudFlow() {
         {nodes.length === 0 ? (
           <p className="text-center text-gray-400 py-16 text-sm">No journeys for this event.</p>
         ) : (
-          <Sankey nodes={nodes} links={links} columns={columns} height={470} />
+          <Sankey nodes={nodes} links={links} columns={columns} height={330} />
         )}
       </section>
 

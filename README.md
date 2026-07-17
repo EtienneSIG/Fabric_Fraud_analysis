@@ -26,6 +26,7 @@ The app (`fabric-fraud-intelligence/`) surfaces:
 - **Dashboard** — KPIs and alert overview with role-based access (Analyst / Manager / Auditor) and PII masking.
 - **Fraud Flow** — a Customer 360 Sankey of ~10k customer journeys, a geographic **event map**, a fraud-only filter, and hover counts.
 - **Entity Graph** — an event-derived force-directed graph (fraud-type hubs + customers), centrality sizing (degree / closeness / betweenness), fraud filtering, and an **AI narrative** explaining each entity.
+- **Microsoft IQ** — a grounded-investigation view combining **Fabric IQ** (live, from the deployed ontology + lakehouse), **Work IQ** and **Foundry IQ** (simulated) to answer fraud questions.
 - **Alert Queue, Case Detail, AML Copilot, Claims Fraud** — investigation workflows with grounded agent assistance.
 
 ### Run locally

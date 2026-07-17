@@ -30,9 +30,14 @@ auditer.**
 | **Données** — `fraud_lakehouse` | Toutes les données clients, transactions, alertes et parcours dans un lakehouse gouverné (tables Delta). Une seule source de vérité. |
 | **Sémantique** — Fabric IQ Ontology | 11 concepts métier (Client, Compte, Transaction, Alerte, Cas…) et leurs relations, définis une fois et réutilisés partout — par les humains **et** par l'IA. |
 | **Application** — Rayfin Fabric App | Une expérience d'investigation moderne, sécurisée par rôle, directement dans Fabric. |
-| **IA** — narratifs & copilotes | L'IA explique chaque signal en langage naturel et recommande une action. |
+| **Intelligence** — Microsoft IQ | La couche d'intelligence qui **ancre les agents** : **Fabric IQ** (données & ontologie), **Work IQ** (contexte de travail M365) et **Foundry IQ** (connaissance & outils des agents). |
 
-**Message clé : pas d'intégration à bâtir, pas de données à copier — tout vit dans Fabric.**
+**Message clé : pas d'intégration à bâtir, pas de données à copier — tout vit dans Fabric,
+et l'IA est *ancrée* dans le réel via Microsoft IQ (pas d'hallucination).**
+
+> **Microsoft IQ en une phrase :** la couche d'intelligence partagée de Microsoft qui donne
+> aux agents le bon contexte — vos **données** (Fabric IQ), votre **travail** (Work IQ) et la
+> **connaissance** de vos agents (Foundry IQ). Notre plateforme anti-fraude combine les trois.
 
 ---
 
@@ -76,17 +81,35 @@ auditer.**
 - **AML Copilot** / **Claims Fraud** : mêmes patterns pour le blanchiment et la fraude à
   l'assurance — *un socle, plusieurs métiers.*
 
+### Écran 5 — Microsoft IQ : l'intelligence ancrée (2 min · la vision)
+- Ouvrir l'onglet **Microsoft IQ**. Présenter les **trois IQ** et leur rôle dans la fraude :
+  **Fabric IQ** (badge *Live*), **Work IQ** et **Foundry IQ** (*Simulated*).
+- Dans **« Grounded investigation »**, choisir une question (ex. *« Is CUST-014 part of a
+  coordinated fraud ring? »*) et lancer.
+- Montrer la révélation progressive des trois colonnes :
+  - **Fabric IQ (Live)** : faits **réels** tirés de l'ontologie et du lakehouse (client,
+    comptes, transactions, alertes, liens de collusion).
+  - **Work IQ** : contexte M365 — fils Teams, documents SAR, propriétaire du cas, agenda.
+  - **Foundry IQ** : typologies, seuils réglementaires, mémoire de cas similaires, outils.
+- Puis la **réponse synthétisée** avec l'action recommandée.
+- **Talking point :** *« Le même agent raisonne à la fois sur nos données, notre façon de
+  travailler et la connaissance réglementaire — c'est ça, Microsoft IQ. Ici, la partie
+  Fabric IQ est déjà réelle sur nos données ; Work IQ et Foundry IQ sont prêts à être
+  branchés. »*
+
 ---
 
 ## 4. Ce qui rend cela unique (1 min)
 
-1. **Fabric IQ Ontology** — une couche sémantique d'entreprise gouvernée : les mêmes
+1. **Microsoft IQ** — un agent ancré sur trois dimensions à la fois : les **données**
+   (Fabric IQ, déjà live), le **travail** (Work IQ) et la **connaissance** (Foundry IQ).
+2. **Fabric IQ Ontology** — une couche sémantique d'entreprise gouvernée : les mêmes
    définitions métier alimentent les tableaux de bord, les agents et les workflows.
-2. **Zéro copie de données** — l'app, le lakehouse et l'ontologie partagent OneLake.
-3. **IA de confiance** — les narratifs sont *ancrés* dans les données réelles et l'ontologie,
+3. **Zéro copie de données** — l'app, le lakehouse et l'ontologie partagent OneLake.
+4. **IA de confiance** — les narratifs sont *ancrés* dans les données réelles et l'ontologie,
    pas des hallucinations.
-4. **Gouvernance native** — rôles, masquage PII et audit intégrés dès la conception.
-5. **Time-to-value** — déployé et itéré en jours, pas en mois.
+5. **Gouvernance native** — rôles, masquage PII et audit intégrés dès la conception.
+6. **Time-to-value** — déployé et itéré en jours, pas en mois.
 
 ---
 
@@ -103,6 +126,7 @@ typologies prioritaires et un pilote sur un périmètre réel.
 
 ### Aide-mémoire chiffres
 
+- **3** Microsoft IQ combinés : Fabric IQ (live), Work IQ, Foundry IQ
 - **11** entités métier · **11** relations dans l'ontologie `fraud_ontology`
 - **11** tables Delta gouvernées dans `fraud_lakehouse` (~12,8k lignes chargées en démo)
 - **~10 000** parcours clients analysés dans le Fraud Flow
