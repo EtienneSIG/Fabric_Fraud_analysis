@@ -227,3 +227,98 @@ export function askMicrosoftIq(question: string): IqResult {
 
   return { fabric: fabricIqLive(question), work: work[f], foundry: foundry[f], answer: answers[f] };
 }
+
+// ---------------------------------------------------------------------------
+// Flagship scenario: real-time card fraud — "90 minutes → 30 seconds"
+// ---------------------------------------------------------------------------
+
+export interface Recommendation {
+  confidence: number; // 0..1
+  actions: string[];
+  caseId: string;
+}
+
+export interface CardFraudScenario {
+  alertId: string;
+  customerId: string;
+  customerName: string;
+  context: string[];
+  beforeSteps: string[];
+  beforeMinutes: number;
+  prompt: string;
+  work: string[];
+  fabric: string[]; // LIVE from ontology + lakehouse
+  foundry: string[];
+  recommendation: Recommendation;
+  seconds: number;
+}
+
+/** Builds the flagship card-fraud scenario. Fabric IQ facts are live from data. */
+export function cardFraudScenario(): CardFraudScenario {
+  const alert = DATASET.alerts.find((a) => a.alertType === 'Card Fraud') ?? DATASET.alerts[0];
+  const c = DATASET.customers.find((x) => x.id === alert.customerId) ?? DATASET.customers[0];
+  const txn = DATASET.transactions.find((t) => t.id === alert.transactionId);
+  const linkedCase = DATASET.cases.find((cs) => cs.alertId === alert.id);
+
+  const fabric = [
+    `Ontology · Customer ${c.id} — ${c.name}, ${c.segment}, ${c.country}; KYC ${c.kycRiskRating}` +
+      `${c.pepFlag ? ', PEP' : ''}.`,
+    txn
+      ? `Lakehouse · Première transaction hors ${c.country} depuis 12 mois : ${euro(txn.amount)} ` +
+        `chez ${txn.merchant} (IP ${txn.ipCountry} vs pays carte ${txn.country}).`
+      : `Lakehouse · Première transaction hors ${c.country} depuis 12 mois, marchand à l'étranger.`,
+    `Comportement · 41 transactions en 4 h — vélocité ~4× la baseline ; achat à 03:00 (horaire atypique) ; mobile géolocalisé dans un autre pays.`,
+    `Alert · ${alert.alertType} · risk ${alert.riskScore.toFixed(2)} (${alert.status}) — bound to transaction ${alert.transactionId || '—'}.`,
+  ];
+
+  return {
+    alertId: alert.id,
+    customerId: c.id,
+    customerName: c.name,
+    context: [
+      'Carte bancaire utilisée à 03:00',
+      'Paiement dans un hôtel à l’étranger',
+      '41 transactions en 4 heures',
+      'Pays inhabituel pour le client',
+      'Mobile localisé dans un autre pays',
+    ],
+    beforeSteps: [
+      'Consulter le moteur de règles anti-fraude',
+      'Vérifier les scores de risque',
+      'Interroger le data warehouse',
+      'Chercher dans Teams',
+      'Lire les emails',
+      'Chercher les incidents similaires',
+      'Consulter les procédures',
+      'Appeler un collègue',
+      'Consolider les informations',
+      'Prendre une décision',
+    ],
+    beforeMinutes: 90,
+    prompt: 'Analyse cette alerte fraude et recommande une action.',
+    work: [
+      'Un collègue (a.dupont) a traité un cas quasi identique il y a 5 jours.',
+      'Des échanges Teams dans le canal « Fraud-EMEA » mentionnent le même hôtel.',
+      'Une enquête similaire existe déjà et peut être réutilisée comme modèle.',
+      'Le client a potentiellement signalé un problème via le support auparavant.',
+    ],
+    fabric,
+    foundry: [
+      'Applique la politique fraude : géo-mismatch + vélocité anormale + horaire atypique = blocage.',
+      'Croise la typologie « card-present takeover / impossible travel » de la base de connaissances.',
+      'Mémoire : les cas comparables ont eu 96 % de fraude confirmée sur blocage + réémission.',
+      'Génère un raisonnement explicable et une recommandation d’action.',
+    ],
+    recommendation: {
+      confidence: 0.92,
+      actions: [
+        'Carte temporairement bloquée',
+        'Contact client recommandé',
+        'Dossier d’investigation créé automatiquement',
+      ],
+      caseId: linkedCase?.id ?? 'CASE-001',
+    },
+    seconds: 30,
+  };
+}
+

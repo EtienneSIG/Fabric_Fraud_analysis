@@ -81,28 +81,47 @@ et l'IA est *ancrée* dans le réel via Microsoft IQ (pas d'hallucination).**
 - **AML Copilot** / **Claims Fraud** : mêmes patterns pour le blanchiment et la fraude à
   l'assurance — *un socle, plusieurs métiers.*
 
-### Écran 5 — Microsoft IQ : l'intelligence ancrée (2 min · la vision)
-- Ouvrir l'onglet **Microsoft IQ**. Présenter les **trois IQ** et leur rôle dans la fraude :
-  **Fabric IQ** (badge *Live*), **Work IQ** et **Foundry IQ** (*Simulated*).
-- Dans **« Grounded investigation »**, choisir une question (ex. *« Is CUST-014 part of a
-  coordinated fraud ring? »*) et lancer.
-- Montrer la révélation progressive des trois colonnes :
-  - **Fabric IQ (Live)** : faits **réels** tirés de l'ontologie et du lakehouse (client,
-    comptes, transactions, alertes, liens de collusion).
-  - **Work IQ** : contexte M365 — fils Teams, documents SAR, propriétaire du cas, agenda.
-  - **Foundry IQ** : typologies, seuils réglementaires, mémoire de cas similaires, outils.
-- Puis la **réponse synthétisée** avec l'action recommandée.
-- **Talking point :** *« Le même agent raisonne à la fois sur nos données, notre façon de
-  travailler et la connaissance réglementaire — c'est ça, Microsoft IQ. Ici, la partie
-  Fabric IQ est déjà réelle sur nos données ; Work IQ et Foundry IQ sont prêts à être
-  branchés. »*
+### Écran 5 — Fraud IQ : de 90 minutes à 30 secondes (3 min · le clou du spectacle)
+
+Ouvrir l'onglet **Fraud IQ** (l'application anti-fraude de **Microsoft IQ** : Fabric IQ /
+Work IQ / Foundry IQ). Dérouler le **scénario phare** :
+
+**Le contexte de l'alerte** (bandeau rouge) : une carte utilisée à **03:00**, dans un **hôtel
+à l'étranger**, **41 transactions en 4 heures**, un **pays inhabituel**, et le **mobile
+localisé dans un autre pays**.
+
+**Sans Fraud IQ** (colonne de gauche) : l'analyste enchaîne **10 étapes manuelles** —
+moteur de règles, scores, data warehouse, Teams, emails, incidents similaires, procédures,
+appel à un collègue, consolidation, décision → **≈ 90 minutes**.
+
+**Avec Fraud IQ** : un seul prompt — *« Analyse cette alerte fraude et recommande une
+action. »* — puis cliquer **« Lancer l'investigation agentique »**. Les trois IQ se
+révèlent en cascade :
+- **Work IQ** *(simulé)* — un collègue a traité un cas identique il y a 5 jours ; des
+  échanges Teams mentionnent le même hôtel ; une enquête similaire existe déjà.
+- **Fabric IQ** *(en direct sur l'ontologie + le lakehouse)* — première transaction hors
+  pays depuis 12 mois, vélocité ~4× la baseline, achat à 03:00, alerte reliée.
+- **Foundry IQ** *(simulé)* — applique la politique fraude, croise la typologie, mobilise
+  la mémoire des cas passés, et **raisonne**.
+
+**La recommandation** : **confiance fraude 92 %**, **carte temporairement bloquée**,
+**contact client recommandé**, **dossier d'investigation créé automatiquement** → **≈ 30 s**.
+
+- **Talking point :** *« Le même agent raisonne à la fois sur nos données (Fabric IQ, déjà
+  réel), notre façon de travailler (Work IQ) et la connaissance réglementaire (Foundry IQ).
+  On passe de 90 minutes d'orchestration manuelle à 30 secondes de décision expliquée et
+  auditable. »*
+
+> **Variantes à évoquer** selon l'audience : fraude documentaire KYC (OCR + vision + RAG +
+> agents), lutte anti-blanchiment (AML), agent d'investigation autonome de bout en bout.
 
 ---
 
 ## 4. Ce qui rend cela unique (1 min)
 
-1. **Microsoft IQ** — un agent ancré sur trois dimensions à la fois : les **données**
-   (Fabric IQ, déjà live), le **travail** (Work IQ) et la **connaissance** (Foundry IQ).
+1. **Microsoft IQ**, exposé ici comme **Fraud IQ** — un agent ancré sur trois dimensions à la
+   fois : les **données** (Fabric IQ, déjà live), le **travail** (Work IQ) et la
+   **connaissance** (Foundry IQ).
 2. **Fabric IQ Ontology** — une couche sémantique d'entreprise gouvernée : les mêmes
    définitions métier alimentent les tableaux de bord, les agents et les workflows.
 3. **Zéro copie de données** — l'app, le lakehouse et l'ontologie partagent OneLake.

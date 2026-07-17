@@ -7,7 +7,7 @@ import { FraudFlow } from '@/app/pages/FraudFlow';
 import { AMLCopilot } from '@/app/pages/AMLCopilot';
 import { ClaimsFraud } from '@/app/pages/ClaimsFraud';
 import { EntityGraph } from '@/app/pages/EntityGraph';
-import { MicrosoftIQ } from '@/app/pages/MicrosoftIQ';
+import { FraudIQ } from '@/app/pages/FraudIQ';
 import { Settings } from '@/app/pages/Settings';
 
 export interface NavItem {
@@ -23,7 +23,7 @@ export const NAV: NavItem[] = [
   { path: '/aml', label: 'AML Copilot', icon: 'M4 4h16v12H4zM8 20h8M12 16v4' },
   { path: '/claims', label: 'Claims Fraud', icon: 'M6 2h9l5 5v15H6zM14 2v6h6' },
   { path: '/graph', label: 'Entity Graph', icon: 'M5 6a2 2 0 100-4 2 2 0 000 4zM19 8a2 2 0 100-4 2 2 0 000 4zM12 22a2 2 0 100-4 2 2 0 000 4zM6 6l5 10M18 6l-6 10' },
-  { path: '/microsoft-iq', label: 'Microsoft IQ', icon: 'M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4z' },
+  { path: '/fraud-iq', label: 'Fraud IQ', icon: 'M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4z' },
   { path: '/settings', label: 'Settings', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zM3 12h3M18 12h3M12 3v3M12 18v3' },
 ];
 
@@ -40,6 +40,6 @@ export const ROUTES: RouteDef[] = [
   { path: '/aml', element: <AMLCopilot /> },
   { path: '/claims', element: <ClaimsFraud /> },
   { path: '/graph', element: <EntityGraph /> },
-  { path: '/microsoft-iq', element: <MicrosoftIQ /> },
+  { path: '/fraud-iq', element: <FraudIQ /> },
   { path: '/settings', element: <Settings /> },
 ];
