@@ -1,0 +1,49 @@
+{
+  "id": "1000000075",
+  "namespace": "usertypes",
+  "baseEntityTypeId": null,
+  "name": "EntityRelationship",
+  "entityIdParts": [
+    "1000000076"
+  ],
+  "displayNamePropertyId": "1000000079",
+  "namespaceType": "Custom",
+  "visibility": "Visible",
+  "properties": [
+    {
+      "id": "1000000076",
+      "name": "id",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000077",
+      "name": "sourceEntityId",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000078",
+      "name": "targetEntityId",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000079",
+      "name": "relationshipType",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000080",
+      "name": "weight",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "Double"
+    }
+  ]
+}

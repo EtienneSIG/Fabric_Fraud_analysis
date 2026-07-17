@@ -1,56 +1,63 @@
-# Fabric_Fraud_analysis
+# Fabric Fraud Intelligence
 
-Microsoft Fabric / Rayfin fraud management workspace scaffold.
+An end-to-end fraud detection and investigation solution built on **Microsoft Fabric**,
+combining a **Rayfin Fabric App** (React frontend + Fabric SQL backend), a governed
+**Lakehouse**, and a **Fabric IQ Ontology** semantic layer.
+
+**Live app:** https://fleet-north-8c279cc767-swedencentral.webapp.fabricapps.net
+**Workspace:** `Fraud_analysis` (`d451f521-7e87-408f-8208-61928f1b84e3`)
 
 ## Repository structure
 
-- `fabric_app/notebooks` synthetic data generation and fraud-pattern injection starter code.
-- `fabric_app/contracts` canonical entity and fraud pattern contracts.
-- `fabric_app/pipelines` Eventhouse/KQL and Lakehouse pipeline specs.
-- `fabric_app/scoring` risk scoring and graph-feature specification.
-- `fabric_app/ontology` ontology and graph bindings.
-- `fabric_app/backend` Rayfin backend skeleton.
-- `fabric_app/screens` four-screen UX contracts.
-- `fabric_app/remediation` alert-to-case remediation loop.
-- `fabric_app/demo` end-to-end demo and validation runbook.
+| Folder | Theme | Contents |
+| --- | --- | --- |
+| `fabric-fraud-intelligence/` | **Application** | Rayfin Fabric App — React/TS frontend, entity models, mock agent services. Deploy with `npx rayfin up`. |
+| `fabric/ontology/` | **Semantic layer** | Fabric IQ Ontology builder (`build_ontology.py`), REST deployer (`post_ontology.ps1`), generated `create_body.json` + `parts/`, and `fraud_ontology.yaml` (deployed model doc). |
+| `fabric/lakehouse/` | **Data** | Loads the app dataset into `fraud_lakehouse` Delta tables (`load_app_data.py`, `run_load.ps1`, `upload_lakehouse_data.ps1`, `post_notebook.ps1`) + historical SQL. |
+| `fabric/realtime/` | **Streaming** | Eventhouse/KQL specs and deploy scripts. |
+| `fabric/powerbi/` | **Reporting** | Semantic model (`model.bim`) + report deploy scripts. |
+| `design/` | **Architecture blueprint** | Canonical contracts, fraud patterns, risk-scoring spec, screen UX contracts, remediation loop, environment config. |
+| `docs/` | **Docs** | Executive demo narrative and supporting documentation. |
 
-## Notes
+## The application
 
-- This repository currently contains architecture assets and scaffolding only.
-- No project-specific lint/build/test commands are defined yet.
+The app (`fabric-fraud-intelligence/`) surfaces:
 
-## Step-by-step Fabric demo setup
+- **Dashboard** — KPIs and alert overview with role-based access (Analyst / Manager / Auditor) and PII masking.
+- **Fraud Flow** — a Customer 360 Sankey of ~10k customer journeys, a geographic **event map**, a fraud-only filter, and hover counts.
+- **Entity Graph** — an event-derived force-directed graph (fraud-type hubs + customers), centrality sizing (degree / closeness / betweenness), fraud filtering, and an **AI narrative** explaining each entity.
+- **Alert Queue, Case Detail, AML Copilot, Claims Fraud** — investigation workflows with grounded agent assistance.
 
-1. **Prepare prerequisites**
-   - Install Python 3.10+.
-   - Install Azure CLI (`az`) if you want to automate Entra ID sign-in.
-   - Verify you have access to the target tenant and Fabric workspace.
-   - If needed on Unix systems, make the script executable: `chmod +x scripts/deploy_fabric_demo.py`.
-   - Use either `./scripts/deploy_fabric_demo.py ...` (executable mode) or `python3 scripts/deploy_fabric_demo.py ...`.
-2. **Generate the deployment inventory**
-   - Run the script:
-     - `./scripts/deploy_fabric_demo.py --tenant <tenant-id> --workspace <workspace-name> --interactive-login`
-   - The script validates demo assets and writes a manifest in `./artifacts/deployment_manifest_<workspace>.md`.
-3. **Configure the target workspace**
-   - Configure workspace/lakehouse/eventhouse parameters in `fabric_app/config/environments.yaml` (section `fabric`).
-   - At minimum update: `fabric_workspace`, `lakehouse.name`, `eventhouse.database`, and security values under `security`.
-4. **Deploy functional assets**
-   - Generator notebook: `fabric_app/notebooks/synthetic_data_generator.py`
-   - Lakehouse SQL: `fabric_app/pipelines/historical_lakehouse.sql`
-   - Eventhouse KQL: `fabric_app/pipelines/realtime_eventhouse.kql`
-   - Contracts/ontology/remediation/screens: `fabric_app/contracts`, `fabric_app/ontology`, `fabric_app/remediation`, `fabric_app/screens`
-5. **Run demo walkthrough**
-   - Follow the runbook: `fabric_app/demo/e2e_demo_validation.yaml`
-   - Validate the checklist (RLS, governance, latency, explainability).
+### Run locally
 
-### Deployment helper executable
+```powershell
+cd fabric-fraud-intelligence
+npm install
+npm run dev
+```
 
-Use the same command shown in step 2:
-- `./scripts/deploy_fabric_demo.py --tenant <tenant-id> --workspace <workspace-name> --interactive-login`
-- `python3 scripts/deploy_fabric_demo.py --tenant <tenant-id> --workspace <workspace-name> --interactive-login`
+### Deploy to Fabric
 
-Main options:
-- `--tenant`: target Entra ID tenant (required)
-- `--workspace`: target Fabric workspace (required)
-- `--interactive-login`: forces `az login --tenant ...`
-- `--skip-auth`: skips Azure CLI login/auth checks
+```powershell
+cd fabric-fraud-intelligence
+npx rayfin up --workspace "Fraud_analysis"
+```
+
+## The data + semantic layer
+
+`fraud_lakehouse` holds 11 governed Delta tables (customer, account, transaction, policy,
+claim, fraud_alert, fraud_case, evidence, entity_relationship, agent_run, customer_event).
+The **`fraud_ontology`** Fabric IQ item binds those tables into 11 entity types and 11
+relationship types, deriving an instance graph from foreign-key columns.
+
+```powershell
+# 1. materialize app data as Delta tables
+& fabric/lakehouse/run_load.ps1
+# 2. build + deploy the ontology
+python fabric/ontology/build_ontology.py
+& fabric/ontology/post_ontology.ps1
+```
+
+## Demo
+
+See [docs/exec-demo-narrative.md](docs/exec-demo-narrative.md) for the executive demo script.

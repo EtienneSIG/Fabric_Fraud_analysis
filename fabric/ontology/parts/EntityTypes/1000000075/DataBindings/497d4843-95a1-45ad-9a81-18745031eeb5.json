@@ -1,0 +1,34 @@
+{
+  "id": "497d4843-95a1-45ad-9a81-18745031eeb5",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000076"
+      },
+      {
+        "sourceColumnName": "sourceEntityId",
+        "targetPropertyId": "1000000077"
+      },
+      {
+        "sourceColumnName": "targetEntityId",
+        "targetPropertyId": "1000000078"
+      },
+      {
+        "sourceColumnName": "relationshipType",
+        "targetPropertyId": "1000000079"
+      },
+      {
+        "sourceColumnName": "weight",
+        "targetPropertyId": "1000000080"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "entity_relationship"
+    }
+  }
+}

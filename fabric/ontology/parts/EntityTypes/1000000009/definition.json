@@ -1,0 +1,49 @@
+{
+  "id": "1000000009",
+  "namespace": "usertypes",
+  "baseEntityTypeId": null,
+  "name": "Account",
+  "entityIdParts": [
+    "1000000010"
+  ],
+  "displayNamePropertyId": "1000000010",
+  "namespaceType": "Custom",
+  "visibility": "Visible",
+  "properties": [
+    {
+      "id": "1000000010",
+      "name": "id",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000011",
+      "name": "customerId",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000012",
+      "name": "ibanHash",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000013",
+      "name": "accountOpenDate",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "DateTime"
+    },
+    {
+      "id": "1000000014",
+      "name": "status",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "id": "1000000028",
+  "namespace": "usertypes",
+  "baseEntityTypeId": null,
+  "name": "Policy",
+  "entityIdParts": [
+    "1000000029"
+  ],
+  "displayNamePropertyId": "1000000029",
+  "namespaceType": "Custom",
+  "visibility": "Visible",
+  "properties": [
+    {
+      "id": "1000000029",
+      "name": "id",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000030",
+      "name": "customerId",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000031",
+      "name": "policyType",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000032",
+      "name": "startDate",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "DateTime"
+    },
+    {
+      "id": "1000000033",
+      "name": "premium",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "Double"
+    },
+    {
+      "id": "1000000034",
+      "name": "status",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    }
+  ]
+}

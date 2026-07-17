@@ -1,0 +1,70 @@
+{
+  "id": "1000000057",
+  "namespace": "usertypes",
+  "baseEntityTypeId": null,
+  "name": "FraudCase",
+  "entityIdParts": [
+    "1000000058"
+  ],
+  "displayNamePropertyId": "1000000058",
+  "namespaceType": "Custom",
+  "visibility": "Visible",
+  "properties": [
+    {
+      "id": "1000000058",
+      "name": "id",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000059",
+      "name": "alertId",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000060",
+      "name": "assignedTo",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000061",
+      "name": "status",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000062",
+      "name": "decision",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000063",
+      "name": "decisionReason",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "String"
+    },
+    {
+      "id": "1000000064",
+      "name": "createdAt",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "DateTime"
+    },
+    {
+      "id": "1000000065",
+      "name": "updatedAt",
+      "redefines": null,
+      "baseTypeNamespaceType": null,
+      "valueType": "DateTime"
+    }
+  ]
+}

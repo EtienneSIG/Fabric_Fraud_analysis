@@ -1,0 +1,206 @@
+{
+  "name": "Rayfin_FraudModel",
+  "compatibilityLevel": 1604,
+  "model": {
+    "culture": "en-US",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "en-US",
+    "expressions": [
+      {
+        "name": "DatabaseQuery",
+        "kind": "m",
+        "expression": [
+          "let",
+          "    Source = Sql.Database(\"__SERVER__\", \"__DB__\")",
+          "in",
+          "    Source"
+        ],
+        "lineageTag": "rayfin-src-001"
+      }
+    ],
+    "tables": [
+      {
+        "name": "transactions",
+        "lineageTag": "tbl-transactions",
+        "columns": [
+          { "name": "transaction_id", "dataType": "string", "sourceColumn": "transaction_id", "lineageTag": "c-tx-1", "summarizeBy": "none" },
+          { "name": "source_account", "dataType": "string", "sourceColumn": "source_account", "lineageTag": "c-tx-2", "summarizeBy": "none" },
+          { "name": "dest_account", "dataType": "string", "sourceColumn": "dest_account", "lineageTag": "c-tx-3", "summarizeBy": "none" },
+          { "name": "merchant_id", "dataType": "string", "sourceColumn": "merchant_id", "lineageTag": "c-tx-4", "summarizeBy": "none" },
+          { "name": "device_id", "dataType": "string", "sourceColumn": "device_id", "lineageTag": "c-tx-5", "summarizeBy": "none" },
+          { "name": "ip_id", "dataType": "string", "sourceColumn": "ip_id", "lineageTag": "c-tx-6", "summarizeBy": "none" },
+          { "name": "amount", "dataType": "double", "sourceColumn": "amount", "lineageTag": "c-tx-7", "summarizeBy": "sum" },
+          { "name": "timestamp", "dataType": "dateTime", "sourceColumn": "timestamp", "lineageTag": "c-tx-8", "summarizeBy": "none" },
+          { "name": "channel", "dataType": "string", "sourceColumn": "channel", "lineageTag": "c-tx-9", "summarizeBy": "none" },
+          { "name": "geo", "dataType": "string", "sourceColumn": "geo", "lineageTag": "c-tx-10", "summarizeBy": "none" },
+          { "name": "currency", "dataType": "string", "sourceColumn": "currency", "lineageTag": "c-tx-11", "summarizeBy": "none" },
+          { "name": "fraud_flag", "dataType": "int64", "sourceColumn": "fraud_flag", "lineageTag": "c-tx-12", "summarizeBy": "sum" },
+          { "name": "risk_score", "dataType": "double", "sourceColumn": "risk_score", "lineageTag": "c-tx-13", "summarizeBy": "average" },
+          { "name": "cluster_id", "dataType": "string", "sourceColumn": "cluster_id", "lineageTag": "c-tx-14", "summarizeBy": "none" },
+          { "name": "population_risk_score", "dataType": "double", "sourceColumn": "population_risk_score", "lineageTag": "c-tx-15", "summarizeBy": "average" },
+          { "name": "alert_severity", "dataType": "string", "sourceColumn": "alert_severity", "lineageTag": "c-tx-16", "summarizeBy": "none" }
+        ],
+        "partitions": [
+          {
+            "name": "transactions",
+            "mode": "directLake",
+            "source": { "type": "entity", "entityName": "transactions", "expressionSource": "DatabaseQuery", "schemaName": "dbo" }
+          }
+        ],
+        "measures": [
+          { "name": "Total Transactions", "expression": "COUNTROWS(transactions)", "lineageTag": "m-1", "formatString": "#,0" },
+          { "name": "Fraud Transactions", "expression": "CALCULATE(COUNTROWS(transactions), transactions[fraud_flag] = 1)", "lineageTag": "m-2", "formatString": "#,0" },
+          { "name": "Fraud Rate", "expression": "DIVIDE([Fraud Transactions], [Total Transactions])", "lineageTag": "m-3", "formatString": "0.0%" },
+          { "name": "Total Amount", "expression": "SUM(transactions[amount])", "lineageTag": "m-4", "formatString": "\\€#,0" },
+          { "name": "Fraud Amount", "expression": "CALCULATE(SUM(transactions[amount]), transactions[fraud_flag] = 1)", "lineageTag": "m-5", "formatString": "\\€#,0" },
+          { "name": "Avg Risk Score", "expression": "AVERAGE(transactions[risk_score])", "lineageTag": "m-6", "formatString": "0.000" }
+        ]
+      },
+      {
+        "name": "fraud_clusters",
+        "lineageTag": "tbl-clusters",
+        "columns": [
+          { "name": "cluster_id", "dataType": "string", "sourceColumn": "cluster_id", "lineageTag": "c-cl-1", "summarizeBy": "none" },
+          { "name": "pattern", "dataType": "string", "sourceColumn": "pattern", "lineageTag": "c-cl-2", "summarizeBy": "none" },
+          { "name": "member_accounts", "dataType": "int64", "sourceColumn": "member_accounts", "lineageTag": "c-cl-3", "summarizeBy": "sum" },
+          { "name": "shared_device", "dataType": "int64", "sourceColumn": "shared_device", "lineageTag": "c-cl-4", "summarizeBy": "sum" },
+          { "name": "shared_ip", "dataType": "int64", "sourceColumn": "shared_ip", "lineageTag": "c-cl-5", "summarizeBy": "sum" },
+          { "name": "tx_count", "dataType": "int64", "sourceColumn": "tx_count", "lineageTag": "c-cl-6", "summarizeBy": "sum" },
+          { "name": "total_amount", "dataType": "double", "sourceColumn": "total_amount", "lineageTag": "c-cl-7", "summarizeBy": "sum" },
+          { "name": "population_risk_score", "dataType": "double", "sourceColumn": "population_risk_score", "lineageTag": "c-cl-8", "summarizeBy": "average" },
+          { "name": "distinct_merchants", "dataType": "int64", "sourceColumn": "distinct_merchants", "lineageTag": "c-cl-9", "summarizeBy": "sum" },
+          { "name": "merchant_concentration", "dataType": "double", "sourceColumn": "merchant_concentration", "lineageTag": "c-cl-10", "summarizeBy": "average" }
+        ],
+        "partitions": [
+          {
+            "name": "fraud_clusters",
+            "mode": "directLake",
+            "source": { "type": "entity", "entityName": "fraud_clusters", "expressionSource": "DatabaseQuery", "schemaName": "dbo" }
+          }
+        ]
+      },
+      {
+        "name": "alerts",
+        "lineageTag": "tbl-alerts",
+        "columns": [
+          { "name": "alert_id", "dataType": "string", "sourceColumn": "alert_id", "lineageTag": "c-al-1", "summarizeBy": "none" },
+          { "name": "transaction_id", "dataType": "string", "sourceColumn": "transaction_id", "lineageTag": "c-al-2", "summarizeBy": "none" },
+          { "name": "source_account", "dataType": "string", "sourceColumn": "source_account", "lineageTag": "c-al-3", "summarizeBy": "none" },
+          { "name": "cluster_id", "dataType": "string", "sourceColumn": "cluster_id", "lineageTag": "c-al-4", "summarizeBy": "none" },
+          { "name": "pattern", "dataType": "string", "sourceColumn": "pattern", "lineageTag": "c-al-5", "summarizeBy": "none" },
+          { "name": "severity", "dataType": "string", "sourceColumn": "severity", "lineageTag": "c-al-6", "summarizeBy": "none" },
+          { "name": "risk_score", "dataType": "double", "sourceColumn": "risk_score", "lineageTag": "c-al-7", "summarizeBy": "average" },
+          { "name": "created_ts", "dataType": "dateTime", "sourceColumn": "created_ts", "lineageTag": "c-al-8", "summarizeBy": "none" }
+        ],
+        "partitions": [
+          {
+            "name": "alerts",
+            "mode": "directLake",
+            "source": { "type": "entity", "entityName": "alerts", "expressionSource": "DatabaseQuery", "schemaName": "dbo" }
+          }
+        ],
+        "measures": [
+          { "name": "Open Alerts", "expression": "COUNTROWS(alerts)", "lineageTag": "m-al-1", "formatString": "#,0" }
+        ]
+      },
+      {
+        "name": "fraud_cases",
+        "lineageTag": "tbl-cases",
+        "columns": [
+          { "name": "case_id", "dataType": "string", "sourceColumn": "case_id", "lineageTag": "c-ca-1", "summarizeBy": "none" },
+          { "name": "alert_id", "dataType": "string", "sourceColumn": "alert_id", "lineageTag": "c-ca-2", "summarizeBy": "none" },
+          { "name": "cluster_id", "dataType": "string", "sourceColumn": "cluster_id", "lineageTag": "c-ca-3", "summarizeBy": "none" },
+          { "name": "owner", "dataType": "string", "sourceColumn": "owner", "lineageTag": "c-ca-4", "summarizeBy": "none" },
+          { "name": "status", "dataType": "string", "sourceColumn": "status", "lineageTag": "c-ca-5", "summarizeBy": "none" },
+          { "name": "decision", "dataType": "string", "sourceColumn": "decision", "lineageTag": "c-ca-6", "summarizeBy": "none" },
+          { "name": "decision_timestamp", "dataType": "dateTime", "sourceColumn": "decision_timestamp", "lineageTag": "c-ca-7", "summarizeBy": "none" },
+          { "name": "remediation_action", "dataType": "string", "sourceColumn": "remediation_action", "lineageTag": "c-ca-8", "summarizeBy": "none" },
+          { "name": "analyst_feedback", "dataType": "string", "sourceColumn": "analyst_feedback", "lineageTag": "c-ca-9", "summarizeBy": "none" },
+          { "name": "model_version", "dataType": "string", "sourceColumn": "model_version", "lineageTag": "c-ca-10", "summarizeBy": "none" }
+        ],
+        "partitions": [
+          {
+            "name": "fraud_cases",
+            "mode": "directLake",
+            "source": { "type": "entity", "entityName": "fraud_cases", "expressionSource": "DatabaseQuery", "schemaName": "dbo" }
+          }
+        ],
+        "measures": [
+          { "name": "Open Cases", "expression": "COUNTROWS(fraud_cases)", "lineageTag": "m-ca-1", "formatString": "#,0" },
+          { "name": "Confirmed Fraud Cases", "expression": "CALCULATE(COUNTROWS(fraud_cases), fraud_cases[decision] = \"confirmed_fraud\")", "lineageTag": "m-ca-2", "formatString": "#,0" }
+        ]
+      },
+      {
+        "name": "merchants",
+        "lineageTag": "tbl-merchants",
+        "columns": [
+          { "name": "merchant_id", "dataType": "string", "sourceColumn": "merchant_id", "lineageTag": "c-me-1", "summarizeBy": "none" },
+          { "name": "mcc", "dataType": "string", "sourceColumn": "mcc", "lineageTag": "c-me-2", "summarizeBy": "none" },
+          { "name": "merchant_geo", "dataType": "string", "sourceColumn": "merchant_geo", "lineageTag": "c-me-3", "summarizeBy": "none" },
+          { "name": "merchant_risk_score", "dataType": "double", "sourceColumn": "merchant_risk_score", "lineageTag": "c-me-4", "summarizeBy": "average" }
+        ],
+        "partitions": [
+          {
+            "name": "merchants",
+            "mode": "directLake",
+            "source": { "type": "entity", "entityName": "merchants", "expressionSource": "DatabaseQuery", "schemaName": "dbo" }
+          }
+        ]
+      },
+      {
+        "name": "customers",
+        "lineageTag": "tbl-customers",
+        "columns": [
+          { "name": "customer_id", "dataType": "string", "sourceColumn": "customer_id", "lineageTag": "c-cu-1", "summarizeBy": "none" },
+          { "name": "segment", "dataType": "string", "sourceColumn": "segment", "lineageTag": "c-cu-2", "summarizeBy": "none" },
+          { "name": "region", "dataType": "string", "sourceColumn": "region", "lineageTag": "c-cu-3", "summarizeBy": "none" },
+          { "name": "tenure", "dataType": "int64", "sourceColumn": "tenure", "lineageTag": "c-cu-4", "summarizeBy": "none" },
+          { "name": "kyc_status", "dataType": "string", "sourceColumn": "kyc_status", "lineageTag": "c-cu-5", "summarizeBy": "none" },
+          { "name": "risk_baseline", "dataType": "double", "sourceColumn": "risk_baseline", "lineageTag": "c-cu-6", "summarizeBy": "average" }
+        ],
+        "partitions": [
+          {
+            "name": "customers",
+            "mode": "directLake",
+            "source": { "type": "entity", "entityName": "customers", "expressionSource": "DatabaseQuery", "schemaName": "dbo" }
+          }
+        ]
+      },
+      {
+        "name": "fraud_flow_edges",
+        "lineageTag": "tbl-flow",
+        "columns": [
+          { "name": "source", "dataType": "string", "sourceColumn": "source", "lineageTag": "c-fl-1", "summarizeBy": "none" },
+          { "name": "target", "dataType": "string", "sourceColumn": "target", "lineageTag": "c-fl-2", "summarizeBy": "none" },
+          { "name": "source_type", "dataType": "string", "sourceColumn": "source_type", "lineageTag": "c-fl-3", "summarizeBy": "none" },
+          { "name": "target_type", "dataType": "string", "sourceColumn": "target_type", "lineageTag": "c-fl-4", "summarizeBy": "none" },
+          { "name": "value", "dataType": "double", "sourceColumn": "value", "lineageTag": "c-fl-5", "summarizeBy": "sum" },
+          { "name": "cluster_id", "dataType": "string", "sourceColumn": "cluster_id", "lineageTag": "c-fl-6", "summarizeBy": "none" },
+          { "name": "pattern", "dataType": "string", "sourceColumn": "pattern", "lineageTag": "c-fl-7", "summarizeBy": "none" },
+          { "name": "stage", "dataType": "int64", "sourceColumn": "stage", "lineageTag": "c-fl-8", "summarizeBy": "none" }
+        ],
+        "partitions": [
+          {
+            "name": "fraud_flow_edges",
+            "mode": "directLake",
+            "source": { "type": "entity", "entityName": "fraud_flow_edges", "expressionSource": "DatabaseQuery", "schemaName": "dbo" }
+          }
+        ],
+        "measures": [
+          { "name": "Flow Value", "expression": "SUM(fraud_flow_edges[value])", "lineageTag": "m-fl-1", "formatString": "\\€#,0" }
+        ]
+      }
+    ],
+    "relationships": [
+      { "name": "tx_cluster", "fromTable": "transactions", "fromColumn": "cluster_id", "toTable": "fraud_clusters", "toColumn": "cluster_id", "crossFilteringBehavior": "oneDirection" },
+      { "name": "tx_merchant", "fromTable": "transactions", "fromColumn": "merchant_id", "toTable": "merchants", "toColumn": "merchant_id", "crossFilteringBehavior": "oneDirection" },
+      { "name": "alert_cluster", "fromTable": "alerts", "fromColumn": "cluster_id", "toTable": "fraud_clusters", "toColumn": "cluster_id", "crossFilteringBehavior": "oneDirection" },
+      { "name": "case_cluster", "fromTable": "fraud_cases", "fromColumn": "cluster_id", "toTable": "fraud_clusters", "toColumn": "cluster_id", "crossFilteringBehavior": "oneDirection" },
+      { "name": "case_alert", "fromTable": "fraud_cases", "fromColumn": "alert_id", "toTable": "alerts", "toColumn": "alert_id", "crossFilteringBehavior": "oneDirection", "isActive": false },
+      { "name": "flow_cluster", "fromTable": "fraud_flow_edges", "fromColumn": "cluster_id", "toTable": "fraud_clusters", "toColumn": "cluster_id", "crossFilteringBehavior": "oneDirection" }
+    ],
+    "annotations": [
+      { "name": "PBI_QueryOrder", "value": "[\"DatabaseQuery\"]" }
+    ]
+  }
+}

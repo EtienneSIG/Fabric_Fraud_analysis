@@ -1,0 +1,41 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "barStatus",
+  "position": { "x": 24, "y": 24, "z": 0, "height": 320, "width": 1168, "tabOrder": 0 },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "fraud_cases" } },
+                  "Property": "status"
+                }
+              },
+              "queryRef": "fraud_cases.status",
+              "nativeQueryRef": "status"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": { "SourceRef": { "Entity": "fraud_cases" } },
+                  "Property": "Open Cases"
+                }
+              },
+              "queryRef": "fraud_cases.Open Cases",
+              "nativeQueryRef": "Open Cases"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

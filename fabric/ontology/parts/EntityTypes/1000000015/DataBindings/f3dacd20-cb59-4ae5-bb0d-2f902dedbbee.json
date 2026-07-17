@@ -1,0 +1,62 @@
+{
+  "id": "f3dacd20-cb59-4ae5-bb0d-2f902dedbbee",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000016"
+      },
+      {
+        "sourceColumnName": "accountId",
+        "targetPropertyId": "1000000017"
+      },
+      {
+        "sourceColumnName": "timestamp",
+        "targetPropertyId": "1000000018"
+      },
+      {
+        "sourceColumnName": "amount",
+        "targetPropertyId": "1000000019"
+      },
+      {
+        "sourceColumnName": "currency",
+        "targetPropertyId": "1000000020"
+      },
+      {
+        "sourceColumnName": "merchant",
+        "targetPropertyId": "1000000021"
+      },
+      {
+        "sourceColumnName": "merchantCategory",
+        "targetPropertyId": "1000000022"
+      },
+      {
+        "sourceColumnName": "channel",
+        "targetPropertyId": "1000000023"
+      },
+      {
+        "sourceColumnName": "country",
+        "targetPropertyId": "1000000024"
+      },
+      {
+        "sourceColumnName": "deviceId",
+        "targetPropertyId": "1000000025"
+      },
+      {
+        "sourceColumnName": "ipCountry",
+        "targetPropertyId": "1000000026"
+      },
+      {
+        "sourceColumnName": "counterpartyId",
+        "targetPropertyId": "1000000027"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "transaction"
+    }
+  }
+}

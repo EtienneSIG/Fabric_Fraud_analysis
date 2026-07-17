@@ -1,0 +1,42 @@
+{
+  "id": "6a44acab-6190-4ef5-9931-0b3178670262",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000002"
+      },
+      {
+        "sourceColumnName": "name",
+        "targetPropertyId": "1000000003"
+      },
+      {
+        "sourceColumnName": "segment",
+        "targetPropertyId": "1000000004"
+      },
+      {
+        "sourceColumnName": "country",
+        "targetPropertyId": "1000000005"
+      },
+      {
+        "sourceColumnName": "kycRiskRating",
+        "targetPropertyId": "1000000006"
+      },
+      {
+        "sourceColumnName": "pepFlag",
+        "targetPropertyId": "1000000007"
+      },
+      {
+        "sourceColumnName": "sanctionsFlag",
+        "targetPropertyId": "1000000008"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "customer"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "9f7be210-cd17-45b6-a480-ceb8e7c2bfd4",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000067"
+      },
+      {
+        "sourceColumnName": "caseId",
+        "targetPropertyId": "1000000068"
+      },
+      {
+        "sourceColumnName": "evidenceType",
+        "targetPropertyId": "1000000069"
+      },
+      {
+        "sourceColumnName": "title",
+        "targetPropertyId": "1000000070"
+      },
+      {
+        "sourceColumnName": "content",
+        "targetPropertyId": "1000000071"
+      },
+      {
+        "sourceColumnName": "sourceSystem",
+        "targetPropertyId": "1000000072"
+      },
+      {
+        "sourceColumnName": "confidence",
+        "targetPropertyId": "1000000073"
+      },
+      {
+        "sourceColumnName": "createdAt",
+        "targetPropertyId": "1000000074"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "evidence"
+    }
+  }
+}

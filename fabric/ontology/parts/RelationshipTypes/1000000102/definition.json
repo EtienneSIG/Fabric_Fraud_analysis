@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "1000000102",
+  "name": "policyHasClaim",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "1000000028"
+  },
+  "target": {
+    "entityTypeId": "1000000035"
+  }
+}

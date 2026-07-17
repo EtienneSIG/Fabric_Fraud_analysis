@@ -1,0 +1,21 @@
+{
+  "id": "634fd43e-b1ea-4d0f-9c49-15d03e12092c",
+  "dataBindingTable": {
+    "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+    "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+    "sourceTableName": "fraud_alert",
+    "sourceType": "LakehouseTable"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "id",
+      "targetPropertyId": "1000000046"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "customerId",
+      "targetPropertyId": "1000000002"
+    }
+  ]
+}

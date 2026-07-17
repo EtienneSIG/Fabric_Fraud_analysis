@@ -1,0 +1,84 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "scatterClusters",
+  "position": { "x": 24, "y": 24, "z": 0, "height": 320, "width": 1168, "tabOrder": 0 },
+  "visual": {
+    "visualType": "scatterChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "fraud_clusters" } },
+                  "Property": "cluster_id"
+                }
+              },
+              "queryRef": "fraud_clusters.cluster_id",
+              "nativeQueryRef": "cluster_id"
+            }
+          ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": { "SourceRef": { "Entity": "fraud_clusters" } },
+                      "Property": "member_accounts"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fraud_clusters.member_accounts)",
+              "nativeQueryRef": "Sum of member_accounts"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": { "SourceRef": { "Entity": "fraud_clusters" } },
+                      "Property": "population_risk_score"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(fraud_clusters.population_risk_score)",
+              "nativeQueryRef": "Average of population_risk_score"
+            }
+          ]
+        },
+        "Size": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": { "SourceRef": { "Entity": "fraud_clusters" } },
+                      "Property": "tx_count"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fraud_clusters.tx_count)",
+              "nativeQueryRef": "Sum of tx_count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

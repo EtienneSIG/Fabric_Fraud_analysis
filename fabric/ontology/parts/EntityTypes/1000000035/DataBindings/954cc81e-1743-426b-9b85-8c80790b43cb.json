@@ -1,0 +1,50 @@
+{
+  "id": "954cc81e-1743-426b-9b85-8c80790b43cb",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000036"
+      },
+      {
+        "sourceColumnName": "policyId",
+        "targetPropertyId": "1000000037"
+      },
+      {
+        "sourceColumnName": "customerId",
+        "targetPropertyId": "1000000038"
+      },
+      {
+        "sourceColumnName": "claimType",
+        "targetPropertyId": "1000000039"
+      },
+      {
+        "sourceColumnName": "claimDate",
+        "targetPropertyId": "1000000040"
+      },
+      {
+        "sourceColumnName": "amountClaimed",
+        "targetPropertyId": "1000000041"
+      },
+      {
+        "sourceColumnName": "repairProvider",
+        "targetPropertyId": "1000000042"
+      },
+      {
+        "sourceColumnName": "status",
+        "targetPropertyId": "1000000043"
+      },
+      {
+        "sourceColumnName": "location",
+        "targetPropertyId": "1000000044"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "claim"
+    }
+  }
+}

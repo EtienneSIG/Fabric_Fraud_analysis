@@ -1,0 +1,45 @@
+# Fabric Fraud Intelligence — Fabric App descriptor
+# NOTE: the authoritative deployment config is rayfin.yml (used by the Rayfin CLI).
+# This file documents the intended Fabric App shape for reviewers.
+
+app:
+  name: fabric-fraud-intelligence
+  displayName: Fabric Fraud Intelligence
+  description: >-
+    Governed data + AI application on Microsoft Fabric for banking & insurance
+    fraud investigation (card/payment fraud, AML, KYC, identity, claims fraud,
+    provider/collusion networks).
+  platform: rayfin
+  auth:
+    provider: microsoft-entra
+    sso: fabric
+
+workspace: Fraud_analysis
+
+data:
+  dialect: mssql
+  # Entities are declared with @entity decorators in rayfin/data/*.ts and
+  # materialize as a Fabric SQL Database (the app ontology).
+  entities:
+    - Customer
+    - Account
+    - Transaction
+    - FraudAlert
+    - FraudCase
+    - Claim
+    - Policy
+    - Evidence
+    - EntityRelationship
+    - AgentRun
+
+ai:
+  mode: mock # mock | fabric
+  dataAgent:
+    envVar: VITE_FABRIC_DATA_AGENT_ID
+    grounding: [structured-entities, seeded-evidence]
+
+governance:
+  roles: [Analyst, Manager, Auditor]
+  piiMasking: true
+  humanInTheLoop: true # all agent recommendations are advisory and require approval
+  auditTrail: AgentRun

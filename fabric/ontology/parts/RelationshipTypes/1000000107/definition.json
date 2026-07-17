@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "1000000107",
+  "name": "evidenceSupportsCase",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "1000000066"
+  },
+  "target": {
+    "entityTypeId": "1000000057"
+  }
+}

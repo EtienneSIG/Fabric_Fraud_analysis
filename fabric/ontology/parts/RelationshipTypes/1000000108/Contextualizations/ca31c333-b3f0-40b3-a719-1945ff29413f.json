@@ -1,0 +1,21 @@
+{
+  "id": "ca31c333-b3f0-40b3-a719-1945ff29413f",
+  "dataBindingTable": {
+    "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+    "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+    "sourceTableName": "agent_run",
+    "sourceType": "LakehouseTable"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "id",
+      "targetPropertyId": "1000000082"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "caseId",
+      "targetPropertyId": "1000000058"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+/* Fluent-inspired theme tokens for Fabric Fraud Intelligence */
+:root {
+  --ffi-bg: #f3f4f6;
+  --ffi-surface: #ffffff;
+  --ffi-ink: #1f2937;
+  --ffi-muted: #6b7280;
+  --ffi-brand: #4f46e5;
+  --ffi-brand-600: #4338ca;
+  --ffi-sidebar: #0b1220;
+  --ffi-sidebar-ink: #cbd5e1;
+  --ffi-border: #e5e7eb;
+  --ffi-radius: 14px;
+}
+
+.ffi-card {
+  background: var(--ffi-surface);
+  border: 1px solid var(--ffi-border);
+  border-radius: var(--ffi-radius);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.ffi-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: var(--ffi-sidebar-ink);
+  font-size: 14px;
+  transition: background 120ms, color 120ms;
+}
+.ffi-sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+.ffi-sidebar-link.active {
+  background: var(--ffi-brand);
+  color: #fff;
+}
+
+.ffi-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.ffi-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}

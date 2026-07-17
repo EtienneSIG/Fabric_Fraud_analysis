@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "1000000106",
+  "name": "caseInvestigatesAlert",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "1000000057"
+  },
+  "target": {
+    "entityTypeId": "1000000045"
+  }
+}

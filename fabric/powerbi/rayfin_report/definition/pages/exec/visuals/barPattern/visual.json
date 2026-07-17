@@ -1,0 +1,46 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "barPattern",
+  "position": { "x": 24, "y": 260, "z": 0, "height": 420, "width": 1168, "tabOrder": 4 },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "fraud_clusters" } },
+                  "Property": "pattern"
+                }
+              },
+              "queryRef": "fraud_clusters.pattern",
+              "nativeQueryRef": "pattern"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": { "SourceRef": { "Entity": "fraud_clusters" } },
+                      "Property": "total_amount"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fraud_clusters.total_amount)",
+              "nativeQueryRef": "Sum of total_amount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

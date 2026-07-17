@@ -1,0 +1,58 @@
+{
+  "id": "4c7356ad-5bc0-4d3f-9ade-fd223e4b03ba",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000046"
+      },
+      {
+        "sourceColumnName": "alertType",
+        "targetPropertyId": "1000000047"
+      },
+      {
+        "sourceColumnName": "source",
+        "targetPropertyId": "1000000048"
+      },
+      {
+        "sourceColumnName": "riskScore",
+        "targetPropertyId": "1000000049"
+      },
+      {
+        "sourceColumnName": "severity",
+        "targetPropertyId": "1000000050"
+      },
+      {
+        "sourceColumnName": "status",
+        "targetPropertyId": "1000000051"
+      },
+      {
+        "sourceColumnName": "createdAt",
+        "targetPropertyId": "1000000052"
+      },
+      {
+        "sourceColumnName": "customerId",
+        "targetPropertyId": "1000000053"
+      },
+      {
+        "sourceColumnName": "transactionId",
+        "targetPropertyId": "1000000054"
+      },
+      {
+        "sourceColumnName": "claimId",
+        "targetPropertyId": "1000000055"
+      },
+      {
+        "sourceColumnName": "explanationShort",
+        "targetPropertyId": "1000000056"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "fraud_alert"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "1000000108",
+  "name": "agentAnalyzesCase",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "1000000081"
+  },
+  "target": {
+    "entityTypeId": "1000000057"
+  }
+}

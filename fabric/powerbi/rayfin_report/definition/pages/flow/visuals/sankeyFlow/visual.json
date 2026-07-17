@@ -1,0 +1,55 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "sankeyFlow",
+  "position": { "x": 24, "y": 24, "z": 0, "height": 672, "width": 940, "tabOrder": 0 },
+  "visual": {
+    "visualType": "Sankey1442295000844",
+    "query": {
+      "queryState": {
+        "Source": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "fraud_flow_edges" } },
+                  "Property": "source"
+                }
+              },
+              "queryRef": "fraud_flow_edges.source",
+              "nativeQueryRef": "source"
+            }
+          ]
+        },
+        "Destination": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "fraud_flow_edges" } },
+                  "Property": "target"
+                }
+              },
+              "queryRef": "fraud_flow_edges.target",
+              "nativeQueryRef": "target"
+            }
+          ]
+        },
+        "Weight": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": { "SourceRef": { "Entity": "fraud_flow_edges" } },
+                  "Property": "Flow Value"
+                }
+              },
+              "queryRef": "fraud_flow_edges.Flow Value",
+              "nativeQueryRef": "Flow Value"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

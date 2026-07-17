@@ -1,0 +1,46 @@
+{
+  "id": "cfcd18a8-97ba-43bd-8f4d-e53dbb76a733",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000082"
+      },
+      {
+        "sourceColumnName": "caseId",
+        "targetPropertyId": "1000000083"
+      },
+      {
+        "sourceColumnName": "agentName",
+        "targetPropertyId": "1000000084"
+      },
+      {
+        "sourceColumnName": "prompt",
+        "targetPropertyId": "1000000085"
+      },
+      {
+        "sourceColumnName": "response",
+        "targetPropertyId": "1000000086"
+      },
+      {
+        "sourceColumnName": "groundingSources",
+        "targetPropertyId": "1000000087"
+      },
+      {
+        "sourceColumnName": "createdAt",
+        "targetPropertyId": "1000000088"
+      },
+      {
+        "sourceColumnName": "userId",
+        "targetPropertyId": "1000000089"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "agent_run"
+    }
+  }
+}

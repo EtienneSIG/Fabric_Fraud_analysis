@@ -1,0 +1,21 @@
+{
+  "id": "fa06bee6-6a80-4d10-a988-03def9a863a5",
+  "dataBindingTable": {
+    "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+    "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+    "sourceTableName": "claim",
+    "sourceType": "LakehouseTable"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "customerId",
+      "targetPropertyId": "1000000002"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "id",
+      "targetPropertyId": "1000000036"
+    }
+  ]
+}

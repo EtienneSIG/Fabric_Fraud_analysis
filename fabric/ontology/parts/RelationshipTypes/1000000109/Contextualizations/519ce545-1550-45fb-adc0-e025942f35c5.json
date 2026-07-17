@@ -1,0 +1,21 @@
+{
+  "id": "519ce545-1550-45fb-adc0-e025942f35c5",
+  "dataBindingTable": {
+    "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+    "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+    "sourceTableName": "customer_event",
+    "sourceType": "LakehouseTable"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "customerId",
+      "targetPropertyId": "1000000002"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "id",
+      "targetPropertyId": "1000000091"
+    }
+  ]
+}

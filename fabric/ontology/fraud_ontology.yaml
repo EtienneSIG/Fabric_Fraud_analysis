@@ -1,0 +1,48 @@
+# Fraud domain ontology (Fabric IQ - Ontology preview)
+# Deployed to workspace Fraud_analysis, bound to fraud_lakehouse app tables.
+# Source of truth for the item definition: fabric/ontology/build_ontology.py
+
+deployment:
+  item_type: Ontology
+  ontology_id: 9869be36-467b-49b5-b1a3-2c9eb9911e34
+  ontology_name: fraud_ontology
+  workspace_id: d451f521-7e87-408f-8208-61928f1b84e3
+  lakehouse: fraud_lakehouse
+  lakehouse_id: 67f6d900-b355-4727-b49b-4e05096cf8e7
+  binding_type: LakehouseTable  # NonTimeSeries static bindings
+  note: >-
+    Upstream row changes require a manual graph-model refresh in the ontology
+    item before they appear in the instance graph.
+
+# Entity types -> bound lakehouse table (key property = id)
+entities:
+  Customer:            { table: customer,             key: id, display: name }
+  Account:             { table: account,              key: id, display: id }
+  Transaction:         { table: transaction,          key: id, display: id }
+  Policy:              { table: policy,               key: id, display: id }
+  Claim:               { table: claim,                key: id, display: id }
+  FraudAlert:          { table: fraud_alert,          key: id, display: alertType }
+  FraudCase:           { table: fraud_case,           key: id, display: id }
+  Evidence:            { table: evidence,             key: id, display: title }
+  EntityRelationship:  { table: entity_relationship,  key: id, display: relationshipType }
+  AgentRun:            { table: agent_run,            key: id, display: agentName }
+  CustomerEvent:       { table: customer_event,       key: id, display: event }
+
+# Relationship types (source -> target) with the FK columns that derive edges
+relationships:
+  - { name: owns,                   source: Customer,   target: Account,       via: "account.customerId -> account.id" }
+  - { name: hasTransaction,         source: Account,    target: Transaction,   via: "transaction.accountId -> transaction.id" }
+  - { name: holdsPolicy,            source: Customer,   target: Policy,        via: "policy.customerId -> policy.id" }
+  - { name: policyHasClaim,         source: Policy,     target: Claim,         via: "claim.policyId -> claim.id" }
+  - { name: filesClaim,             source: Customer,   target: Claim,         via: "claim.customerId -> claim.id" }
+  - { name: alertFlagsCustomer,     source: FraudAlert, target: Customer,      via: "fraud_alert.id -> fraud_alert.customerId" }
+  - { name: alertOnTransaction,     source: FraudAlert, target: Transaction,   via: "fraud_alert.id -> fraud_alert.transactionId" }
+  - { name: caseInvestigatesAlert,  source: FraudCase,  target: FraudAlert,    via: "fraud_case.id -> fraud_case.alertId" }
+  - { name: evidenceSupportsCase,   source: Evidence,   target: FraudCase,     via: "evidence.id -> evidence.caseId" }
+  - { name: agentAnalyzesCase,      source: AgentRun,   target: FraudCase,     via: "agent_run.id -> agent_run.caseId" }
+  - { name: customerGeneratesEvent, source: Customer,   target: CustomerEvent, via: "customer_event.customerId -> customer_event.id" }
+
+freshness_strategy:
+  live_operations: lakehouse_delta
+  semantic_graph: ontology_graph_refresh
+  note: ontology graph may require refresh to reflect upstream Delta table changes

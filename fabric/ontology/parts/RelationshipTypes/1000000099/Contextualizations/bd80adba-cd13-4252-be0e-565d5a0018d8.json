@@ -1,0 +1,21 @@
+{
+  "id": "bd80adba-cd13-4252-be0e-565d5a0018d8",
+  "dataBindingTable": {
+    "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+    "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+    "sourceTableName": "account",
+    "sourceType": "LakehouseTable"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "customerId",
+      "targetPropertyId": "1000000002"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "id",
+      "targetPropertyId": "1000000010"
+    }
+  ]
+}

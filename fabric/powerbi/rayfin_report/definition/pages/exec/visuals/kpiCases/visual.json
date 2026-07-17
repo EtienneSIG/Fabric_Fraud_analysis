@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "kpiCases",
+  "position": { "x": 912, "y": 90, "z": 0, "height": 140, "width": 280, "tabOrder": 3 },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": { "SourceRef": { "Entity": "fraud_cases" } },
+                  "Property": "Open Cases"
+                }
+              },
+              "queryRef": "fraud_cases.Open Cases",
+              "nativeQueryRef": "Open Cases"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

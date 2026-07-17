@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "1000000104",
+  "name": "alertFlagsCustomer",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "1000000045"
+  },
+  "target": {
+    "entityTypeId": "1000000001"
+  }
+}

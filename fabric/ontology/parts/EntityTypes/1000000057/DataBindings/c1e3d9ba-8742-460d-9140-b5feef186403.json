@@ -1,0 +1,46 @@
+{
+  "id": "c1e3d9ba-8742-460d-9140-b5feef186403",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000058"
+      },
+      {
+        "sourceColumnName": "alertId",
+        "targetPropertyId": "1000000059"
+      },
+      {
+        "sourceColumnName": "assignedTo",
+        "targetPropertyId": "1000000060"
+      },
+      {
+        "sourceColumnName": "status",
+        "targetPropertyId": "1000000061"
+      },
+      {
+        "sourceColumnName": "decision",
+        "targetPropertyId": "1000000062"
+      },
+      {
+        "sourceColumnName": "decisionReason",
+        "targetPropertyId": "1000000063"
+      },
+      {
+        "sourceColumnName": "createdAt",
+        "targetPropertyId": "1000000064"
+      },
+      {
+        "sourceColumnName": "updatedAt",
+        "targetPropertyId": "1000000065"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "fraud_case"
+    }
+  }
+}

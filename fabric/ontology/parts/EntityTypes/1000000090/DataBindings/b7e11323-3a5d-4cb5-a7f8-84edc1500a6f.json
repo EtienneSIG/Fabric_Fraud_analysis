@@ -1,0 +1,46 @@
+{
+  "id": "b7e11323-3a5d-4cb5-a7f8-84edc1500a6f",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "id",
+        "targetPropertyId": "1000000091"
+      },
+      {
+        "sourceColumnName": "customerId",
+        "targetPropertyId": "1000000092"
+      },
+      {
+        "sourceColumnName": "event",
+        "targetPropertyId": "1000000093"
+      },
+      {
+        "sourceColumnName": "occurredAt",
+        "targetPropertyId": "1000000094"
+      },
+      {
+        "sourceColumnName": "location",
+        "targetPropertyId": "1000000095"
+      },
+      {
+        "sourceColumnName": "channel",
+        "targetPropertyId": "1000000096"
+      },
+      {
+        "sourceColumnName": "amount",
+        "targetPropertyId": "1000000097"
+      },
+      {
+        "sourceColumnName": "description",
+        "targetPropertyId": "1000000098"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
+      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "sourceTableName": "customer_event"
+    }
+  }
+}
