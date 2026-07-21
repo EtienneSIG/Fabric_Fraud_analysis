@@ -180,4 +180,5 @@ python fabric/ontology/build_ontology.py
 
 ## Demo
 
-See [docs/exec-demo-narrative.md](docs/exec-demo-narrative.md) for the executive demo script.
+- 🎬 **Live walkthrough video:** [video/Fabric Fraud Intelligence (live).mp4](video/Fabric%20Fraud%20Intelligence%20(live).mp4)
+- 📝 Executive demo script: [docs/exec-demo-narrative.md](docs/exec-demo-narrative.md) (FR) · [docs/exec-demo-narrative.en.md](docs/exec-demo-narrative.en.md) (EN)
