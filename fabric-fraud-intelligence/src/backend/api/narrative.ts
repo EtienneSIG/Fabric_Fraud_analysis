@@ -37,17 +37,38 @@ const TYPE_ACTION: Record<string, string> = {
  * in the fraud network. Deterministic (no external LLM call) so it works fully
  * client-side inside the Fabric app.
  */
-export function entityNarrative(node: EntityNode, sharedCount: number): string {
+export interface EntityNarrative {
+  kind: 'fraud' | 'customer';
+  typeLabel: string;
+  headline: string;
+  riskPct: number;
+  summary: string;
+  signals: string[];
+  network: string;
+  action: string;
+}
+
+export function entityNarrative(node: EntityNode, sharedCount: number): EntityNarrative {
   const type = (node.fraudType ?? 'Fraud').replace('Fraud: ', '');
 
   if (node.kind === 'fraud') {
-    return (
-      `AI assessment — ${type} cluster. This red hub groups ${node.degree} customers whose ` +
-      `Customer 360 journey terminated in a confirmed ${type} outcome. The customers wired to this ` +
-      `hub reached it through similar behavioural paths, and those sharing an end-location are cross-linked ` +
-      `as a potential coordinated ring. Prioritise the highest-centrality members for investigation, as they ` +
-      `bridge the most journeys and are the likeliest orchestration points.`
-    );
+    return {
+      kind: 'fraud',
+      typeLabel: type,
+      headline: `${type} cluster`,
+      riskPct: Math.round(node.risk * 100),
+      summary:
+        `This red hub groups ${node.degree} customers whose Customer 360 journey ended in a ` +
+        `confirmed ${type} outcome, reached through similar behavioural paths.`,
+      signals: [
+        `${node.degree} customers attached to this typology`,
+        `Customers sharing an end-location are cross-linked (potential ring)`,
+        `High-centrality members bridge the most journeys`,
+      ],
+      network:
+        'Members with high centrality are the likeliest orchestration points of the network.',
+      action: 'Prioritise the highest-centrality members (betweenness) for investigation.',
+    };
   }
 
   const j = journeyFor(node.id);
@@ -57,42 +78,43 @@ export function entityNarrative(node: EntityNode, sharedCount: number): string {
   const total = paid.reduce((s, e) => s + (e.amount ?? 0), 0);
   const first = steps[0] ?? 'routine account activity';
   const path = steps.slice(0, 5).join(' → ') || 'account activity';
-  const signal = TYPE_SIGNAL[type] ?? 'an anomalous sequence versus the customer’s behavioural baseline';
+  const signal = TYPE_SIGNAL[type] ?? 'an anomalous sequence versus the behavioural baseline';
   const action = TYPE_ACTION[type] ?? 'Escalate for manual review and hold high-risk transactions.';
 
-  const parts: string[] = [];
-  parts.push(
-    `AI assessment — customer ${node.id} is flagged for ${type} (risk ${node.risk.toFixed(2)}).`
-  );
-  parts.push(
-    `The journey opened with ${first.toLowerCase()} and progressed as: ${path}, ending in the ${type} event.`
-  );
-  parts.push(`The decisive pattern is ${signal}.`);
+  const signals: string[] = [];
+  signals.push(`Path · ${path} → ${type}`);
+  signals.push(`Decisive signal · ${signal}`);
   if (foreignEvt) {
-    parts.push(
-      `Activity shifted to ${foreignEvt.location} via ${foreignEvt.channel}, inconsistent with the customer’s usual location.`
+    signals.push(
+      `Shifted to ${foreignEvt.location} via ${foreignEvt.channel} — inconsistent with usual location`
     );
   }
   if (paid.length) {
-    parts.push(
-      `Across the journey, ${paid.length} monetary events total ${eur(total)}${
-        paid.length > 1 ? ', with value escalating toward the end' : ''
-      }.`
+    signals.push(
+      `${paid.length} monetary events · ${eur(total)}${paid.length > 1 ? ' (escalating value)' : ''}`
     );
   }
-  if (sharedCount > 0) {
-    parts.push(
-      `Network signal: this customer shares its fraud end-location with ${sharedCount} other flagged ` +
-        `customer${sharedCount > 1 ? 's' : ''}, suggesting a possible collusion ring rather than an isolated case.`
-    );
-  } else {
-    parts.push('Network signal: no shared-location peers detected, so this currently reads as an isolated case.');
-  }
-  parts.push(
-    `Graph centrality — degree ${node.degree}, closeness ${node.closeness}, betweenness ${node.betweenness}: ` +
-      `${node.betweenness > 0 ? 'this node bridges multiple journeys and warrants priority.' : 'a peripheral node in the ring.'}`
+  signals.push(
+    `Centrality · degree ${node.degree}, closeness ${node.closeness}, betweenness ${node.betweenness}`
   );
-  parts.push(`Recommended action: ${action}`);
 
-  return parts.join(' ');
+  const network =
+    sharedCount > 0
+      ? `Shares its fraud end-location with ${sharedCount} other flagged customer${
+          sharedCount > 1 ? 's' : ''
+        } → likely collusion ring, not an isolated case.`
+      : 'No shared-location peers detected → currently reads as an isolated case.';
+
+  return {
+    kind: 'customer',
+    typeLabel: type,
+    headline: `${type} — ${node.id}`,
+    riskPct: Math.round(node.risk * 100),
+    summary:
+      `Customer ${node.id} is flagged for ${type}. The journey opened with ${first.toLowerCase()} ` +
+      `and escalated to the ${type} event.`,
+    signals,
+    network,
+    action,
+  };
 }

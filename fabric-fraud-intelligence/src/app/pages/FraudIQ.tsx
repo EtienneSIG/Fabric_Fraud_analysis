@@ -298,11 +298,95 @@ export function FraudIQ() {
             >
               <div className="flex items-center gap-1.5">
                 <span aria-hidden>🧠</span>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Synthèse</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                  Synthèse Fraud IQ
+                </h4>
                 <span className="ml-auto text-[10px] text-indigo-400">grounded across Microsoft IQ</span>
               </div>
               {askPhase >= 4 ? (
-                <p className="mt-1.5 text-sm leading-relaxed text-gray-700">{result.answer}</p>
+                <div className="mt-2 space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white">
+                      {result.synthesis.verdict}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Confiance</span>
+                      <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-200">
+                        <div
+                          className="h-full bg-indigo-600"
+                          style={{ width: `${Math.round(result.synthesis.confidence * 100)}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-bold text-indigo-700">
+                        {Math.round(result.synthesis.confidence * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 rounded-lg border border-gray-100 bg-white p-2.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                      Contribution par IQ
+                    </p>
+                    {(['fabric', 'work', 'foundry'] as IqId[]).map((id) => {
+                      const top = (id === 'fabric' ? result.fabric : id === 'work' ? result.work : result.foundry)[0];
+                      return (
+                        <div key={id} className="flex gap-2 text-[11px]">
+                          <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: COLOR[id] }} />
+                          <span>
+                            <span className="font-semibold" style={{ color: COLOR[id] }}>
+                              {IQ_BY_ID[id].name}
+                            </span>
+                            <span className="text-gray-600"> — {top}</span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-sm leading-relaxed text-gray-700">{result.synthesis.rationale}</p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                        Findings clés
+                      </p>
+                      <ul className="space-y-1">
+                        {result.synthesis.findings.map((x, i) => (
+                          <li key={i} className="flex gap-1.5 text-xs text-gray-600">
+                            <span className="text-indigo-500">•</span>
+                            <span>{x}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                        Actions recommandées
+                      </p>
+                      <ul className="space-y-1">
+                        {result.synthesis.actions.map((x, i) => (
+                          <li key={i} className="flex gap-1.5 text-xs text-gray-700">
+                            <span className="text-green-600">✓</span>
+                            <span>{x}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border-l-4 border-emerald-400 bg-emerald-50 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                      Apport business
+                    </p>
+                    <ul className="mt-1 space-y-1">
+                      {result.synthesis.businessImpact.map((x, i) => (
+                        <li key={i} className="flex gap-1.5 text-xs text-gray-700">
+                          <span className="text-emerald-600">↗</span>
+                          <span>{x}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p className="border-t border-indigo-100 pt-2 text-[11px] text-gray-400">
+                    Advisory · approbation humaine requise avant action.
+                  </p>
+                </div>
               ) : (
                 <p className="mt-1.5 text-xs text-gray-400">Synthèse en cours…</p>
               )}

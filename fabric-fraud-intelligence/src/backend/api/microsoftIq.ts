@@ -68,11 +68,20 @@ export const IQS: IqInfo[] = [
   },
 ];
 
+export interface Synthesis {
+  verdict: string;
+  confidence: number; // 0..1
+  rationale: string;
+  findings: string[];
+  actions: string[];
+  businessImpact: string[];
+}
+
 export interface IqResult {
   fabric: string[];
   work: string[];
   foundry: string[];
-  answer: string;
+  synthesis: Synthesis;
 }
 
 const flavor = (q: string): 'aml' | 'card' | 'claim' | 'takeover' | 'generic' => {
@@ -217,15 +226,120 @@ export function askMicrosoftIq(question: string): IqResult {
     ],
   };
 
-  const answers: Record<string, string> = {
-    aml: 'Grounded across Microsoft IQ: Fabric IQ confirms a 48-hour layering chain across 4 linked accounts; Work IQ shows the case team already flagged the counterparties and a SAR template is ready; Foundry IQ matches the "layering" typology, the EU reporting threshold and a prior SAR-based resolution. Recommendation: freeze outbound payments, file a SAR, and open a linked-accounts investigation.',
-    card: 'Grounded across Microsoft IQ: Fabric IQ ties the €900 ecommerce transaction to a device/IP geo-mismatch and a 4× velocity spike; Work IQ shows the merchant was recently reported and a chargeback is logged; Foundry IQ re-scores the event at 0.94 and recalls a 96% confirmed-fraud rate on block+reissue. Recommendation: block the card, reverse the authorisation and step-up authentication.',
-    claim: 'Grounded across Microsoft IQ: Fabric IQ exposes a dense provider–claimant ring (modularity 0.71) with reused damage-photo hashes; Work IQ surfaces a prior report on the provider and an SME reviewer; Foundry IQ confirms the organised-claims pattern and recalls that freezing payouts dismantled a similar ring. Recommendation: freeze payouts to the shared provider and escalate the network for SIU review.',
-    takeover: 'Grounded across Microsoft IQ: Fabric IQ shows a reset→new-device→new-beneficiary→wire sequence with impossible travel; Work IQ has a regional advisory and no travel notice on file; Foundry IQ retrieves the ATO playbook and prior freeze+reset resolutions. Recommendation: freeze payments, revoke the device/beneficiary and force a verified credential reset.',
-    generic: 'Grounded across Microsoft IQ: Fabric IQ supplies governed data and relationships, Work IQ adds the human/organizational context, and Foundry IQ brings typologies, memory and tools. Together they produce an explainable, decision-ready assessment with a recommended action.',
+  const synth: Record<string, Synthesis> = {
+    aml: {
+      verdict: 'Blanchiment probable — schéma de layering coordonné',
+      confidence: 0.88,
+      rationale:
+        'En croisant les trois IQ, le faisceau est convergent. Fabric IQ établit, sur les données réelles, une chaîne de layering sur 48 h à travers 4 comptes liés, avec ~92 % des entrées ré-externalisées et des montants ronds incohérents avec l’activité déclarée. Work IQ montre que l’équipe a déjà signalé ces contreparties et qu’un modèle de SAR est prêt. Foundry IQ rattache le motif à la typologie « layering », au seuil de déclaration UE et à une résolution antérieure par SAR. Ensemble, structuration + vélocité + ré-externalisation rapide corroborent une intention d’obscurcir l’origine des fonds.',
+      findings: [
+        'Fabric IQ · chaîne A→B→C→cash-out en <48 h sur 4 comptes liés',
+        'Fabric IQ · 92 % des entrées externalisées, montants ronds atypiques',
+        'Work IQ · contreparties déjà signalées par l’équipe AML-EMEA',
+        'Foundry IQ · typologie « layering » + seuil de déclaration UE atteint',
+      ],
+      actions: [
+        'Geler les paiements sortants du compte',
+        'Ouvrir une investigation sur les comptes liés',
+        'Préparer et déposer un SAR auprès du MLRO (approbation humaine)',
+      ],
+      businessImpact: [
+        'Dépôt de SAR accéléré : de ~90 min d’investigation à quelques secondes.',
+        'Risque réglementaire et amendes réduits par une détection précoce du layering.',
+        'Moins de faux positifs → temps analyste réalloué aux vrais cas.',
+      ],
+    },
+    card: {
+      verdict: 'Fraude carte très probable — prise de contrôle / voyage impossible',
+      confidence: 0.94,
+      rationale:
+        'Fabric IQ relie, en direct, la transaction e-commerce à un écart d’emplacement carte/IP et à un pic de vélocité 4× la baseline, sur un appareil vu pour la première fois quelques minutes avant. Work IQ indique que le marchand a été récemment signalé et qu’un chargeback est déjà journalisé. Foundry IQ re-score l’événement à 0,94 et rappelle un taux de fraude confirmée de 96 % sur blocage + réémission pour des cas comparables. La convergence géo + vélocité + nouvel appareil rend le scénario de fraude dominant.',
+      findings: [
+        'Fabric IQ · géo-mismatch carte/IP + vélocité 4× baseline',
+        'Fabric IQ · nouvel appareil vu 12 min avant la transaction',
+        'Work IQ · marchand signalé récemment, chargeback journalisé',
+        'Foundry IQ · 96 % de fraude confirmée sur blocage + réémission (cas similaires)',
+      ],
+      actions: [
+        'Bloquer la carte et inverser l’autorisation contestée',
+        'Renforcer l’authentification (step-up) sur le compte',
+        'Contacter le client pour confirmation',
+      ],
+      businessImpact: [
+        'Pertes évitées : blocage en temps réel avant l’enchaînement des transactions.',
+        'Expérience client préservée grâce à un step-up ciblé plutôt qu’un blocage massif.',
+        'Chargebacks et coûts de traitement réduits.',
+      ],
+    },
+    claim: {
+      verdict: 'Réseau de fraude documentaire aux sinistres',
+      confidence: 0.9,
+      rationale:
+        'Fabric IQ expose un sous-graphe dense prestataire–assurés (modularité 0,71) avec réutilisation de hash de photos de dommages sur plusieurs sinistres. Work IQ remonte un rapport antérieur sur le prestataire et un expert SIU recommandé. Foundry IQ confirme le motif de fraude organisée et rappelle que le gel des paiements au prestataire partagé a démantelé un réseau similaire. La concentration prestataire + preuves réutilisées pointe vers une collusion plutôt que des cas isolés.',
+      findings: [
+        'Fabric IQ · sous-graphe dense (modularité 0,71) prestataire–assurés',
+        'Fabric IQ · hash de photo de dommage réutilisé sur 3 sinistres',
+        'Work IQ · rapport antérieur sur le prestataire disponible',
+        'Foundry IQ · précédent résolu par gel des paiements au prestataire',
+      ],
+      actions: [
+        'Geler les paiements vers le prestataire partagé',
+        'Escalader le réseau vers la cellule SIU',
+        'Rouvrir les sinistres liés pour contrôle',
+      ],
+      businessImpact: [
+        'Économies directes : indemnisations frauduleuses stoppées avant paiement.',
+        'Réseau démantelé en une passe — ROI de la cellule SIU.',
+        'Dossiers étayés et défendables en cas de contentieux.',
+      ],
+    },
+    takeover: {
+      verdict: 'Prise de contrôle de compte (ATO) en cours',
+      confidence: 0.9,
+      rationale:
+        'Fabric IQ trace la séquence réinitialisation→nouvel appareil→nouveau bénéficiaire→virement sortant, avec un voyage impossible (deux connexions à 900 km en 20 min). Work IQ dispose d’une alerte régionale et d’aucune notification de voyage au dossier. Foundry IQ récupère le playbook ATO et des résolutions antérieures par gel + réinitialisation vérifiée. Le chaînage rapide des changements sensibles depuis une IP étrangère signe une prise de contrôle.',
+      findings: [
+        'Fabric IQ · reset → nouvel appareil → nouveau bénéficiaire → virement',
+        'Fabric IQ · voyage impossible (900 km en 20 min)',
+        'Work IQ · avis régional ATO, aucune notif de voyage au dossier',
+        'Foundry IQ · playbook ATO + résolutions gel + reset vérifié',
+      ],
+      actions: [
+        'Geler les paiements et révoquer appareil/bénéficiaire',
+        'Forcer une réinitialisation d’identifiants vérifiée',
+        'Contacter le client via un canal de confiance',
+      ],
+      businessImpact: [
+        'Fonds clients protégés par un gel avant externalisation.',
+        'Confiance et rétention client renforcées.',
+        'Moins d’incidents ATO récurrents grâce au playbook réutilisé.',
+      ],
+    },
+    generic: {
+      verdict: 'Signal à investiguer — contexte multi-IQ consolidé',
+      confidence: 0.75,
+      rationale:
+        'Fabric IQ fournit les faits gouvernés et les relations depuis l’ontologie et le lakehouse ; Work IQ ajoute le contexte humain et organisationnel (échanges, documents, propriétaire du cas) ; Foundry IQ apporte les typologies, la mémoire des cas et les outils. Ensemble, ils produisent une évaluation explicable et prête à la décision, avec une recommandation d’action.',
+      findings: [
+        'Fabric IQ · entité résolue : client, comptes, transactions, alertes',
+        'Fabric IQ · liens de partage d’entités récupérés pour le contexte',
+        'Work IQ · discussions et documents pertinents localisés',
+        'Foundry IQ · typologies et cas similaires rappelés',
+      ],
+      actions: [
+        'Prioriser selon la centralité dans le graphe',
+        'Rassembler les preuves et documenter le cas',
+        'Décider (surveillance / escalade) avec approbation humaine',
+      ],
+      businessImpact: [
+        'Investigation de ~90 min ramenée à quelques secondes.',
+        'Décisions expliquées et auditables → conformité facilitée.',
+        'Productivité analyste et time-to-decision fortement améliorés.',
+      ],
+    },
   };
 
-  return { fabric: fabricIqLive(question), work: work[f], foundry: foundry[f], answer: answers[f] };
+  return { fabric: fabricIqLive(question), work: work[f], foundry: foundry[f], synthesis: synth[f] };
 }
 
 // ---------------------------------------------------------------------------

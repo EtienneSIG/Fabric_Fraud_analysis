@@ -56,7 +56,7 @@ export function EntityGraph() {
   }, [selected, shown.edges]);
 
   const sharedCount = useMemo(() => links.filter((l) => l.type.includes('shared')).length, [links]);
-  const narrative = useMemo(() => (node ? entityNarrative(node, sharedCount) : ''), [node, sharedCount]);
+  const narrative = useMemo(() => (node ? entityNarrative(node, sharedCount) : null), [node, sharedCount]);
 
   // Measure the graph container so the network fills 100% of the available height.
   const graphRef = useRef<HTMLDivElement>(null);
@@ -166,13 +166,51 @@ export function EntityGraph() {
                   <Metric k="Closeness" v={node.closeness} active={metric === 'closeness'} />
                   <Metric k="Betweenness" v={node.betweenness} active={metric === 'betweenness'} />
                 </div>
-                <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-3">
-                  <div className="flex items-center gap-1.5">
+                <div className="mt-4 overflow-hidden rounded-xl border border-indigo-100">
+                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-2 text-white">
                     <span aria-hidden>✨</span>
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">AI narrative</h4>
-                    <span className="ml-auto text-[10px] text-indigo-400">Fabric Data Agent</span>
+                    <h4 className="text-xs font-semibold uppercase tracking-wide">AI narrative</h4>
+                    <span className="ml-auto text-[10px] text-indigo-100">Fabric Data Agent</span>
                   </div>
-                  <p className="mt-1.5 text-xs leading-relaxed text-gray-600">{narrative}</p>
+                  {narrative && (
+                    <div className="space-y-2.5 bg-white p-3">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="rounded-md px-2 py-0.5 text-[11px] font-semibold"
+                          style={{ backgroundColor: '#fee2e2', color: '#b91c1c' }}
+                        >
+                          {narrative.typeLabel}
+                        </span>
+                        <div className="ml-auto flex items-center gap-1.5">
+                          <span className="text-[10px] text-gray-400">risk</span>
+                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-200">
+                            <div className="h-full bg-red-600" style={{ width: `${narrative.riskPct}%` }} />
+                          </div>
+                          <span className="text-[11px] font-bold text-red-700">{narrative.riskPct}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs leading-relaxed text-gray-700">{narrative.summary}</p>
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Key signals</p>
+                        <ul className="mt-1 space-y-1">
+                          {narrative.signals.map((s, i) => (
+                            <li key={i} className="flex gap-1.5 text-[11px] leading-relaxed text-gray-600">
+                              <span className="text-indigo-500">•</span>
+                              <span>{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-[11px] text-gray-600">
+                        <span className="font-semibold text-gray-500">Network · </span>
+                        {narrative.network}
+                      </div>
+                      <div className="rounded-lg border-l-2 border-green-400 bg-green-50 px-2.5 py-1.5 text-[11px] text-gray-700">
+                        <span className="font-semibold text-green-700">Recommended · </span>
+                        {narrative.action}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <h4 className="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Relationships ({links.length})
