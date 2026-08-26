@@ -4,8 +4,14 @@ An end-to-end fraud detection and investigation solution built on **Microsoft Fa
 combining a **Rayfin Fabric App** (React frontend + Fabric SQL backend), a governed
 **Lakehouse**, and a **Fabric IQ Ontology** semantic layer.
 
-**Live app:** https://fleet-north-8c279cc767-swedencentral.webapp.fabricapps.net
-**Workspace:** `Fraud_analysis` (`d451f521-7e87-408f-8208-61928f1b84e3`)
+**Live app:** https://tangy-cove-9493188f6d-centralus.webapp.fabricapps.net
+**Workspace:** `Fraud Intelligence` (`c57a379b-7e6d-481a-9c9b-662bb0bae77d`)
+
+The current Fabric deployment includes the Rayfin app and SQL database, a Lakehouse
+with 11 Delta tables, a load notebook, a Fabric IQ Ontology, a published Data Agent,
+an Eventhouse with a KQL database, and Power BI semantic model and report items.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the deployed item inventory,
+repeatable deployment commands, validation steps, and current limitations.
 
 ## Repository structure
 
@@ -13,6 +19,7 @@ combining a **Rayfin Fabric App** (React frontend + Fabric SQL backend), a gover
 | --- | --- | --- |
 | `fabric-fraud-intelligence/` | **Application** | Rayfin Fabric App — React/TS frontend, entity models, mock agent services. Deploy with `npx rayfin up`. |
 | `fabric/ontology/` | **Semantic layer** | Fabric IQ Ontology builder (`build_ontology.py`), REST deployer (`post_ontology.ps1`), generated `create_body.json` + `parts/`, and `fraud_ontology.yaml` (deployed model doc). |
+| `fabric/data-agent/` | **AI grounding** | Idempotent Fabric Data Agent deployment grounded on the 11 `fraud_lakehouse` tables with fraud-specific instructions and few-shot SQL. |
 | `fabric/lakehouse/` | **Data** | Loads the app dataset into `fraud_lakehouse` Delta tables (`load_app_data.py`, `run_load.ps1`, `upload_lakehouse_data.ps1`, `post_notebook.ps1`) + historical SQL. |
 | `fabric/realtime/` | **Streaming** | Eventhouse/KQL specs and deploy scripts. |
 | `fabric/powerbi/` | **Reporting** | Semantic model (`model.bim`) + report deploy scripts. |
@@ -156,7 +163,7 @@ npm run dev
 
 ```powershell
 cd fabric-fraud-intelligence
-npx rayfin up --workspace "Fraud_analysis"
+npx rayfin up --workspace-id "c57a379b-7e6d-481a-9c9b-662bb0bae77d"
 ```
 
 On deploy, the `@entity` models materialize as a **Fabric SQL Database** item (the
@@ -170,12 +177,28 @@ claim, fraud_alert, fraud_case, evidence, entity_relationship, agent_run, custom
 The **`fraud_ontology`** Fabric IQ item binds those tables into 11 entity types and 11
 relationship types, deriving an instance graph from foreign-key columns.
 
+The published **`Fraud Intelligence Data Agent`** (`5e157d5a-2694-499b-9b9f-ed10fe73cb5a`)
+is grounded on the same lakehouse. Its published configuration selects the 11 tables,
+enforces evidence-based and human-in-the-loop answers, and includes fraud-specific SQL
+examples. The public Fabric REST API manages its lifecycle and grounding configuration;
+it does not currently expose a conversation endpoint, so the embedded app keeps its
+deterministic fallback for in-app agent responses.
+
 ```powershell
 # 1. materialize app data as Delta tables
 & fabric/lakehouse/run_load.ps1
 # 2. build + deploy the ontology
-python fabric/ontology/build_ontology.py
-& fabric/ontology/post_ontology.ps1
+python fabric/ontology/build_ontology.py `
+  --workspace-id "c57a379b-7e6d-481a-9c9b-662bb0bae77d" `
+  --lakehouse-id "257366a1-4675-4c66-a69e-1ec7ab653706"
+& fabric/ontology/post_ontology.ps1 `
+  -Ws "c57a379b-7e6d-481a-9c9b-662bb0bae77d" `
+  -TenantId "<tenant-id>"
+
+# 3. create or update the published Data Agent
+& fabric/data-agent/deploy_data_agent.ps1 `
+  -WorkspaceId "c57a379b-7e6d-481a-9c9b-662bb0bae77d" `
+  -LakehouseId "257366a1-4675-4c66-a69e-1ec7ab653706"
 ```
 
 ## Demo

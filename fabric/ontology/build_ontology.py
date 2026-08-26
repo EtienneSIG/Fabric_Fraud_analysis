@@ -9,15 +9,23 @@ Outputs:
   artifacts/ontology/parts/...          -> decoded JSON parts for inspection
 """
 
+import argparse
 import base64
 import json
 import os
+import shutil
 import uuid
 
-WS = "d451f521-7e87-408f-8208-61928f1b84e3"
-LH = "67f6d900-b355-4727-b49b-4e05096cf8e7"
+parser = argparse.ArgumentParser(description="Build the Fabric Fraud IQ ontology definition.")
+parser.add_argument("--workspace-id", required=True)
+parser.add_argument("--lakehouse-id", required=True)
+args = parser.parse_args()
+
+WS = args.workspace_id
+LH = args.lakehouse_id
 OUT = os.path.dirname(os.path.abspath(__file__))
 PARTS_DIR = os.path.join(OUT, "parts")
+shutil.rmtree(PARTS_DIR, ignore_errors=True)
 os.makedirs(PARTS_DIR, exist_ok=True)
 
 S, B, D, T = "String", "Boolean", "Double", "DateTime"

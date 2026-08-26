@@ -1,5 +1,5 @@
 {
-  "id": "6a1894be-524c-47cb-bae6-48568d4e67f7",
+  "id": "0dfc94ee-8d0f-4aaa-b001-d619f507f79f",
   "dataBindingConfiguration": {
     "dataBindingType": "NonTimeSeries",
     "propertyBindings": [
@@ -30,8 +30,8 @@
     ],
     "sourceTableProperties": {
       "sourceType": "LakehouseTable",
-      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
-      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "workspaceId": "c57a379b-7e6d-481a-9c9b-662bb0bae77d",
+      "itemId": "257366a1-4675-4c66-a69e-1ec7ab653706",
       "sourceTableName": "policy"
     }
   }

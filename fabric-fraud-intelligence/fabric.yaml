@@ -14,7 +14,7 @@ app:
     provider: microsoft-entra
     sso: fabric
 
-workspace: Fraud_analysis
+workspace: Fraud Intelligence
 
 data:
   dialect: mssql

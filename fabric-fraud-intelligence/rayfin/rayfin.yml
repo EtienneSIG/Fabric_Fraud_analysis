@@ -11,6 +11,7 @@ services:
     allowedRedirectUris:
       - http://localhost:5173
       - https://fleet-north-8c279cc767-swedencentral.webapp.fabricapps.net
+      - https://tangy-cove-9493188f6d-centralus.webapp.fabricapps.net
   data:
     enabled: true
     dialect: mssql

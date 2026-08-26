@@ -1,15 +1,15 @@
 {
-  "id": "08580d27-5b06-4451-9a5c-1872b2c2fce0",
+  "id": "3396ae5e-406c-452e-be32-4c85f813d949",
   "dataBindingTable": {
-    "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
-    "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
-    "sourceTableName": "evidence",
+    "workspaceId": "c57a379b-7e6d-481a-9c9b-662bb0bae77d",
+    "itemId": "257366a1-4675-4c66-a69e-1ec7ab653706",
+    "sourceTableName": "agent_run",
     "sourceType": "LakehouseTable"
   },
   "sourceKeyRefBindings": [
     {
       "sourceColumnName": "id",
-      "targetPropertyId": "1000000067"
+      "targetPropertyId": "1000000082"
     }
   ],
   "targetKeyRefBindings": [

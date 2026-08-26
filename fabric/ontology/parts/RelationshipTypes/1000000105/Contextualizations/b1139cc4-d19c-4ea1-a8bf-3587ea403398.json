@@ -1,8 +1,8 @@
 {
-  "id": "634fd43e-b1ea-4d0f-9c49-15d03e12092c",
+  "id": "b1139cc4-d19c-4ea1-a8bf-3587ea403398",
   "dataBindingTable": {
-    "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
-    "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+    "workspaceId": "c57a379b-7e6d-481a-9c9b-662bb0bae77d",
+    "itemId": "257366a1-4675-4c66-a69e-1ec7ab653706",
     "sourceTableName": "fraud_alert",
     "sourceType": "LakehouseTable"
   },
@@ -14,8 +14,8 @@
   ],
   "targetKeyRefBindings": [
     {
-      "sourceColumnName": "customerId",
-      "targetPropertyId": "1000000002"
+      "sourceColumnName": "transactionId",
+      "targetPropertyId": "1000000016"
     }
   ]
 }

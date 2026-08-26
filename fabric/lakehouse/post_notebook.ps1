@@ -2,8 +2,8 @@ param(
   [Parameter(Mandatory=$true)][string]$PyFile,
   [Parameter(Mandatory=$true)][string]$DisplayName,
   [string]$Description = "",
-  [string]$Workspace = "d451f521-7e87-408f-8208-61928f1b84e3",
-  [string]$LakehouseId = "67f6d900-b355-4727-b49b-4e05096cf8e7",
+  [Parameter(Mandatory=$true)][string]$Workspace,
+  [Parameter(Mandatory=$true)][string]$LakehouseId,
   [string]$LakehouseName = "fraud_lakehouse"
 )
 
@@ -19,7 +19,7 @@ $nb = [ordered]@{
   nbformat = 4
   nbformat_minor = 5
   cells = @(
-    [ordered]@{ cell_type = "code"; execution_count = $null; metadata = @{}; outputs = @(); source = $srcLines }
+    [ordered]@{ cell_type = "code"; execution_count = $null; metadata = @{ language = "python" }; outputs = @(); source = $srcLines }
   )
   metadata = [ordered]@{
     language_info = @{ name = "python" }

@@ -1,14 +1,14 @@
 # Fraud domain ontology (Fabric IQ - Ontology preview)
-# Deployed to workspace Fraud_analysis, bound to fraud_lakehouse app tables.
+# Deployed to workspace Fraud Intelligence, bound to fraud_lakehouse app tables.
 # Source of truth for the item definition: fabric/ontology/build_ontology.py
 
 deployment:
   item_type: Ontology
-  ontology_id: 9869be36-467b-49b5-b1a3-2c9eb9911e34
+  ontology_id: 63594cf9-f0d8-477b-ae09-01702415fb7b
   ontology_name: fraud_ontology
-  workspace_id: d451f521-7e87-408f-8208-61928f1b84e3
+  workspace_id: c57a379b-7e6d-481a-9c9b-662bb0bae77d
   lakehouse: fraud_lakehouse
-  lakehouse_id: 67f6d900-b355-4727-b49b-4e05096cf8e7
+  lakehouse_id: 257366a1-4675-4c66-a69e-1ec7ab653706
   binding_type: LakehouseTable  # NonTimeSeries static bindings
   note: >-
     Upstream row changes require a manual graph-model refresh in the ontology

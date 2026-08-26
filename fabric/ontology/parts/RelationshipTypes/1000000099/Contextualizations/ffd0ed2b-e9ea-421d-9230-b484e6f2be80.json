@@ -1,8 +1,8 @@
 {
-  "id": "bd80adba-cd13-4252-be0e-565d5a0018d8",
+  "id": "ffd0ed2b-e9ea-421d-9230-b484e6f2be80",
   "dataBindingTable": {
-    "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
-    "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+    "workspaceId": "c57a379b-7e6d-481a-9c9b-662bb0bae77d",
+    "itemId": "257366a1-4675-4c66-a69e-1ec7ab653706",
     "sourceTableName": "account",
     "sourceType": "LakehouseTable"
   },

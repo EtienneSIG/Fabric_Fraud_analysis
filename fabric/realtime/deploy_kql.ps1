@@ -1,7 +1,10 @@
-$cluster = "https://trd-jsagenp1qksbhfjaf5.z9.kusto.fabric.microsoft.com"
-$ktok = az account get-access-token --resource $cluster --query accessToken -o tsv
+param(
+  [Parameter(Mandatory=$true)][string]$Cluster,
+  [string]$Database = "fraud_rti"
+)
+
+$ktok = az account get-access-token --resource $Cluster --query accessToken -o tsv
 $kh = @{ Authorization = "Bearer $ktok"; "Content-Type" = "application/json" }
-$db = "fraud_rti"
 
 $cmds = @(
   ".create table Transactions (Timestamp:datetime, TransactionId:string, SourceAccount:string, MerchantId:string, DeviceId:string, IpId:string, Amount:real)",
@@ -10,9 +13,9 @@ $cmds = @(
 )
 
 foreach ($c in $cmds) {
-  $b = @{ db = $db; csl = $c } | ConvertTo-Json
+  $b = @{ db = $Database; csl = $c } | ConvertTo-Json
   try {
-    $null = Invoke-RestMethod -Uri "$cluster/v1/rest/mgmt" -Headers $kh -Method Post -Body $b
+    $null = Invoke-RestMethod -Uri "$Cluster/v1/rest/mgmt" -Headers $kh -Method Post -Body $b
     Write-Output ("OK  : " + $c.Substring(0, [Math]::Min(55, $c.Length)))
   } catch {
     Write-Output ("FAIL: " + $c.Substring(0, [Math]::Min(55, $c.Length)) + " => " + $_.ErrorDetails.Message)

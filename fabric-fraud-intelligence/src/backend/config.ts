@@ -15,7 +15,7 @@ function env(key: string): string {
 export const fabricConfig: FabricConfig = {
   mode: (env('VITE_FABRIC_APP_MODE') as AppMode) || 'mock',
   workspaceId: env('VITE_FABRIC_WORKSPACE_ID'),
-  dataAgentId: env('VITE_FABRIC_DATA_AGENT_ID'),
+  dataAgentId: env('VITE_FABRIC_DATA_AGENT_ID') || env('VITE_RAYFIN_DATA_AGENT_ID'),
   tenantId: env('VITE_FABRIC_TENANT_ID'),
 };
 

@@ -1,5 +1,5 @@
 {
-  "id": "954cc81e-1743-426b-9b85-8c80790b43cb",
+  "id": "b70e0fdb-5f38-4c17-9f59-a0bc639e9560",
   "dataBindingConfiguration": {
     "dataBindingType": "NonTimeSeries",
     "propertyBindings": [
@@ -42,8 +42,8 @@
     ],
     "sourceTableProperties": {
       "sourceType": "LakehouseTable",
-      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
-      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "workspaceId": "c57a379b-7e6d-481a-9c9b-662bb0bae77d",
+      "itemId": "257366a1-4675-4c66-a69e-1ec7ab653706",
       "sourceTableName": "claim"
     }
   }

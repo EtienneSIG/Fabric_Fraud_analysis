@@ -16,10 +16,8 @@ from pyspark.sql.types import (
 
 spark = SparkSession.builder.getOrCreate()
 
-WS = "d451f521-7e87-408f-8208-61928f1b84e3"
-LH = "67f6d900-b355-4727-b49b-4e05096cf8e7"
-FILES = f"abfss://{WS}@onelake.dfs.fabric.microsoft.com/{LH}/Files/appdata"
-TABLES = f"abfss://{WS}@onelake.dfs.fabric.microsoft.com/{LH}/Tables"
+FILES = "Files/appdata"
+TABLES = "Tables"
 
 S = StringType
 D = DoubleType
@@ -99,7 +97,7 @@ for name, schema in SCHEMAS.items():
     for c in TS_COLS.get(name, []):
         df = df.withColumn(c, F.to_timestamp(c))
     (df.write.mode("overwrite").format("delta")
-       .option("overwriteSchema", "true").save(f"{TABLES}/{name}"))
+       .option("overwriteSchema", "true").saveAsTable(name))
     print(f"wrote {name}: {df.count():,} rows")
 
 print("All app tables materialized in fraud_lakehouse.")

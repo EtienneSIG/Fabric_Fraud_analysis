@@ -1,6 +1,7 @@
 param(
-  [string]$Workspace = "d451f521-7e87-408f-8208-61928f1b84e3",
-  [string]$Root = "c:\Users\esigwald\01_Dev\Fraud\artifacts\rayfin_report",
+  [Parameter(Mandatory=$true)][string]$Workspace,
+  [Parameter(Mandatory=$true)][string]$ModelId,
+  [string]$Root = "$PSScriptRoot\rayfin_report",
   [string]$DisplayName = "Rayfin_FraudCockpit"
 )
 
@@ -12,7 +13,14 @@ $files = Get-ChildItem -Path $rootPath -Recurse -File
 $parts = @()
 foreach ($f in $files) {
   $rel = $f.FullName.Substring($rootPath.Length + 1).Replace("\", "/")
-  $b64 = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($f.FullName))
+  if ($rel -eq "definition.pbir") {
+    $definition = Get-Content -Raw -Path $f.FullName | ConvertFrom-Json
+    $definition.datasetReference.byConnection.pbiModelDatabaseName = $ModelId
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes(($definition | ConvertTo-Json -Depth 20))
+  } else {
+    $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
+  }
+  $b64 = [System.Convert]::ToBase64String($bytes)
   $parts += @{ path = $rel; payload = $b64; payloadType = "InlineBase64" }
 }
 

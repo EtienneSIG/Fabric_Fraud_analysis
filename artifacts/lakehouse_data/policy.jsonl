@@ -1,0 +1,8 @@
+{"id":"POL-001","customerId":"CUST-001","policyType":"Travel","startDate":"2025-03-28T03:20:23.721Z","premium":570.42,"status":"active"}
+{"id":"POL-002","customerId":"CUST-003","policyType":"Health","startDate":"2024-05-09T18:30:17.164Z","premium":1577.43,"status":"active"}
+{"id":"POL-003","customerId":"CUST-005","policyType":"Home","startDate":"2024-06-24T20:15:44.629Z","premium":556.86,"status":"active"}
+{"id":"POL-004","customerId":"CUST-007","policyType":"Health","startDate":"2024-07-30T01:50:13.224Z","premium":549.64,"status":"active"}
+{"id":"POL-005","customerId":"CUST-009","policyType":"Travel","startDate":"2024-12-28T01:44:31.364Z","premium":1344.14,"status":"active"}
+{"id":"POL-006","customerId":"CUST-011","policyType":"Health","startDate":"2024-07-16T15:07:56.691Z","premium":1084.33,"status":"active"}
+{"id":"POL-007","customerId":"CUST-013","policyType":"Home","startDate":"2024-06-21T16:43:54.505Z","premium":329.66,"status":"active"}
+{"id":"POL-008","customerId":"CUST-015","policyType":"Travel","startDate":"2024-11-25T09:51:06.284Z","premium":925.61,"status":"active"}

@@ -1,6 +1,6 @@
 param(
-  [string]$Ws = "d451f521-7e87-408f-8208-61928f1b84e3",
-  [string]$Lh = "67f6d900-b355-4727-b49b-4e05096cf8e7",
+  [Parameter(Mandatory=$true)][string]$Ws,
+  [Parameter(Mandatory=$true)][string]$Lh,
   [string]$Dir = "c:\Users\esigwald\01_Dev\Fraud\artifacts\lakehouse_data",
   [string]$Dest = "appdata"
 )

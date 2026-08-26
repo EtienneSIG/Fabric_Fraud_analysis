@@ -1,0 +1,15 @@
+{"id":"CASE-001","alertId":"ALT-001","assignedTo":"a.dupont","status":"Open","decision":"Pending","decisionReason":"","createdAt":"2026-08-25T10:46:43.262Z","updatedAt":"2026-08-25T10:46:43.262Z"}
+{"id":"CASE-002","alertId":"ALT-002","assignedTo":"s.martin","status":"Investigating","decision":"Pending","decisionReason":"","createdAt":"2026-08-24T01:11:13.624Z","updatedAt":"2026-08-24T01:11:13.624Z"}
+{"id":"CASE-003","alertId":"ALT-003","assignedTo":"l.chen","status":"Investigating","decision":"Pending","decisionReason":"","createdAt":"2026-08-22T17:25:20.788Z","updatedAt":"2026-08-22T17:25:20.788Z"}
+{"id":"CASE-004","alertId":"ALT-004","assignedTo":"k.okafor","status":"Open","decision":"Pending","decisionReason":"","createdAt":"2026-08-24T04:56:40.128Z","updatedAt":"2026-08-24T04:56:40.128Z"}
+{"id":"CASE-005","alertId":"ALT-005","assignedTo":"m.rossi","status":"Escalated","decision":"Escalate","decisionReason":"","createdAt":"2026-08-23T08:12:58.788Z","updatedAt":"2026-08-23T08:12:58.788Z"}
+{"id":"CASE-006","alertId":"ALT-006","assignedTo":"a.dupont","status":"Closed","decision":"Pending","decisionReason":"","createdAt":"2026-08-22T21:10:48.645Z","updatedAt":"2026-08-22T21:10:48.645Z"}
+{"id":"CASE-007","alertId":"ALT-007","assignedTo":"s.martin","status":"Escalated","decision":"Escalate","decisionReason":"","createdAt":"2026-08-23T01:29:56.800Z","updatedAt":"2026-08-23T01:29:56.800Z"}
+{"id":"CASE-008","alertId":"ALT-008","assignedTo":"l.chen","status":"Closed","decision":"Pending","decisionReason":"","createdAt":"2026-08-21T20:35:22.433Z","updatedAt":"2026-08-21T20:35:22.433Z"}
+{"id":"CASE-009","alertId":"ALT-009","assignedTo":"k.okafor","status":"Closed","decision":"Close - False Positive","decisionReason":"","createdAt":"2026-08-25T12:10:33.128Z","updatedAt":"2026-08-25T12:10:33.128Z"}
+{"id":"CASE-010","alertId":"ALT-010","assignedTo":"m.rossi","status":"Closed","decision":"Pending","decisionReason":"","createdAt":"2026-08-24T22:53:46.375Z","updatedAt":"2026-08-24T22:53:46.375Z"}
+{"id":"CASE-011","alertId":"ALT-011","assignedTo":"a.dupont","status":"Escalated","decision":"Escalate","decisionReason":"","createdAt":"2026-08-24T19:39:37.072Z","updatedAt":"2026-08-24T19:39:37.072Z"}
+{"id":"CASE-012","alertId":"ALT-012","assignedTo":"s.martin","status":"Investigating","decision":"Pending","decisionReason":"","createdAt":"2026-08-21T18:51:23.862Z","updatedAt":"2026-08-21T18:51:23.862Z"}
+{"id":"CASE-013","alertId":"ALT-013","assignedTo":"l.chen","status":"Open","decision":"Pending","decisionReason":"","createdAt":"2026-08-25T04:29:06.269Z","updatedAt":"2026-08-25T04:29:06.269Z"}
+{"id":"CASE-014","alertId":"ALT-014","assignedTo":"k.okafor","status":"Investigating","decision":"Pending","decisionReason":"","createdAt":"2026-08-20T21:58:55.787Z","updatedAt":"2026-08-20T21:58:55.787Z"}
+{"id":"CASE-015","alertId":"ALT-015","assignedTo":"m.rossi","status":"Closed","decision":"Pending","decisionReason":"","createdAt":"2026-08-23T10:23:55.076Z","updatedAt":"2026-08-23T10:23:55.076Z"}

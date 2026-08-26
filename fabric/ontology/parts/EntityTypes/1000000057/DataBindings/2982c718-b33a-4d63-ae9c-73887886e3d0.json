@@ -1,5 +1,5 @@
 {
-  "id": "c1e3d9ba-8742-460d-9140-b5feef186403",
+  "id": "2982c718-b33a-4d63-ae9c-73887886e3d0",
   "dataBindingConfiguration": {
     "dataBindingType": "NonTimeSeries",
     "propertyBindings": [
@@ -38,8 +38,8 @@
     ],
     "sourceTableProperties": {
       "sourceType": "LakehouseTable",
-      "workspaceId": "d451f521-7e87-408f-8208-61928f1b84e3",
-      "itemId": "67f6d900-b355-4727-b49b-4e05096cf8e7",
+      "workspaceId": "c57a379b-7e6d-481a-9c9b-662bb0bae77d",
+      "itemId": "257366a1-4675-4c66-a69e-1ec7ab653706",
       "sourceTableName": "fraud_case"
     }
   }

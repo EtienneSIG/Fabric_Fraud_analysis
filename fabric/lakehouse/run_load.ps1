@@ -1,5 +1,6 @@
 param(
-  [string]$Ws = "d451f521-7e87-408f-8208-61928f1b84e3",
+  [Parameter(Mandatory=$true)][string]$Ws,
+  [Parameter(Mandatory=$true)][string]$Lh,
   [string]$Py = "$PSScriptRoot\load_app_data.py",
   [string]$Name = "load_app_data"
 )
@@ -16,7 +17,7 @@ $hit = $nbs | Where-Object { $_.displayName -eq $Name } | Select-Object -Last 1
 $nbId = if ($hit) { $hit.id } else { $null }
 
 if (-not $nbId) {
-  $post = & "$PSScriptRoot\post_notebook.ps1" -PyFile $Py -DisplayName $Name
+  $post = & "$PSScriptRoot\post_notebook.ps1" -PyFile $Py -DisplayName $Name -Workspace $Ws -LakehouseId $Lh
   $post
   for ($j = 0; $j -lt 12 -and -not $nbId; $j++) {
     Start-Sleep -Seconds 5

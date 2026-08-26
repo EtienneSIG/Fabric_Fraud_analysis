@@ -1,0 +1,20 @@
+{"id":"REL-001","sourceEntityId":"CUST-001","targetEntityId":"AutoRepair Pro","relationshipType":"claims_at_provider","weight":0.74}
+{"id":"REL-002","sourceEntityId":"CUST-003","targetEntityId":"AutoRepair Pro","relationshipType":"claims_at_provider","weight":0.65}
+{"id":"REL-003","sourceEntityId":"CUST-005","targetEntityId":"AutoRepair Pro","relationshipType":"claims_at_provider","weight":0.66}
+{"id":"REL-004","sourceEntityId":"CUST-007","targetEntityId":"AutoRepair Pro","relationshipType":"claims_at_provider","weight":0.81}
+{"id":"REL-005","sourceEntityId":"CUST-001","targetEntityId":"DEV-4821","relationshipType":"shared_device","weight":0.79}
+{"id":"REL-006","sourceEntityId":"CUST-003","targetEntityId":"DEV-4821","relationshipType":"shared_device","weight":0.76}
+{"id":"REL-007","sourceEntityId":"CUST-005","targetEntityId":"DEV-7710","relationshipType":"shared_device","weight":0.75}
+{"id":"REL-008","sourceEntityId":"CUST-009","targetEntityId":"CUST-007","relationshipType":"co_signer","weight":0.6}
+{"id":"REL-009","sourceEntityId":"CUST-001","targetEntityId":"CUST-010","relationshipType":"shared_beneficiary","weight":0.47}
+{"id":"REL-010","sourceEntityId":"CUST-011","targetEntityId":"CUST-010","relationshipType":"shared_beneficiary","weight":0.73}
+{"id":"REL-011","sourceEntityId":"CUST-015","targetEntityId":"CUST-011","relationshipType":"shared_beneficiary","weight":0.51}
+{"id":"REL-012","sourceEntityId":"CUST-006","targetEntityId":"CUST-004","relationshipType":"same_counterparty","weight":0.57}
+{"id":"REL-013","sourceEntityId":"CUST-019","targetEntityId":"CUST-014","relationshipType":"co_signer","weight":0.33}
+{"id":"REL-014","sourceEntityId":"CUST-013","targetEntityId":"CUST-016","relationshipType":"co_signer","weight":0.37}
+{"id":"REL-015","sourceEntityId":"CUST-012","targetEntityId":"CUST-009","relationshipType":"shared_ip","weight":0.76}
+{"id":"REL-016","sourceEntityId":"CUST-002","targetEntityId":"CUST-017","relationshipType":"co_signer","weight":0.53}
+{"id":"REL-017","sourceEntityId":"CUST-016","targetEntityId":"CUST-020","relationshipType":"co_signer","weight":0.89}
+{"id":"REL-018","sourceEntityId":"CUST-008","targetEntityId":"CUST-016","relationshipType":"same_counterparty","weight":0.87}
+{"id":"REL-019","sourceEntityId":"CUST-003","targetEntityId":"CUST-005","relationshipType":"shared_ip","weight":0.73}
+{"id":"REL-020","sourceEntityId":"CUST-020","targetEntityId":"CUST-016","relationshipType":"co_signer","weight":0.39}

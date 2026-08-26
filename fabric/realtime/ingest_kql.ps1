@@ -1,7 +1,10 @@
-$cluster = "https://trd-jsagenp1qksbhfjaf5.z9.kusto.fabric.microsoft.com"
-$ktok = az account get-access-token --resource $cluster --query accessToken -o tsv
+param(
+    [Parameter(Mandatory=$true)][string]$Cluster,
+    [string]$Database = "fraud_rti"
+)
+
+$ktok = az account get-access-token --resource $Cluster --query accessToken -o tsv
 $kh = @{ Authorization = "Bearer $ktok"; "Content-Type" = "application/json" }
-$db = "fraud_rti"
 
 $rng = [System.Random]::new(42)
 $now = Get-Date
@@ -30,17 +33,17 @@ for ($j = 0; $j -lt 25; $j++) {
 
 $csv = ($rows -join "`n")
 $csl = ".ingest inline into table Transactions with (format='csv') <|`n$csv"
-$body = @{ db = $db; csl = $csl } | ConvertTo-Json
+$body = @{ db = $Database; csl = $csl } | ConvertTo-Json
 try {
-    Invoke-RestMethod -Uri "$cluster/v1/rest/mgmt" -Headers $kh -Method Post -Body $body | Out-Null
+    Invoke-RestMethod -Uri "$Cluster/v1/rest/mgmt" -Headers $kh -Method Post -Body $body | Out-Null
     "INGESTED $($rows.Count) rows"
 } catch {
     "INGEST_FAIL: $($_.Exception.Message)"; $_.ErrorDetails.Message
 }
 
 # verify
-$q = @{ db = $db; csl = "Transactions | summarize total=count(), last24h=countif(Timestamp > ago(24h)), distinct_accounts=dcount(SourceAccount)" } | ConvertTo-Json
+$q = @{ db = $Database; csl = "Transactions | summarize total=count(), last24h=countif(Timestamp > ago(24h)), distinct_accounts=dcount(SourceAccount)" } | ConvertTo-Json
 try {
-    $r = Invoke-RestMethod -Uri "$cluster/v1/rest/query" -Headers $kh -Method Post -Body $q
+    $r = Invoke-RestMethod -Uri "$Cluster/v1/rest/query" -Headers $kh -Method Post -Body $q
     "VERIFY: " + ($r.Tables[0].Rows | ConvertTo-Json -Compress)
 } catch { "VERIFY_FAIL: $($_.ErrorDetails.Message)" }
