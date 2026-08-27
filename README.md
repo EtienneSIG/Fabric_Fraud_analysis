@@ -15,7 +15,7 @@ repeatable deployment commands, validation steps, and current limitations.
 
 ## Demo video
 
-https://raw.githubusercontent.com/EtienneSIG/Fabric_Fraud_analysis/main/video/Fabric%20Fraud%20Intelligence%20%28live%29.mp4
+https://github.com/user-attachments/assets/f8c32d4f-626d-4de5-a0d8-4e9f4a4e3de8
 
 > Full quality (with sound): **[Fabric Fraud Intelligence (live).mp4](https://raw.githubusercontent.com/EtienneSIG/Fabric_Fraud_analysis/main/video/Fabric%20Fraud%20Intelligence%20%28live%29.mp4)**
 
