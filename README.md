@@ -13,6 +13,14 @@ an Eventhouse with a KQL database, and Power BI semantic model and report items.
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the deployed item inventory,
 repeatable deployment commands, validation steps, and current limitations.
 
+## Demo video
+
+https://raw.githubusercontent.com/EtienneSIG/Fabric_Fraud_analysis/main/video/Fabric%20Fraud%20Intelligence%20%28live%29.mp4
+
+> Full quality (with sound): **[Fabric Fraud Intelligence (live).mp4](https://raw.githubusercontent.com/EtienneSIG/Fabric_Fraud_analysis/main/video/Fabric%20Fraud%20Intelligence%20%28live%29.mp4)**
+
+---
+
 ## Repository structure
 
 | Folder | Theme | Contents |
@@ -54,11 +62,17 @@ flowchart LR
     SQL["Fabric SQL Database<br/>(@entity ontology)"]
     LH["fraud_lakehouse<br/>Delta tables"]
     ONT["fraud_ontology<br/>Fabric IQ semantic layer"]
+    DA["Fraud Intelligence Data Agent<br/>11-table grounding"]
+    RT["Eventhouse + fraud_rti<br/>KQL scoring features"]
+    BI["Power BI semantic model<br/>Rayfin Fraud Cockpit"]
   end
   UI --> AG
   AG -->|NL2SQL / grounding| SQL
   SQL --- LH
   LH --> ONT
+  LH --> DA
+  RT --> BI
+  LH --> BI
   UI -->|SSO · RBAC · PII masking| Fabric
 ```
 
@@ -203,5 +217,5 @@ python fabric/ontology/build_ontology.py `
 
 ## Demo
 
-- 🎬 **Live walkthrough video:** [video/Fabric Fraud Intelligence (live).mp4](video/Fabric%20Fraud%20Intelligence%20(live).mp4)
-- 📝 Executive demo script: [docs/exec-demo-narrative.md](docs/exec-demo-narrative.md) (FR) · [docs/exec-demo-narrative.en.md](docs/exec-demo-narrative.en.md) (EN)
+- **Live walkthrough:** see the embedded demo video at the top of this README.
+- **Executive demo script:** [docs/exec-demo-narrative.md](docs/exec-demo-narrative.md) (FR) and [docs/exec-demo-narrative.en.md](docs/exec-demo-narrative.en.md) (EN).
