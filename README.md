@@ -217,5 +217,5 @@ python fabric/ontology/build_ontology.py `
 
 ## Demo
 
-- **Live walkthrough:** see the embedded demo video at the top of this README.
+- **Live walkthrough:** see the demo video at the top of this README.
 - **Executive demo script:** [docs/exec-demo-narrative.md](docs/exec-demo-narrative.md) (FR) and [docs/exec-demo-narrative.en.md](docs/exec-demo-narrative.en.md) (EN).
