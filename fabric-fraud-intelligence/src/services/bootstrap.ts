@@ -1,5 +1,6 @@
 import type { IAuthService } from './IAuthService';
 import { MockAuthService } from './MockAuthService';
+import { PublicDemoAuthService } from './PublicDemoAuthService';
 import { RayfinAuthService } from './RayfinAuthService';
 import { initRayfinClient } from './rayfinClient';
 
@@ -20,6 +21,10 @@ function isLocalBackendUrl(url: string): boolean {
  * - Anything else     → {@link RayfinAuthService} (requires VITE_FABRIC_* vars)
  */
 export function bootstrapAuth(): IAuthService {
+  if (import.meta.env.VITE_PUBLIC_DEMO === 'true') {
+    return new PublicDemoAuthService();
+  }
+
   const apiUrl = import.meta.env.VITE_RAYFIN_API_URL || 'http://localhost:5168';
   const localDev = isLocalBackendUrl(apiUrl);
   const publishableKey = import.meta.env.VITE_RAYFIN_PUBLISHABLE_KEY;

@@ -13,7 +13,7 @@
     "prebuild": "rayfin env --framework vite",
     "dev": "rayfin up --exclude-services staticHosting && vite",
     "build": "tsc -b && vite build",
-    "build:fabric": "tsc -b && vite build",
+    "build:fabric": "tsc -b && vite build --mode public",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

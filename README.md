@@ -4,8 +4,12 @@ An end-to-end fraud detection and investigation solution built on **Microsoft Fa
 combining a **Rayfin Fabric App** (React frontend + Fabric SQL backend), a governed
 **Lakehouse**, and a **Fabric IQ Ontology** semantic layer.
 
-**Live app:** https://tangy-cove-9493188f6d-centralus.webapp.fabricapps.net
+**Public demo:** https://tangy-cove-9493188f6d-centralus.webapp.fabricapps.net
 **Workspace:** `Fraud Intelligence` (`c57a379b-7e6d-481a-9c9b-662bb0bae77d`)
+
+The public deployment runs exclusively on synthetic seed data and deterministic
+agent responses. It does not grant anonymous access to the Fabric SQL database,
+Lakehouse, Ontology, Data Agent, Eventhouse, semantic model, or report.
 
 The current Fabric deployment includes the Rayfin app and SQL database, a Lakehouse
 with 11 Delta tables, a load notebook, a Fabric IQ Ontology, a published Data Agent,
