@@ -1,9 +1,8 @@
 import { DATASET } from '@/data/seed';
 import { audit } from '@/backend/services/AuditService';
-import {
-  dataAgent,
-  type GroundingSource,
-} from '@/backend/services/FabricDataAgentClient';
+import { type GroundingSource } from '@/backend/services/FabricDataAgentClient';
+import { foundryAgent } from '@/backend/services/FoundryAgentClient';
+import i18n from '@/i18n/i18n';
 import type { AgentRun } from '@/backend/models';
 import { buildBundle, type CaseBundle } from './context';
 import { fraudInvestigationAgent, type SuggestedAction } from './FraudInvestigationAgent';
@@ -32,23 +31,28 @@ export class AgentOrchestrator {
     text: string,
     userId: string
   ): Promise<{ runId: string; generatedQuery: string; grounding: GroundingSource[] }> {
-    const da = await dataAgent.askDataAgent(prompt, {
-      caseId,
-      alertId: DATASET.cases.find((c) => c.id === caseId)?.alertId,
-      role: userId,
+    const reply = await foundryAgent.run({
+      agentName,
+      prompt,
+      context: {
+        caseId,
+        alertId: DATASET.cases.find((c) => c.id === caseId)?.alertId,
+        role: userId,
+      },
+      locale: i18n.language || 'en',
     });
     const run: AgentRun = {
-      id: da.runId,
+      id: reply.runId,
       caseId,
       agentName,
       prompt,
       response: text,
-      groundingSources: JSON.stringify(da.groundingSources),
+      groundingSources: JSON.stringify(reply.grounding),
       createdAt: new Date().toISOString(),
       userId,
     };
     audit.logAgentRun(run);
-    return { runId: da.runId, generatedQuery: da.generatedQuery, grounding: da.groundingSources };
+    return { runId: reply.runId, generatedQuery: reply.generatedQuery, grounding: reply.grounding };
   }
 
   private caseForAlert(alertId: string): CaseBundle | undefined {

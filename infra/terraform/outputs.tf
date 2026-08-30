@@ -1,0 +1,51 @@
+output "resource_group_name" {
+  value = azurerm_resource_group.this.name
+}
+
+output "ai_foundry_endpoint" {
+  description = "Microsoft Foundry (AI Services) endpoint — VITE_FOUNDRY_ENDPOINT."
+  value       = azurerm_cognitive_account.this.endpoint
+}
+
+output "ai_foundry_name" {
+  value = azurerm_cognitive_account.this.name
+}
+
+output "model_deployment_names" {
+  description = "Foundry deployment names keyed by role (used by deploy_agents.ps1 and the app)."
+  value       = { for k, d in azurerm_cognitive_deployment.models : k => d.name }
+}
+
+output "eventhub_namespace_fqdn" {
+  value = "${azurerm_eventhub_namespace.this.name}.servicebus.windows.net"
+}
+
+output "eventhub_name" {
+  value = azurerm_eventhub.transactions.name
+}
+
+output "key_vault_uri" {
+  value = azurerm_key_vault.this.vault_uri
+}
+
+output "function_app_name" {
+  value = azurerm_function_app_flex_consumption.bot.name
+}
+
+output "bot_messaging_endpoint" {
+  value = "https://${azurerm_function_app_flex_consumption.bot.default_hostname}/api/messages"
+}
+
+output "bot_app_id" {
+  description = "Bot Entra app (client) id — used in the Teams app manifest."
+  value       = azuread_application.bot.client_id
+}
+
+output "graph_obo_client_id" {
+  description = "Delegated Graph app (client) id — VITE_GRAPH_OBO_CLIENT_ID."
+  value       = azuread_application.graph_obo.client_id
+}
+
+output "tenant_id" {
+  value = var.tenant_id
+}

@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { RiskScoreBadge } from '@/app/components/RiskScoreBadge';
 import { useRole } from '@/app/RoleContext';
@@ -26,6 +27,7 @@ function parseNarrative(text: string) {
 }
 
 export function AMLCopilot() {
+  const { t } = useTranslation();
   const { user } = useRole();
   const alerts = useMemo(() => getAlerts({ type: 'AML' }), []);
   const [caseId, setCaseId] = useState(alerts[0]?.caseId ?? '');
@@ -43,15 +45,13 @@ export function AMLCopilot() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">AML Copilot</h2>
-        <p className="text-sm text-gray-400">
-          Transaction-monitoring narrative &amp; SAR readiness, grounded on Fabric data.
-        </p>
+        <h2 className="text-lg font-bold text-gray-900">{t('pages.aml.title')}</h2>
+        <p className="text-sm text-gray-400">{t('pages.aml.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <section className="ffi-card p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">AML alerts</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.aml.alerts')}</h3>
           <ul className="space-y-1.5">
             {alerts.map((a) => (
               <li
@@ -97,7 +97,7 @@ export function AMLCopilot() {
                       <path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
                     )}
                   </svg>
-                  {busy ? 'Generating…' : 'Generate AML narrative'}
+                  {busy ? t('pages.aml.generating') : t('pages.aml.generate')}
                 </button>
               </div>
 
@@ -116,12 +116,12 @@ export function AMLCopilot() {
                           <path d="M14 3v4h4M9.5 12l1.5 1.5L14 10" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <div>
-                          <p className="text-[11px] uppercase tracking-wider text-indigo-100">AI-generated AML narrative</p>
-                          <p className="text-sm font-semibold">Suspicious activity report · {bundle.alert?.id}</p>
+                          <p className="text-[11px] uppercase tracking-wider text-indigo-100">{t('pages.aml.aiNarrative')}</p>
+                          <p className="text-sm font-semibold">{t('pages.aml.sar')} · {bundle.alert?.id}</p>
                         </div>
                       </div>
                       <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium backdrop-blur">
-                        Advisory · human approval
+                        {t('pages.aml.advisory')}
                       </span>
                     </div>
 
@@ -130,25 +130,25 @@ export function AMLCopilot() {
                       <div className="flex items-center gap-4">
                         <RiskDonut score={bundle.risk.score} color={sevColor} severity={sev} />
                         <div className="min-w-0">
-                          <p className="text-[11px] uppercase tracking-wide text-gray-400">Subject</p>
+                          <p className="text-[11px] uppercase tracking-wide text-gray-400">{t('pages.aml.subject')}</p>
                           <p className="text-sm font-medium text-gray-800">{p.subject}</p>
                         </div>
                       </div>
 
                       <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Typology · layering</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{t('pages.aml.typologyLayering')}</p>
                         <div className="mt-1.5">
-                          <FlowPills steps={['Inbound funds', 'Linked accounts', 'Rapid externalisation']} />
+                          <FlowPills steps={[t('pages.aml.flowInbound'), t('pages.aml.flowLinked'), t('pages.aml.flowRapid')]} />
                         </div>
                         <p className="mt-2 text-sm leading-relaxed text-gray-700">{p.typology}</p>
                       </div>
 
-                      <Section label="Pattern">{p.pattern}</Section>
-                      <Section label="Assessment">{p.assessment}</Section>
+                      <Section label={t('pages.aml.pattern')}>{p.pattern}</Section>
+                      <Section label={t('pages.aml.assessment')}>{p.assessment}</Section>
 
                       <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 p-3">
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
-                          Recommendation
+                          {t('pages.aml.recommendation')}
                         </p>
                         <p className="mt-0.5 text-sm leading-relaxed text-gray-700">{p.recommendation}</p>
                       </div>
@@ -156,7 +156,7 @@ export function AMLCopilot() {
                       {grounds.length > 0 && (
                         <div className="border-t border-gray-100 pt-3">
                           <p className="mb-1.5 text-[11px] uppercase tracking-wide text-gray-400">
-                            Grounded on Fabric data
+                            {t('pages.aml.groundedOn')}
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             {grounds.map((g, i) => (
@@ -175,16 +175,16 @@ export function AMLCopilot() {
 
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                  Money movement (account {bundle.account?.id ?? '—'})
+                  {t('pages.aml.moneyMovement', { id: bundle.account?.id ?? '—' })}
                 </h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-xs uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                        <th className="py-1.5 pr-3">When</th>
-                        <th className="py-1.5 pr-3">Amount</th>
-                        <th className="py-1.5 pr-3">Channel</th>
-                        <th className="py-1.5">Counterparty</th>
+                        <th className="py-1.5 pr-3">{t('pages.aml.when')}</th>
+                        <th className="py-1.5 pr-3">{t('pages.aml.amount')}</th>
+                        <th className="py-1.5 pr-3">{t('pages.aml.channel')}</th>
+                        <th className="py-1.5">{t('pages.aml.counterparty')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -207,7 +207,7 @@ export function AMLCopilot() {
                       {txns.length === 0 && (
                         <tr>
                           <td colSpan={4} className="py-4 text-center text-gray-400 text-xs">
-                            No linked account transactions.
+                            {t('pages.aml.noLinkedTxns')}
                           </td>
                         </tr>
                       )}
@@ -215,12 +215,12 @@ export function AMLCopilot() {
                   </table>
                 </div>
                 <p className="mt-2 text-[11px] text-gray-400">
-                  Estimated exposure {eur(txns.reduce((s, t) => s + t.amount, 0))} across {txns.length} movements.
+                  {t('pages.aml.exposure', { amount: eur(txns.reduce((s, tx) => s + tx.amount, 0)), count: txns.length })}
                 </p>
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-400">Select an AML alert.</p>
+            <p className="text-sm text-gray-400">{t('pages.aml.selectAlert')}</p>
           )}
         </section>
       </div>

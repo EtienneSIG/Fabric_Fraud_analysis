@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { RiskScoreBadge } from '@/app/components/RiskScoreBadge';
 import { useRole } from '@/app/RoleContext';
@@ -10,6 +11,7 @@ import { DATASET } from '@/data/seed';
 import type { AgentResult } from '@/backend/agents/AgentOrchestrator';
 
 export function ClaimsFraud() {
+  const { t } = useTranslation();
   const { user } = useRole();
   const alerts = useMemo(
     () => getAlerts().filter((a) => a.alertType === 'Claims Fraud' || a.alertType === 'Collusion Network'),
@@ -43,15 +45,13 @@ export function ClaimsFraud() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Claims Fraud</h2>
-        <p className="text-sm text-gray-400">
-          Insurance claim investigation — image reuse, provider concentration &amp; collusion.
-        </p>
+        <h2 className="text-lg font-bold text-gray-900">{t('pages.claims.title')}</h2>
+        <p className="text-sm text-gray-400">{t('pages.claims.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <section className="ffi-card p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Claims alerts</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.claims.alerts')}</h3>
           <ul className="space-y-1.5">
             {alerts.map((a) => (
               <li
@@ -80,7 +80,7 @@ export function ClaimsFraud() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-gray-800">
-                    {claim ? `${claim.claimType} claim ${claim.id}` : 'Claim'}
+                    {claim ? t('pages.claims.claimWithId', { type: claim.claimType, id: claim.id }) : t('pages.claims.claim')}
                   </p>
                   <p className="text-xs text-gray-400">
                     {claim ? `${eur(claim.amountClaimed)} · ${claim.repairProvider} · ${claim.location}` : '—'}
@@ -91,7 +91,7 @@ export function ClaimsFraud() {
                   onClick={() => void generate()}
                   className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
                 >
-                  {busy ? 'Generating…' : 'Generate claims summary'}
+                  {busy ? t('pages.claims.generating') : t('pages.claims.generate')}
                 </button>
               </div>
 
@@ -103,7 +103,7 @@ export function ClaimsFraud() {
 
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                  Repair-provider concentration
+                  {t('pages.claims.concentration')}
                 </h4>
                 <div className="space-y-2">
                   {providerStats.map((p) => (
@@ -122,12 +122,12 @@ export function ClaimsFraud() {
                   ))}
                 </div>
                 <p className="mt-2 text-[11px] text-gray-400">
-                  Providers appearing in ≥3 claims are flagged as concentration risk.
+                  {t('pages.claims.concentrationNote')}
                 </p>
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-400">Select a claims alert.</p>
+            <p className="text-sm text-gray-400">{t('pages.claims.selectAlert')}</p>
           )}
         </section>
       </div>

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { SankeyLink, SankeyNode } from '@/backend/api/flow';
 
@@ -23,6 +24,7 @@ const PAD_Y = 18;
 const GAP = 7;
 
 export function Sankey({ nodes, links, columns, height = 520 }: Props) {
+  const { t: tr } = useTranslation();
   const [hoverNode, setHoverNode] = useState<string | null>(null);
   const [hoverKey, setHoverKey] = useState<string | null>(null);
   const [tip, setTip] = useState<string | null>(null);
@@ -98,14 +100,14 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
           style={{ cursor: 'pointer', transition: 'fill-opacity 120ms' }}
           onMouseEnter={() => {
             setHoverKey(lk.key);
-            setTip(`${s.node.label} → ${t.node.label} · ${lk.value} customer${lk.value > 1 ? 's' : ''}`);
+            setTip(`${s.node.label} → ${t.node.label} · ${tr('components.sankey.customers', { count: lk.value })}`);
           }}
           onMouseLeave={() => {
             setHoverKey(null);
             setTip(null);
           }}
         >
-          <title>{`${lk.value} customer${lk.value > 1 ? 's' : ''}`}</title>
+          <title>{tr('components.sankey.customers', { count: lk.value })}</title>
         </path>
       );
     });
@@ -146,7 +148,7 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
         const tx = isLast ? x - 6 : isFirst ? x + NODE_W + 6 : x + NODE_W / 2;
         const ty = isFirst || isLast ? y0 + h / 2 : y0 - 4;
         return (
-          <g key={node.id} onMouseEnter={() => { setHoverNode(node.id); setTip(`${node.label} · ${node.value} customer${node.value > 1 ? 's' : ''}`); }} onMouseLeave={() => { setHoverNode(null); setTip(null); }} style={{ cursor: 'pointer' }}>
+          <g key={node.id} onMouseEnter={() => { setHoverNode(node.id); setTip(`${node.label} · ${tr('components.sankey.customers', { count: node.value })}`); }} onMouseLeave={() => { setHoverNode(null); setTip(null); }} style={{ cursor: 'pointer' }}>
             <rect x={x} y={y0} width={NODE_W} height={h} rx={2} fill={node.color} opacity={dim ? 0.25 : 1} />
             <text x={tx} y={ty} textAnchor={anchor} dominantBaseline={isFirst || isLast ? 'middle' : 'auto'} opacity={dim ? 0.3 : 1} className="fill-slate-600" style={{ fontSize: 10 }}>
               {node.label}

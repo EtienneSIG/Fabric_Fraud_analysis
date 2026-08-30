@@ -11,6 +11,15 @@ environments:
       auth: entra
       rls_enabled: true
       pii_mode: synthetic_only
+    foundry:
+      enabled: false
+      agent_orchestrator: fraud-triage-agent
+      connection: conn-fabric-fraud-dataagent
+      identity: obo
+    o365:
+      work_iq: false
+      teams_approvals: false
+      graph_auth: delegated_obo
   fabric:
     fabric_workspace: fraud-prod-workspace
     lakehouse:
@@ -23,3 +32,12 @@ environments:
       auth: entra
       rls_enabled: true
       pii_mode: protected
+    foundry:
+      enabled: true
+      agent_orchestrator: fraud-triage-agent
+      connection: conn-fabric-fraud-dataagent
+      identity: obo
+    o365:
+      work_iq: true
+      teams_approvals: true
+      graph_auth: delegated_obo

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import type { AlertRow } from '@/backend/api/alerts';
 import { RiskScoreBadge } from './RiskScoreBadge';
@@ -13,17 +14,18 @@ const STATUS_STYLE: Record<string, string> = {
 
 export function AlertTable({ rows }: { rows: AlertRow[] }) {
   const nav = useNavigate();
+  const { t } = useTranslation();
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-xs uppercase tracking-wider text-gray-400 border-b border-gray-100">
-            <th className="py-2 pr-3">Alert</th>
-            <th className="py-2 pr-3">Type</th>
-            <th className="py-2 pr-3">Customer</th>
-            <th className="py-2 pr-3">Risk</th>
-            <th className="py-2 pr-3">Status</th>
-            <th className="py-2">Explanation</th>
+            <th className="py-2 pr-3">{t('components.alertTable.alert')}</th>
+            <th className="py-2 pr-3">{t('components.alertTable.type')}</th>
+            <th className="py-2 pr-3">{t('components.alertTable.customer')}</th>
+            <th className="py-2 pr-3">{t('components.alertTable.risk')}</th>
+            <th className="py-2 pr-3">{t('components.alertTable.status')}</th>
+            <th className="py-2">{t('components.alertTable.explanation')}</th>
           </tr>
         </thead>
         <tbody>

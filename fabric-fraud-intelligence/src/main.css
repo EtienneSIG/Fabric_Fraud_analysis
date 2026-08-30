@@ -25,4 +25,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Skip painting long, off-screen lists until they scroll into view. */
+  .ffi-cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 600px;
+  }
 }

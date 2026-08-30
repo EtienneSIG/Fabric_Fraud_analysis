@@ -1,0 +1,12 @@
+# Copy to terraform.tfvars and fill in. Do NOT commit terraform.tfvars.
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "00000000-0000-0000-0000-000000000000"
+environment     = "demo"
+location        = "swedencentral"
+
+# Foundry model deployments — validate availability/quota in the region first.
+model_orchestrator = "gpt-4o-mini"
+model_reasoning    = "gpt-4o"
+model_extraction   = "gpt-4o-mini"
+model_embeddings   = "text-embedding-3-large"
+model_capacity     = 20

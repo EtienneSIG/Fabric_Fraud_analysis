@@ -1,0 +1,203 @@
+{
+  "sampleQuestions": [
+    "¿CUST-014 forma parte de una red de fraude coordinada?",
+    "Explica el riesgo AML del cliente Corporate y recomienda una acción.",
+    "¿Por qué se generó la alerta de fraude con tarjeta y qué debemos hacer?",
+    "Resume la red de colusión de fraude en siniestros para la revisión del caso."
+  ],
+  "work": {
+    "aml": [
+      "Teams: la analista s.martin marcó estas contrapartes en el canal «AML-EMEA» hace 3 días.",
+      "SharePoint: la plantilla SAR-template.docx y la política de umbral de transferencia EMEA están disponibles.",
+      "Calendario: hoy a las 15:00 hay una reunión de revisión del caso con el MLRO."
+    ],
+    "card": [
+      "Teams: el comercio «CryptoXchange» fue reportado por dos analistas la semana pasada.",
+      "Outlook: el correo de confirmación de contracargo del esquema de tarjeta está en el buzón del caso.",
+      "Personas: el responsable del caso a.dupont ha resuelto 6 casos similares de fraude con tarjeta este trimestre."
+    ],
+    "claim": [
+      "SharePoint: el informe de investigación anterior sobre «AutoRepair Pro» del T1 está archivado.",
+      "Teams: el canal de fraude en siniestros ya discute la concentración de proveedores.",
+      "Personas: k.okafor (experto en siniestros) es el revisor recomendado."
+    ],
+    "takeover": [
+      "Teams: el equipo de seguridad publicó un aviso de viaje imposible para esta región.",
+      "Outlook: el registro de contacto del cliente no muestra ninguna notificación de viaje.",
+      "Calendario: la reunión de fraud-ops de las 09:00 puede retomar la escalada."
+    ],
+    "generic": [
+      "Teams: se localizaron discusiones y menciones relevantes del equipo del caso.",
+      "SharePoint: se localizaron manuales y plantillas relevantes.",
+      "Personas y calendario: se identificaron el responsable del caso y el próximo hueco de revisión."
+    ]
+  },
+  "foundry": {
+    "aml": [
+      "Conocimiento: coincide con la tipología AML «layering» y el umbral de reporte de transferencias UE de 10 k€.",
+      "Memoria: un caso similar de 2025 se resolvió con presentación de SAR + bloqueo de cuenta.",
+      "Herramienta: el cribado de sanciones/PEP devolvió un impacto de medios adversos medio."
+    ],
+    "card": [
+      "Conocimiento: «viaje imposible + dispositivo nuevo» corresponde al patrón de toma de control de tarjeta.",
+      "Memoria: casos comparables tuvieron un 96 % de fraude confirmado con bloqueo + reemisión.",
+      "Herramienta: el modelo de riesgo en tiempo real v3.1 volvió a puntuar el evento en 0,94."
+    ],
+    "claim": [
+      "Conocimiento: reutilización de hash de imagen + concentración de proveedor = fraude organizado.",
+      "Memoria: una red anterior se desmanteló congelando los pagos al proveedor compartido.",
+      "Herramienta: la detección de comunidades del grafo confirmó el límite de la red."
+    ],
+    "takeover": [
+      "Conocimiento: se recuperó el manual de respuesta a la toma de control de cuenta.",
+      "Memoria: casos ATO anteriores resueltos con congelación de pagos + restablecimiento verificado.",
+      "Herramienta: una comprobación de inteligencia de dispositivo marcó la nueva huella como de alto riesgo."
+    ],
+    "generic": [
+      "Conocimiento: se recuperaron tipologías de fraude y umbrales relevantes.",
+      "Memoria: se recordaron los resultados de casos anteriores similares.",
+      "Herramienta: se ejecutaron la puntuación de riesgo y el cribado con contexto fundamentado."
+    ]
+  },
+  "synthesis": {
+    "aml": {
+      "verdict": "Blanqueo probable — esquema de layering coordinado",
+      "rationale": "Al cruzar los tres IQ, la evidencia converge. Fabric IQ establece, sobre los datos reales, una cadena de layering de 48 h a través de 4 cuentas vinculadas, con ~92 % de las entradas re-externalizadas y montos redondos incoherentes con la actividad declarada. Work IQ muestra que el equipo ya marcó estas contrapartes y que hay una plantilla de SAR lista. Foundry IQ vincula el patrón con la tipología «layering», el umbral de reporte de la UE y una resolución previa por SAR. En conjunto, estructuración + velocidad + re-externalización rápida corroboran la intención de ocultar el origen de los fondos.",
+      "findings": [
+        "Fabric IQ · cadena A→B→C→retiro en <48 h en 4 cuentas vinculadas",
+        "Fabric IQ · 92 % de las entradas externalizadas, montos redondos atípicos",
+        "Work IQ · contrapartes ya marcadas por el equipo AML-EMEA",
+        "Foundry IQ · tipología «layering» + umbral de reporte de la UE alcanzado"
+      ],
+      "actions": [
+        "Congelar los pagos salientes de la cuenta",
+        "Abrir una investigación sobre las cuentas vinculadas",
+        "Preparar y presentar un SAR ante el MLRO (aprobación humana)"
+      ],
+      "businessImpact": [
+        "Presentación de SAR más rápida: de ~90 min de investigación a segundos.",
+        "Riesgo regulatorio y multas reducidos por la detección temprana del layering.",
+        "Menos falsos positivos → tiempo del analista reasignado a casos reales."
+      ]
+    },
+    "card": {
+      "verdict": "Fraude con tarjeta muy probable — toma de control / viaje imposible",
+      "rationale": "Fabric IQ vincula, en directo, la transacción de comercio electrónico con una discrepancia de ubicación tarjeta/IP y un pico de velocidad 4× la línea base, en un dispositivo visto por primera vez minutos antes. Work IQ indica que el comercio fue reportado recientemente y que ya hay un contracargo registrado. Foundry IQ vuelve a puntuar el evento en 0,94 y recuerda una tasa de fraude confirmado del 96 % con bloqueo + reemisión en casos comparables. La convergencia de geo + velocidad + dispositivo nuevo hace del fraude el escenario dominante.",
+      "findings": [
+        "Fabric IQ · discrepancia geo tarjeta/IP + velocidad 4× línea base",
+        "Fabric IQ · dispositivo nuevo visto 12 min antes de la transacción",
+        "Work IQ · comercio reportado recientemente, contracargo registrado",
+        "Foundry IQ · 96 % de fraude confirmado con bloqueo + reemisión (casos similares)"
+      ],
+      "actions": [
+        "Bloquear la tarjeta y revertir la autorización en disputa",
+        "Reforzar la autenticación (step-up) en la cuenta",
+        "Contactar al cliente para confirmación"
+      ],
+      "businessImpact": [
+        "Pérdidas evitadas: bloqueo en tiempo real antes de la cascada de transacciones.",
+        "Experiencia del cliente preservada con un step-up dirigido en lugar de un bloqueo masivo.",
+        "Contracargos y costes de procesamiento reducidos."
+      ]
+    },
+    "claim": {
+      "verdict": "Red de fraude documental en siniestros",
+      "rationale": "Fabric IQ expone un subgrafo denso proveedor–asegurados (modularidad 0,71) con reutilización de hash de fotos de daños en varios siniestros. Work IQ trae a colación un informe anterior sobre el proveedor y un examinador SIU recomendado. Foundry IQ confirma el patrón de fraude organizado y recuerda que congelar los pagos al proveedor compartido desmanteló una red similar. La concentración de proveedor + pruebas reutilizadas apuntan a colusión en lugar de casos aislados.",
+      "findings": [
+        "Fabric IQ · subgrafo denso (modularidad 0,71) proveedor–asegurados",
+        "Fabric IQ · hash de foto de daño reutilizado en 3 siniestros",
+        "Work IQ · informe anterior sobre el proveedor disponible",
+        "Foundry IQ · precedente resuelto congelando los pagos al proveedor"
+      ],
+      "actions": [
+        "Congelar los pagos al proveedor compartido",
+        "Escalar la red a la unidad SIU",
+        "Reabrir los siniestros vinculados para su revisión"
+      ],
+      "businessImpact": [
+        "Ahorros directos: pagos fraudulentos detenidos antes del abono.",
+        "Red desmantelada en una sola pasada — ROI de la unidad SIU.",
+        "Expedientes bien documentados y defendibles ante litigios."
+      ]
+    },
+    "takeover": {
+      "verdict": "Toma de control de cuenta (ATO) en curso",
+      "rationale": "Fabric IQ rastrea la secuencia restablecimiento→dispositivo nuevo→nuevo beneficiario→transferencia saliente, con un viaje imposible (dos inicios de sesión a 900 km en 20 min). Work IQ dispone de un aviso regional y de ninguna notificación de viaje en el expediente. Foundry IQ recupera el manual ATO y resoluciones previas por congelación + restablecimiento verificado. El encadenamiento rápido de cambios sensibles desde una IP extranjera indica una toma de control.",
+      "findings": [
+        "Fabric IQ · restablecimiento → dispositivo nuevo → nuevo beneficiario → transferencia",
+        "Fabric IQ · viaje imposible (900 km en 20 min)",
+        "Work IQ · aviso regional ATO, sin notificación de viaje en el expediente",
+        "Foundry IQ · manual ATO + resoluciones por congelación + restablecimiento verificado"
+      ],
+      "actions": [
+        "Congelar los pagos y revocar dispositivo/beneficiario",
+        "Forzar un restablecimiento de credenciales verificado",
+        "Contactar al cliente por un canal de confianza"
+      ],
+      "businessImpact": [
+        "Fondos del cliente protegidos con una congelación antes de la externalización.",
+        "Confianza y retención del cliente reforzadas.",
+        "Menos incidentes ATO recurrentes gracias al manual reutilizado."
+      ]
+    },
+    "generic": {
+      "verdict": "Señal a investigar — contexto multi-IQ consolidado",
+      "rationale": "Fabric IQ aporta los hechos gobernados y las relaciones desde la ontología y el lakehouse; Work IQ añade el contexto humano y organizativo (intercambios, documentos, responsable del caso); Foundry IQ aporta las tipologías, la memoria de casos y las herramientas. Juntos producen una evaluación explicable y lista para decidir, con una acción recomendada.",
+      "findings": [
+        "Fabric IQ · entidad resuelta: cliente, cuentas, transacciones, alertas",
+        "Fabric IQ · enlaces de entidades compartidas recuperados para el contexto",
+        "Work IQ · discusiones y documentos relevantes localizados",
+        "Foundry IQ · tipologías y casos similares recordados"
+      ],
+      "actions": [
+        "Priorizar por centralidad en el grafo",
+        "Reunir las pruebas y documentar el caso",
+        "Decidir (vigilancia / escalada) con aprobación humana"
+      ],
+      "businessImpact": [
+        "Una investigación de ~90 min reducida a segundos.",
+        "Decisiones explicadas y auditables → cumplimiento más fácil.",
+        "Productividad del analista y time-to-decision muy mejorados."
+      ]
+    }
+  },
+  "scenario": {
+    "prompt": "Analiza esta alerta de fraude y recomienda una acción.",
+    "context": [
+      "Tarjeta bancaria usada a las 03:00",
+      "Pago en un hotel en el extranjero",
+      "41 transacciones en 4 horas",
+      "País inusual para el cliente",
+      "Móvil localizado en otro país"
+    ],
+    "beforeSteps": [
+      "Consultar el motor de reglas antifraude",
+      "Revisar las puntuaciones de riesgo",
+      "Consultar el data warehouse",
+      "Buscar en Teams",
+      "Leer los correos",
+      "Buscar incidentes similares",
+      "Consultar los procedimientos",
+      "Llamar a un colega",
+      "Consolidar la información",
+      "Tomar una decisión"
+    ],
+    "work": [
+      "Un colega (a.dupont) trató un caso casi idéntico hace 5 días.",
+      "Intercambios en Teams en el canal «Fraud-EMEA» mencionan el mismo hotel.",
+      "Ya existe una investigación similar que puede reutilizarse como plantilla.",
+      "El cliente pudo haber reportado un problema por soporte anteriormente."
+    ],
+    "foundry": [
+      "Aplica la política de fraude: discrepancia geo + velocidad anómala + horario atípico = bloqueo.",
+      "Cruza la tipología «toma de control de tarjeta presente / viaje imposible» de la base de conocimiento.",
+      "Memoria: los casos comparables tuvieron 96 % de fraude confirmado con bloqueo + reemisión.",
+      "Genera un razonamiento explicable y una recomendación de acción."
+    ],
+    "recommendationActions": [
+      "Tarjeta bloqueada temporalmente",
+      "Contacto con el cliente recomendado",
+      "Caso de investigación creado automáticamente"
+    ]
+  }
+}

@@ -5,6 +5,7 @@ import {
   Route,
   Routes,
 } from 'react-router-dom';
+import { Suspense } from 'react';
 
 import { AuthPage } from '@/components/AuthPage';
 import { useAuth } from '@/hooks/AuthContext';
@@ -39,7 +40,13 @@ function Protected() {
   return (
     <RoleProvider user={user?.email ?? 'analyst@demo'}>
       <AppLayout>
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-20 text-gray-400">Loading…</div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </AppLayout>
     </RoleProvider>
   );

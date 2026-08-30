@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { EntityEdge, EntityNode, GraphNodeKind } from '@/backend/api/entity-graph';
 
@@ -99,6 +100,7 @@ function layout(nodes: EntityNode[], edges: EntityEdge[], H: number, seed: numbe
 }
 
 export function EntityNetwork({ nodes, edges, selected, onSelect, height = 520, metric = 'degree' }: Props) {
+  const { t } = useTranslation();
   const [seed, setSeed] = useState(7);
   const initial = useMemo(() => layout(nodes, edges, height, seed), [nodes, edges, height, seed]);
   const maxMetric = useMemo(() => Math.max(...nodes.map((n) => n[metric]), 0.0001), [nodes, metric]);
@@ -277,13 +279,13 @@ export function EntityNetwork({ nodes, edges, selected, onSelect, height = 520, 
 
       {/* Zoom / manipulation controls */}
       <div className="absolute top-3 right-3 flex flex-col gap-1.5">
-        <CtrlButton label="Auto" title="Auto arrange" onClick={() => { setSeed((s) => s + 1); setView(base); }} wide />
-        <CtrlButton label="+" title="Zoom in" onClick={() => zoomCenter(0.8)} />
-        <CtrlButton label="−" title="Zoom out" onClick={() => zoomCenter(1.25)} />
-        <CtrlButton label="⤢" title="Reset view" onClick={() => setView(base)} />
+        <CtrlButton label={t('components.graphCtrl.auto')} title={t('components.graphCtrl.autoArrange')} onClick={() => { setSeed((s) => s + 1); setView(base); }} wide />
+        <CtrlButton label="+" title={t('components.graphCtrl.zoomIn')} onClick={() => zoomCenter(0.8)} />
+        <CtrlButton label="−" title={t('components.graphCtrl.zoomOut')} onClick={() => zoomCenter(1.25)} />
+        <CtrlButton label="⤢" title={t('components.graphCtrl.resetView')} onClick={() => setView(base)} />
       </div>
       <div className="absolute bottom-3 left-3 text-[11px] text-slate-400 bg-white/70 rounded-md px-2 py-0.5">
-        Scroll to zoom · drag background to pan · drag nodes · click to inspect
+        {t('components.graphCtrl.panHint')}
       </div>
     </div>
   );

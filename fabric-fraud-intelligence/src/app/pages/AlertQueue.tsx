@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { AlertTable } from '@/app/components/AlertTable';
 import { getAlerts } from '@/backend/api/alerts';
@@ -12,23 +13,24 @@ import {
 } from '@/backend/models';
 
 export function AlertQueue() {
+  const { t } = useTranslation();
   const [type, setType] = useState<AlertType | 'All'>('All');
   const [severity, setSeverity] = useState<Severity | 'All'>('All');
   const [status, setStatus] = useState<AlertStatus | 'All'>('All');
   const [search, setSearch] = useState('');
 
+  // Keep typing responsive: filtering runs against a deferred copy of the query.
+  const deferredSearch = useDeferredValue(search);
   const rows = useMemo(
-    () => getAlerts({ type, severity, status, search }),
-    [type, severity, status, search]
+    () => getAlerts({ type, severity, status, search: deferredSearch }),
+    [type, severity, status, deferredSearch]
   );
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Alert Queue</h2>
-        <p className="text-sm text-gray-400">
-          Triage cross-channel fraud, AML, KYC, identity &amp; claims alerts.
-        </p>
+        <h2 className="text-lg font-bold text-gray-900">{t('pages.alertQueue.title')}</h2>
+        <p className="text-sm text-gray-400">{t('pages.alertQueue.subtitle')}</p>
       </div>
 
       <section className="ffi-card p-4">
@@ -36,13 +38,13 @@ export function AlertQueue() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search alerts…"
+            placeholder={t('pages.alertQueue.search')}
             className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
           />
-          <Select<AlertType | 'All'> label="Type" value={type} onChange={setType} options={['All', ...ALERT_TYPES]} />
-          <Select<Severity | 'All'> label="Severity" value={severity} onChange={setSeverity} options={['All', ...SEVERITIES]} />
-          <Select<AlertStatus | 'All'> label="Status" value={status} onChange={setStatus} options={['All', ...ALERT_STATUSES]} />
-          <span className="text-xs text-gray-400 ml-auto">{rows.length} alerts</span>
+          <Select<AlertType | 'All'> label={t('pages.alertQueue.type')} value={type} onChange={setType} options={['All', ...ALERT_TYPES]} />
+          <Select<Severity | 'All'> label={t('pages.alertQueue.severity')} value={severity} onChange={setSeverity} options={['All', ...SEVERITIES]} />
+          <Select<AlertStatus | 'All'> label={t('pages.alertQueue.status')} value={status} onChange={setStatus} options={['All', ...ALERT_STATUSES]} />
+          <span className="text-xs text-gray-400 ml-auto">{t('pages.alertQueue.count', { count: rows.length })}</span>
         </div>
       </section>
 

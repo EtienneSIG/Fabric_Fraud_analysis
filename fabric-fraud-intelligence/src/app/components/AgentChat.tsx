@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useMutation } from '@tanstack/react-query';
 
 import { useRole } from '@/app/RoleContext';
 import {
@@ -18,34 +20,34 @@ interface Msg {
 type Runner = (caseId: string, userId: string) => Promise<AgentResult | null>;
 
 export function AgentChat({ caseId }: { caseId: string }) {
+  const { t } = useTranslation();
   const { user } = useRole();
   const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [busy, setBusy] = useState(false);
 
-  const run = async (label: string, fn: Runner) => {
-    setBusy(true);
-    setMsgs((m) => [...m, { kind: 'user', text: label }]);
-    const res = await fn(caseId, user);
-    setMsgs((m) => [
-      ...m,
-      { kind: 'agent', text: res?.text ?? 'No response.', result: res ?? undefined },
-    ]);
-    setBusy(false);
-  };
+  const run = useMutation({
+    mutationFn: (v: { label: string; fn: Runner }) => v.fn(caseId, user),
+    onMutate: (v) => setMsgs((m) => [...m, { kind: 'user', text: v.label }]),
+    onSuccess: (res) =>
+      setMsgs((m) => [
+        ...m,
+        { kind: 'agent', text: res?.text ?? t('components.agentChat.noResponse'), result: res ?? undefined },
+      ]),
+  });
+  const busy = run.isPending;
 
   const actions: { label: string; fn: Runner }[] = [
-    { label: 'Investigate', fn: investigate },
-    { label: 'AML narrative', fn: amlNarrative },
-    { label: 'Claims summary', fn: claimsSummary },
-    { label: 'Next actions', fn: nextActions },
+    { label: t('components.agentChat.investigate'), fn: investigate },
+    { label: t('components.agentChat.aml'), fn: amlNarrative },
+    { label: t('components.agentChat.claims'), fn: claimsSummary },
+    { label: t('components.agentChat.nextActions'), fn: nextActions },
   ];
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-sm font-semibold text-gray-700">Investigation Copilot</span>
+        <span className="text-sm font-semibold text-gray-700">{t('components.agentChat.title')}</span>
         <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
-          ✨ grounded on Fabric data
+          ✨ {t('components.agentChat.grounded')}
         </span>
       </div>
 
@@ -54,7 +56,7 @@ export function AgentChat({ caseId }: { caseId: string }) {
           <button
             key={a.label}
             disabled={busy}
-            onClick={() => void run(a.label, a.fn)}
+            onClick={() => run.mutate({ label: a.label, fn: a.fn })}
             className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
           >
             {a.label}
@@ -65,8 +67,7 @@ export function AgentChat({ caseId }: { caseId: string }) {
       <div className="flex-1 space-y-3 overflow-auto ffi-scroll pr-1">
         {msgs.length === 0 && (
           <p className="text-sm text-gray-400">
-            Ask the copilot to investigate this case. All responses are advisory
-            and require your approval.
+            {t('components.agentChat.emptyHint')}
           </p>
         )}
         {msgs.map((m, i) =>
@@ -79,7 +80,7 @@ export function AgentChat({ caseId }: { caseId: string }) {
           ) : (
             <div key={i} className="rounded-2xl border border-gray-100 p-3">
               <p className="text-xs font-semibold text-indigo-700 mb-1">
-                {m.result?.agentName ?? 'Agent'}
+                {m.result?.agentName ?? t('components.agentChat.agent')}
               </p>
               <p className="text-sm text-gray-700 whitespace-pre-line">{m.text}</p>
               {m.result?.actions && (
@@ -94,12 +95,12 @@ export function AgentChat({ caseId }: { caseId: string }) {
               {m.result && m.result.grounding.length > 0 && (
                 <details className="mt-2">
                   <summary className="text-[11px] text-gray-400 cursor-pointer">
-                    Grounding sources ({m.result.grounding.length}) + generated query
+                    {t('components.agentChat.groundingSummary', { count: m.result.grounding.length })}
                   </summary>
                   <ul className="mt-1 space-y-0.5">
                     {m.result.grounding.map((g, k) => (
                       <li key={k} className="text-[11px] text-gray-500">
-                        • {g.title} — {g.source} (conf {g.confidence})
+                        • {g.title} — {g.source} ({t('components.agentChat.conf')} {g.confidence})
                       </li>
                     ))}
                   </ul>
@@ -113,7 +114,7 @@ export function AgentChat({ caseId }: { caseId: string }) {
         )}
       </div>
       <p className="mt-2 text-[11px] text-gray-400">
-        AI recommendations are non-binding and logged to the audit trail (AgentRun).
+        {t('components.agentChat.footer')}
       </p>
     </div>
   );

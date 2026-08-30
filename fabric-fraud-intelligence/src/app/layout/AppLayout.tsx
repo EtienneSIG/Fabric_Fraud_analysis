@@ -1,14 +1,17 @@
 import { NavLink } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/hooks/AuthContext';
 import { useRole } from '@/app/RoleContext';
 import { NAV } from '@/app/routes';
 import { ROLES } from '@/backend/models';
+import { SUPPORTED_LOCALES } from '@/i18n/i18n';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { signOut } = useAuth();
   const { role, setRole, user } = useRole();
+  const { t, i18n } = useTranslation();
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--ffi-bg)' }}>
@@ -21,8 +24,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
             F
           </div>
           <div className="leading-tight">
-            <p className="text-white text-sm font-semibold">Fabric Fraud</p>
-            <p className="text-slate-400 text-xs">Intelligence</p>
+            <p className="text-white text-sm font-semibold">{t('common.brandTop')}</p>
+            <p className="text-slate-400 text-xs">{t('common.brandBottom')}</p>
           </div>
         </div>
         <nav className="px-3 space-y-1 mt-2">
@@ -36,23 +39,37 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d={n.icon} strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              {n.label}
+              {t(n.label)}
             </NavLink>
           ))}
         </nav>
         <div className="mt-auto px-5 py-4 text-[11px] text-slate-500">
-          Microsoft Fabric · Rayfin App
+          {t('common.platform')}
         </div>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6">
           <h1 className="text-sm font-semibold text-gray-800">
-            Fabric Fraud Intelligence
+            {t('common.appTitle')}
           </h1>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">Role</span>
+              <span className="text-xs text-gray-400">{t('common.language')}</span>
+              <select
+                value={i18n.resolvedLanguage}
+                onChange={(e) => void i18n.changeLanguage(e.target.value)}
+                className="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none"
+              >
+                {SUPPORTED_LOCALES.map((l) => (
+                  <option key={l} value={l}>
+                    {t(`lang.${l}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-400">{t('common.role')}</span>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as (typeof ROLES)[number])}
@@ -72,7 +89,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               onClick={() => void signOut()}
               className="text-gray-400 hover:text-gray-600 text-sm"
             >
-              Sign out
+              {t('common.signOut')}
             </button>
           </div>
         </header>

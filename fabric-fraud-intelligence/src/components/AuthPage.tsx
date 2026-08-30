@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/hooks/AuthContext';
 
@@ -19,6 +20,7 @@ const msLogo = (
 
 export function AuthPage() {
   const { signIn, fabricAuthEnabled } = useAuth();
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,7 +31,7 @@ export function AuthPage() {
     try {
       await signIn();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in.');
+      setError(err instanceof Error ? err.message : t('components.auth.failed'));
     } finally {
       setIsLoading(false);
     }
@@ -37,9 +39,9 @@ export function AuthPage() {
 
   const buttonLabel = isLoading
     ? fabricAuthEnabled
-      ? 'Opening Fabric...'
-      : 'Signing in...'
-    : 'Sign in with Microsoft';
+      ? t('components.auth.openingFabric')
+      : t('components.auth.signingIn')
+    : t('components.auth.signIn');
 
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -51,9 +53,9 @@ export function AuthPage() {
         <div className="w-full max-w-sm">
           <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur-sm">
             <div className="mb-8 text-center">
-              <h1 className="text-2xl font-bold text-gray-900">Todo App</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('components.auth.appName')}</h1>
               <p className="mt-2 text-sm text-gray-500">
-                Sign in to get started.
+                {t('components.auth.subtitle')}
               </p>
             </div>
 

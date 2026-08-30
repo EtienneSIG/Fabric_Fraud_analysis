@@ -156,3 +156,56 @@ completes successfully.
 The public Fabric REST API supports Data Agent lifecycle and definition management,
 but does not expose a conversation endpoint. The application therefore retains its
 deterministic grounded fallback for in-app agent responses.
+
+## Extended integrations (Foundry Agent Service + O365)
+
+These are optional and off by default; the app stays mock-first until the flags are set.
+
+### A. Azure support infrastructure (Terraform)
+
+```powershell
+cd infra/terraform
+Copy-Item terraform.tfvars.example terraform.tfvars   # edit subscription_id / tenant_id
+terraform init
+terraform validate
+terraform plan -out tfplan
+terraform apply tfplan            # only with your confirmation
+```
+
+Provisions Foundry (AI Services + model deployments), Key Vault, Event Hub, Log Analytics,
+the Teams **Azure Bot**, the **Azure Function** (bot `/api/messages` endpoint) and the
+**delegated (OBO)** Graph app registration. See [infra/terraform/README.md](../infra/terraform/README.md).
+
+### B. Foundry agents (connected-agent topology)
+
+```powershell
+& foundry/agents/deploy_agents.ps1 `
+  -FoundryEndpoint (terraform -chdir=infra/terraform output -raw ai_foundry_endpoint) `
+  -FabricDataAgentUrl "<published-data-agent-url>"
+```
+
+Creates `conn-fabric-fraud-dataagent` and the `fraud-triage-agent` orchestrator delegating to
+`fraud-investigation-agent` / `fraud-aml-agent` / `fraud-claims-agent`, grounded on Fabric with OBO.
+
+### C. Backend
+
+Mount the handlers in [backend/](../backend/) on the Rayfin `functions` service (preferred), and
+deploy the Azure Function for the Teams bot endpoint. Point the SPA at it via `VITE_BACKEND_API_URL`.
+
+### D. Teams app
+
+Package and side-load [teams/](../teams/) (`manifest.json` uses the `bot_app_id` output).
+
+### E. Turn it on
+
+In `.env.local` (see [.env.example](../fabric-fraud-intelligence/.env.example)):
+
+```
+VITE_FABRIC_APP_MODE=fabric
+VITE_BACKEND_API_URL=<backend url>
+VITE_FOUNDRY_ENDPOINT=<tf ai_foundry_endpoint>
+VITE_GRAPH_OBO_CLIENT_ID=<tf graph_obo_client_id>
+VITE_FOUNDRY_ENABLED=true
+VITE_WORKIQ_ENABLED=true
+VITE_TEAMS_ENABLED=true
+```
