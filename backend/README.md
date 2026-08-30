@@ -34,6 +34,19 @@ func start   # requires Azure Functions Core Tools v4
 ```
 Point the SPA at it: `VITE_BACKEND_API_URL=http://localhost:7071/api`.
 
+## Minimal deployment package
+
+`.funcignore` keeps `src/`, `tsconfig.json`, source maps and docs out of the zip — only the
+compiled `dist/` + production `node_modules` + `host.json` ship. Build with dev deps, then prune
+to production before publishing:
+
+```powershell
+npm ci                 # all deps (typescript is needed to build)
+npm run build          # tsc -> dist/
+npm prune --omit=dev   # drop typescript/@types from node_modules
+func azure functionapp publish (terraform -chdir=../infra/terraform output -raw function_app_name)
+```
+
 ## Security
 - Delegated Microsoft Graph (OBO) only — never app-only for analyst-driven reads.
 - Secrets from Key Vault via managed identity; never in code or app settings in plaintext.

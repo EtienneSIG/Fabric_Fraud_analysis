@@ -18,7 +18,15 @@
     "language": "Language",
     "signOut": "Sign out",
     "live": "Live",
-    "simulated": "Simulated"
+    "simulated": "Simulated",
+    "close": "Close"
+  },
+  "toast": {
+    "decisionRecorded": "Decision recorded: {{decision}}",
+    "agentError": "Agent run failed — see the browser console for details.",
+    "seedDone": "{{count}} events seeded.",
+    "seedFailed": "Seeding failed — see the console.",
+    "workIqUnavailable": "Work IQ unavailable — showing simulated signals."
   },
   "lang": {
     "en": "English",

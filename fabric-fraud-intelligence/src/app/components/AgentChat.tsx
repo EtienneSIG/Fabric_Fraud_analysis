@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 
 import { useRole } from '@/app/RoleContext';
+import { useToast } from '@/app/toast/ToastProvider';
+import { diag } from '@/backend/diag';
 import {
   amlNarrative,
   claimsSummary,
@@ -21,6 +23,7 @@ type Runner = (caseId: string, userId: string) => Promise<AgentResult | null>;
 
 export function AgentChat({ caseId }: { caseId: string }) {
   const { t } = useTranslation();
+  const toast = useToast();
   const { user } = useRole();
   const [msgs, setMsgs] = useState<Msg[]>([]);
 
@@ -32,6 +35,10 @@ export function AgentChat({ caseId }: { caseId: string }) {
         ...m,
         { kind: 'agent', text: res?.text ?? t('components.agentChat.noResponse'), result: res ?? undefined },
       ]),
+    onError: (e) => {
+      diag('agent', 'run failed', e, 'error');
+      toast.error(t('toast.agentError'));
+    },
   });
   const busy = run.isPending;
 

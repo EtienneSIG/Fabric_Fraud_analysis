@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { JourneyMap } from '@/app/components/JourneyMap';
 import { Sankey } from '@/app/components/Sankey';
+import { useToast } from '@/app/toast/ToastProvider';
 import {
   buildJourneyFlow,
   exampleJourney,
@@ -17,6 +18,7 @@ const STEPS = 5;
 
 export function FraudFlow() {
   const { t } = useTranslation();
+  const toast = useToast();
   const [, startTransition] = useTransition();
   const terminals = useMemo(() => terminalEvents(), []);
   const [terminal, setTerminal] = useState(terminals[0] ?? '');
@@ -44,8 +46,10 @@ export function FraudFlow() {
     try {
       const { created } = await seedCustomerEvents(300, setSeedMsg);
       setSeedMsg(t('pages.fraudFlow.seeded', { count: created }));
+      toast.success(t('toast.seedDone', { count: created }));
     } catch (e) {
       setSeedMsg(t('pages.fraudFlow.seedFailed', { msg: (e as Error).message }));
+      toast.error(t('toast.seedFailed'));
     } finally {
       setSeeding(false);
     }

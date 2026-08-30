@@ -1,4 +1,5 @@
 import { integrationConfig } from '@/backend/config';
+import { diag } from '@/backend/diag';
 
 const DEFAULT_TIMEOUT_MS = 15000;
 
@@ -26,7 +27,10 @@ export async function postJson<T>(path: string, body: unknown, timeoutMs = DEFAU
       body: JSON.stringify(body),
       signal,
     });
-    if (!res.ok) throw new Error(`Backend POST ${path} failed: ${res.status}`);
+    if (!res.ok) {
+      diag('backend', `POST ${path} -> ${res.status}`, undefined, 'error');
+      throw new Error(`Backend POST ${path} failed: ${res.status}`);
+    }
     return (await res.json()) as T;
   }, timeoutMs);
 }
@@ -40,7 +44,10 @@ export async function getJson<T>(
   const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
   return withTimeout(async (signal) => {
     const res = await fetch(`${base()}${path}${qs}`, { credentials: 'include', signal });
-    if (!res.ok) throw new Error(`Backend GET ${path} failed: ${res.status}`);
+    if (!res.ok) {
+      diag('backend', `GET ${path} -> ${res.status}`, undefined, 'error');
+      throw new Error(`Backend GET ${path} failed: ${res.status}`);
+    }
     return (await res.json()) as T;
   }, timeoutMs);
 }

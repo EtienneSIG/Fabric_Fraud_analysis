@@ -8,6 +8,11 @@ export function env(key: string): string {
   return process.env[key] ?? '';
 }
 
+// Structured, greppable server log; captured by Azure Monitor OpenTelemetry as a trace/exception.
+export function logError(scope: string, err: unknown, meta?: Record<string, unknown>): void {
+  console.error(`[fraudintel:${scope}]`, err instanceof Error ? err.message : err, meta ?? {});
+}
+
 /** Strips the "Bearer " prefix from an incoming Authorization header. */
 export function bearer(authHeader: string | null | undefined): string | null {
   if (!authHeader) return null;

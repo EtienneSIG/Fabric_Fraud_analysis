@@ -18,7 +18,15 @@
     "language": "Idioma",
     "signOut": "Cerrar sesión",
     "live": "Real",
-    "simulated": "Simulado"
+    "simulated": "Simulado",
+    "close": "Cerrar"
+  },
+  "toast": {
+    "decisionRecorded": "Decisión registrada: {{decision}}",
+    "agentError": "Fallo del agente — revisa la consola del navegador para más detalles.",
+    "seedDone": "{{count}} eventos alimentados.",
+    "seedFailed": "Fallo al alimentar — revisa la consola.",
+    "workIqUnavailable": "Work IQ no disponible — mostrando señales simuladas."
   },
   "lang": {
     "en": "English",

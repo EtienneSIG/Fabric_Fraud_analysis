@@ -1,0 +1,14 @@
+# Excludes source and dev-only files from the Azure Functions deployment package,
+# so only the compiled runtime (dist/ + prod node_modules + host.json) ships.
+src/
+tsconfig.json
+*.map
+*.ts
+!dist/**
+.gitignore
+.funcignore
+README.md
+.vscode/
+local.settings.json
+test/
+**/*.test.js

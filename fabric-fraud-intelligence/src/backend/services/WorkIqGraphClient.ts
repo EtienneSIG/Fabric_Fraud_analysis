@@ -1,5 +1,6 @@
 import { isWorkIqEnabled } from '@/backend/config';
 import { getJson } from '@/backend/services/backendApi';
+import { diag } from '@/backend/diag';
 
 export type IqFlavor = 'aml' | 'card' | 'claim' | 'takeover' | 'generic';
 
@@ -19,7 +20,8 @@ export class WorkIqGraphClient {
         locale,
       });
       return res.signals;
-    } catch {
+    } catch (e) {
+      diag('workiq', 'signals fetch failed; using static resources', e);
       return null;
     }
   }

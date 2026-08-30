@@ -1,5 +1,6 @@
 import { isTeamsEnabled } from '@/backend/config';
 import { postJson } from '@/backend/services/backendApi';
+import { diag } from '@/backend/diag';
 
 export type TeamsAction = 'approve' | 'escalate' | 'dismiss';
 
@@ -30,8 +31,8 @@ export class TeamsNotificationService {
     if (isTeamsEnabled()) {
       try {
         return await postJson<TeamsNotifyResult>('/api/notify/teams', card);
-      } catch {
-        /* fall through to simulated */
+      } catch (e) {
+        diag('teams', 'notify failed; simulated result', e);
       }
     }
     return { delivered: false, simulated: true };

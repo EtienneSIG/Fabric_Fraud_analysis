@@ -6,7 +6,7 @@
 import { DataLakeServiceClient } from '@azure/storage-file-datalake';
 import { DefaultAzureCredential } from '@azure/identity';
 
-import { env, graphOBO, foundryToken } from './shared.js';
+import { env, graphOBO, foundryToken, logError } from './shared.js';
 
 export interface AgentRunRequest {
   agentName: string;
@@ -54,7 +54,8 @@ export async function runAgent(req: AgentRunRequest, userToken: string | null): 
       })),
       mode: 'foundry',
     };
-  } catch {
+  } catch (e) {
+    logError('foundry', e, { caseId: req.context.caseId });
     return { runId: `RUN-${Date.now()}`, text: '', generatedQuery: '', grounding: [], mode: 'mock' };
   }
 }
@@ -80,7 +81,8 @@ export async function workIqSignals(req: WorkIqRequest, userToken: string | null
     if (events.status === 'fulfilled') for (const e of events.value.value ?? []) signals.push(`Calendar: ${e.subject}`);
     if (files.status === 'fulfilled') for (const f of files.value.value ?? []) signals.push(`SharePoint: ${f.name}`);
     return { signals };
-  } catch {
+  } catch (e) {
+    logError('workiq', e, { entityId: req.entityId });
     return { signals: [] };
   }
 }
@@ -113,7 +115,8 @@ export async function notifyTeams(card: TeamsCaseCard, userToken: string | null)
     };
     const sent = await graph.api(`/teams/${teamId}/channels/${channelId}/messages`).post(body);
     return { delivered: true, simulated: false, messageId: sent.id };
-  } catch {
+  } catch (e) {
+    logError('teams', e, { caseId: card.caseId });
     return { delivered: false, simulated: true };
   }
 }
@@ -162,7 +165,8 @@ export async function upsertCaseDecision(d: CaseDecision): Promise<{ ok: boolean
       await file.flush(bytes);
     }
     return { ok: true, simulated: false };
-  } catch {
+  } catch (e) {
+    logError('onelake', e, { caseId: d.caseId });
     return { ok: false, simulated: true };
   }
 }
@@ -186,7 +190,8 @@ export async function emailReport(req: EmailReportRequest, userToken: string | n
       },
     });
     return { ok: true, simulated: false };
-  } catch {
+  } catch (e) {
+    logError('email', e, { caseId: req.caseId });
     return { ok: false, simulated: true };
   }
 }
@@ -204,7 +209,8 @@ export async function uploadEvidence(req: EvidenceUploadRequest, userToken: stri
     const path = `/me/drive/root:/FraudCases/${req.caseId}/${req.fileName}:/content`;
     const uploaded = await graph.api(path).putStream(Buffer.from(req.contentBase64, 'base64'));
     return { ok: true, simulated: false, url: uploaded?.webUrl };
-  } catch {
+  } catch (e) {
+    logError('evidence', e, { caseId: req.caseId });
     return { ok: false, simulated: true };
   }
 }

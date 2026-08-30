@@ -1,5 +1,6 @@
 import { isFoundryEnabled } from '@/backend/config';
 import { postJson } from '@/backend/services/backendApi';
+import { diag } from '@/backend/diag';
 import {
   dataAgent,
   type DataAgentContext,
@@ -32,8 +33,8 @@ export class FoundryAgentClient {
     if (isFoundryEnabled()) {
       try {
         return await postJson<AgentReply>('/api/agents/run', req);
-      } catch {
-        /* fall through to mock */
+      } catch (e) {
+        diag('foundry', 'agent run failed; using deterministic mock', e);
       }
     }
     const da = await dataAgent.askDataAgent(req.prompt, req.context);

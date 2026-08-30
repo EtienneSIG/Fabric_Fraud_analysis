@@ -1,5 +1,6 @@
 import { isWorkIqEnabled } from '@/backend/config';
 import { postJson } from '@/backend/services/backendApi';
+import { diag } from '@/backend/diag';
 
 export interface EmailReportRequest {
   caseId: string;
@@ -32,8 +33,8 @@ export class O365ReportService {
     if (isWorkIqEnabled()) {
       try {
         return await postJson<O365Result>('/api/reports/email', req);
-      } catch {
-        /* fall through to simulated */
+      } catch (e) {
+        diag('o365', 'email report failed; simulated', e);
       }
     }
     return { ok: false, simulated: true };
@@ -43,8 +44,8 @@ export class O365ReportService {
     if (isWorkIqEnabled()) {
       try {
         return await postJson<O365Result>('/api/evidence/upload', req);
-      } catch {
-        /* fall through to simulated */
+      } catch (e) {
+        diag('o365', 'evidence upload failed; simulated', e);
       }
     }
     return { ok: false, simulated: true };

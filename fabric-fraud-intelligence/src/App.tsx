@@ -11,6 +11,7 @@ import { AuthPage } from '@/components/AuthPage';
 import { useAuth } from '@/hooks/AuthContext';
 import { AppLayout } from '@/app/layout/AppLayout';
 import { RoleProvider } from '@/app/RoleContext';
+import { ToastProvider } from '@/app/toast/ToastProvider';
 import { ROUTES } from '@/app/routes';
 import '@/styles/theme.css';
 
@@ -39,15 +40,17 @@ function Protected() {
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
   return (
     <RoleProvider user={user?.email ?? 'analyst@demo'}>
-      <AppLayout>
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center py-20 text-gray-400">Loading…</div>
-          }
-        >
-          <Outlet />
-        </Suspense>
-      </AppLayout>
+      <ToastProvider>
+        <AppLayout>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-20 text-gray-400">Loading…</div>
+            }
+          >
+            <Outlet />
+          </Suspense>
+        </AppLayout>
+      </ToastProvider>
     </RoleProvider>
   );
 }

@@ -7,6 +7,7 @@ import { CaseTimeline, type TimelineEvent } from '@/app/components/CaseTimeline'
 import { EvidencePanel } from '@/app/components/EvidencePanel';
 import { RiskScoreBadge } from '@/app/components/RiskScoreBadge';
 import { useRole } from '@/app/RoleContext';
+import { useToast } from '@/app/toast/ToastProvider';
 import { eur } from '@/app/format';
 import { getCase, postDecision } from '@/backend/api/cases';
 import { audit } from '@/backend/services/AuditService';
@@ -21,6 +22,7 @@ const DECISIONS: { labelKey: string; decision: Decision; tone: string }[] = [
 
 export function CaseDetail() {
   const { t } = useTranslation();
+  const toast = useToast();
   const { id = '' } = useParams();
   const { role, user } = useRole();
   const [, force] = useState(0);
@@ -33,6 +35,7 @@ export function CaseDetail() {
 
   const decide = (decision: Decision) => {
     postDecision(id, { decision, reason: `${decision} by ${role}`, userId: user });
+    toast.success(t('toast.decisionRecorded', { decision }));
     force((n) => n + 1);
   };
 
