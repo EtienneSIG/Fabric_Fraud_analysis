@@ -1,5 +1,4 @@
-# Excludes source and dev-only files from the Azure Functions deployment package,
-# so only the compiled runtime (dist/ + prod node_modules + host.json) ships.
+# Files excluded from the Azure Functions deployment package (deliver only what runs).
 src/
 tsconfig.json
 *.map
@@ -7,6 +6,7 @@ tsconfig.json
 !dist/**
 .gitignore
 .funcignore
+package-lock.json
 README.md
 .vscode/
 local.settings.json
