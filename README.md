@@ -256,11 +256,15 @@ environment configuration (app mode, workspace, Data Agent, tenant), and the
 ```powershell
 cd fabric-fraud-intelligence
 npm install
-npm run dev
+npm run dev:demo   # UI only, fully offline (no backend, no Docker)
+# or
+npm run dev        # full stack: starts the Rayfin dev backend (needs Docker) + UI
 ```
 
-> Local dev uses a mock auth service and deterministic seed data, so no Fabric
-> connection is required to explore the UI.
+> `dev:demo` runs Vite alone with a public demo auth service and deterministic seed
+> data — the fastest way to explore the UI. `dev` also runs `rayfin up`, which starts
+> the local Rayfin backend (SQL on `localhost:5168`) and requires Docker; if it isn't
+> running, sign-in fails and the app stays on the login screen.
 
 ### Deploy to Fabric
 
