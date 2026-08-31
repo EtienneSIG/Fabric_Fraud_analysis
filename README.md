@@ -49,6 +49,9 @@ https://github.com/user-attachments/assets/ccec2599-2d85-422a-b76b-db16fc66f93f
 | `infra/terraform/` | **Infrastructure (IaC)** | Terraform for the Azure support layer — AI Foundry + model deployments, Key Vault, Event Hub, Log Analytics/App Insights, Azure Bot, Function App, delegated Graph app registration. |
 | `backend/` | **App-adjacent backend** | Host-agnostic handlers (Foundry proxy, Graph OBO, Teams bot, OneLake writeback) + an Azure Functions wrapper for the Teams bot endpoint. |
 | `foundry/agents/` | **Agent Service** | Deploys the Foundry connected-agent topology (triage → investigation / AML / claims) grounded on Fabric via a connection with OBO. |
+| `foundry/raft/` | **RAFT (model iteration)** | Retrieval-Augmented Fine-Tuning notebooks (generate · fine-tune · deploy · eval), the versioned dataset and the evaluation harness that trains an AML student model and proves the gain. |
+| `foundry/knowledge/` | **Foundry IQ** | Deploys the OneLake knowledge base over the fraud document corpus and wires it into the triage agents. |
+| `fabric/lakehouse/corpus/` | **Document corpus** | The unstructured AML document corpus (training domain + distractors) RAFT reasons over, with manifest and idempotent upload. |
 | `teams/` | **Teams app** | Side-loadable Teams app manifest for approval Adaptive Cards. |
 | `.github/` | **Conventions** | Repo-wide + path-scoped Copilot instructions (architecture, i18n, naming, Terraform, Foundry agents). |
 | `docs/` | **Docs** | Executive demo narrative, deployment guide, and the innovations & roadmap. |
@@ -162,8 +165,13 @@ flowchart LR
   CARD --> DEC["Analyst decision"]:::o
   DEC -->|OneLake writeback| WB["decision · feedback tables"]:::l
   WB --> RT["Retraining backlog"]:::l
-  RT -.->|model iteration| TH
+  RT -->|model iteration · RAFT| TH
 ```
+
+> The `model iteration` edge is now **solid**: RAFT (`foundry/raft/`) implements it — the
+> retraining backlog seeds a fine-tuned AML student whose gain is measured against the baseline
+> (`foundry/raft/eval/`) and surfaced live in the app. See
+> [docs/raft-adaptation-brief.md](docs/raft-adaptation-brief.md).
 
 - **`rayfin/data/*.ts`** — `@entity` models (Customer, Account, Transaction,
   FraudAlert, FraudCase, Claim, Policy, Evidence, EntityRelationship, AgentRun,

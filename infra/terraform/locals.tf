@@ -17,6 +17,7 @@ locals {
     storage        = "st${local.workload}${var.environment}" # storage: no dashes, <=24 chars
     entra_app      = "fraudintel-graph-obo-${var.environment}"
     fabric_conn    = "conn-fabric-fraud-dataagent"
+    ai_search      = "srch-${local.suffix}"
   }
 
   # Least-privilege delegated Microsoft Graph scopes for the analyst-driven (OBO) flows.

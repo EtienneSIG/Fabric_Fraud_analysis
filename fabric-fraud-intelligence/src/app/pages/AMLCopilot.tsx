@@ -7,8 +7,10 @@ import { eur } from '@/app/format';
 import { amlNarrative } from '@/backend/api/agents';
 import { getAlerts } from '@/backend/api/alerts';
 import { getCase } from '@/backend/api/cases';
+import { isRaftEnabled } from '@/backend/config';
 import { SEVERITY_COLORS } from '@/backend/models';
 import { warehouse } from '@/backend/services/FabricWarehouseClient';
+import { raftModel, type RaftAnswer, type RaftComparison } from '@/backend/services/RaftModelClient';
 import type { AgentResult } from '@/backend/agents/AgentOrchestrator';
 
 function parseNarrative(text: string) {
@@ -33,6 +35,8 @@ export function AMLCopilot() {
   const [caseId, setCaseId] = useState(alerts[0]?.caseId ?? '');
   const [res, setRes] = useState<AgentResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ab, setAb] = useState<RaftComparison | null>(null);
+  const [abBusy, setAbBusy] = useState(false);
   const bundle = getCase(caseId);
   const txns = bundle?.account ? warehouse.getTransactionsForAccount(bundle.account.id) : [];
 
@@ -40,6 +44,19 @@ export function AMLCopilot() {
     setBusy(true);
     setRes(await amlNarrative(caseId, user));
     setBusy(false);
+  };
+
+  const compare = async () => {
+    setAbBusy(true);
+    setAb(
+      await raftModel.compare({
+        prompt: `Assess AML alert ${bundle?.alert?.id ?? caseId} and produce a SAR-readiness narrative.`,
+        subject: bundle?.customer?.name ?? bundle?.account?.id ?? caseId,
+        context: { caseId, alertId: bundle?.alert?.id, role: user },
+        locale: 'en',
+      })
+    );
+    setAbBusy(false);
   };
 
   return (
@@ -59,6 +76,7 @@ export function AMLCopilot() {
                 onClick={() => {
                   setCaseId(a.caseId);
                   setRes(null);
+                  setAb(null);
                 }}
                 className={`rounded-lg px-3 py-2 cursor-pointer ${
                   a.caseId === caseId ? 'bg-indigo-50' : 'hover:bg-gray-50'
@@ -85,21 +103,39 @@ export function AMLCopilot() {
                     {bundle.customer?.pepFlag ? ' · PEP' : ''}
                   </p>
                 </div>
-                <button
-                  disabled={busy}
-                  onClick={() => void generate()}
-                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={busy ? 'animate-spin' : ''}>
-                    {busy ? (
-                      <path d="M12 2a10 10 0 00-9.95 9h2.02A8 8 0 1112 20v2a10 10 0 000-20z" />
-                    ) : (
-                      <path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
-                    )}
-                  </svg>
-                  {busy ? t('pages.aml.generating') : t('pages.aml.generate')}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    disabled={abBusy}
+                    onClick={() => void compare()}
+                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3.5 py-2 text-xs font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50 disabled:opacity-50"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={abBusy ? 'animate-spin' : ''}>
+                      {abBusy ? (
+                        <path d="M12 2a10 10 0 00-9.95 9h2.02A8 8 0 1112 20v2a10 10 0 000-20z" />
+                      ) : (
+                        <path d="M9 3H3v6h2V5h4zm12 0h-6v2h4v4h2zM5 15H3v6h6v-2H5zm16 0h-2v4h-4v2h6z" />
+                      )}
+                    </svg>
+                    {abBusy ? t('pages.aml.abComparing') : t('pages.aml.abCompare')}
+                  </button>
+                  <button
+                    disabled={busy}
+                    onClick={() => void generate()}
+                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={busy ? 'animate-spin' : ''}>
+                      {busy ? (
+                        <path d="M12 2a10 10 0 00-9.95 9h2.02A8 8 0 1112 20v2a10 10 0 000-20z" />
+                      ) : (
+                        <path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
+                      )}
+                    </svg>
+                    {busy ? t('pages.aml.generating') : t('pages.aml.generate')}
+                  </button>
+                </div>
               </div>
+
+              {ab && <AbPanel ab={ab} live={isRaftEnabled()} />}
 
               {res && (() => {
                 const p = parseNarrative(res.text);
@@ -283,3 +319,45 @@ function RiskDonut({ score, color, severity }: { score: number; color: string; s
     </div>
   );
 }
+
+function AbPanel({ ab, live }: { ab: RaftComparison; live: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-semibold text-gray-800">{t('pages.aml.abTitle')}</p>
+        <span
+          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+            live ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+          }`}
+        >
+          {live ? t('pages.aml.abLive') : t('pages.aml.abSimulated')}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <AbColumn label={t('pages.aml.abBaseline')} answer={ab.baseline} accent="gray" />
+        <AbColumn label={t('pages.aml.abRaft')} answer={ab.raft} accent="violet" />
+      </div>
+      <p className="mt-3 text-[11px] text-gray-400">{t('pages.aml.abNote')}</p>
+    </div>
+  );
+}
+
+function AbColumn({ label, answer, accent }: { label: string; answer: RaftAnswer; accent: 'gray' | 'violet' }) {
+  const { t } = useTranslation();
+  const head = accent === 'violet' ? 'text-violet-700' : 'text-gray-600';
+  return (
+    <div className="rounded-xl border border-gray-100 bg-white p-3">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className={`text-xs font-semibold uppercase tracking-wide ${head}`}>{label}</span>
+        <span className="text-[10px] text-gray-400">{answer.model}</span>
+      </div>
+      <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700">{answer.text}</p>
+      <div className="mt-2 flex flex-wrap gap-3 border-t border-gray-50 pt-2 text-[11px] text-gray-400">
+        <span>{t('pages.aml.abTokens', { count: answer.tokens })}</span>
+        <span>{t('pages.aml.abLatency', { ms: answer.latencyMs })}</span>
+      </div>
+    </div>
+  );
+}
+

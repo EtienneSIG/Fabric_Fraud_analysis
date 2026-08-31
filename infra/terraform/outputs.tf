@@ -49,3 +49,25 @@ output "graph_obo_client_id" {
 output "tenant_id" {
   value = var.tenant_id
 }
+
+# --- Azure AI Search (WS-2) — null unless enable_search = true ---
+output "search_endpoint" {
+  description = "Search endpoint — VITE_SEARCH_ENDPOINT."
+  value       = try(module.search[0].search_endpoint, null)
+}
+
+output "search_index_name" {
+  description = "Corpus index name — VITE_SEARCH_INDEX."
+  value       = try(module.search[0].index_name, null)
+}
+
+output "search_identity_principal_id" {
+  description = "Grant this a Fabric workspace Viewer role on the lakehouse (see module README)."
+  value       = try(module.search[0].identity_principal_id, null)
+}
+
+# --- RAFT student deployment (WS-6) — null unless raft_student_ft_model_id is set ---
+output "raft_student_deployment_name" {
+  description = "RAFT fine-tuned student deployment — VITE_RAFT_STUDENT_DEPLOYMENT."
+  value       = try(azurerm_cognitive_deployment.raft_student[0].name, null)
+}

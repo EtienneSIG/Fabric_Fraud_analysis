@@ -162,7 +162,17 @@
       "counterparty": "Contraparte",
       "noLinkedTxns": "Sin transacciones de cuenta vinculada.",
       "exposure": "Exposición estimada {{amount}} en {{count}} movimientos.",
-      "selectAlert": "Selecciona una alerta AML."
+      "selectAlert": "Selecciona una alerta AML.",
+      "abCompare": "Comparar base vs RAFT",
+      "abComparing": "Comparando…",
+      "abTitle": "Base vs RAFT (A/B)",
+      "abBaseline": "Modelo base",
+      "abRaft": "Estudiante RAFT",
+      "abLive": "En vivo",
+      "abSimulated": "Simulado",
+      "abTokens": "{{count}} tokens",
+      "abLatency": "{{ms}} ms",
+      "abNote": "Misma pregunta, dos modelos. El estudiante RAFT está ajustado sobre el corpus AML; ambas respuestas siguen siendo consultivas y requieren aprobación humana."
     },
     "claims": {
       "title": "Fraude en siniestros",
@@ -227,6 +237,8 @@
     "settings": {
       "title": "Configuración y gobernanza",
       "subtitle": "Acceso por rol, enmascaramiento de PII, entorno y pista de auditoría.",
+      "tabGovernance": "Gobernanza",
+      "tabModelQuality": "Calidad del modelo",
       "roleMatrix": "Matriz de roles y acceso",
       "role": "Rol",
       "viewPII": "Ver PII",
@@ -249,7 +261,27 @@
       "thActor": "Actor",
       "thAction": "Acción",
       "thTarget": "Objetivo",
-      "thDetail": "Detalle"
+      "thDetail": "Detalle",
+      "modelQuality": {
+        "title": "Calidad y coste del modelo",
+        "subtitle": "Base vs RAFT — fundamentación, recuperación y economía de una investigación.",
+        "metric": "Métrica",
+        "baseline": "Base",
+        "raft": "RAFT",
+        "delta": "Δ",
+        "groundedness": "Fundamentación",
+        "retrievalQuality": "Calidad de recuperación",
+        "relevance": "Relevancia",
+        "tokensPerInvestigation": "Tokens / investigación",
+        "latency": "Latencia",
+        "costPer1000": "Coste / 1.000 investigaciones",
+        "source": "Fuente",
+        "live": "en vivo",
+        "sample": "muestra",
+        "generatedAt": "generado {{at}}",
+        "noResults": "Aún no hay resultados de evaluación. Ejecuta foundry/raft/eval para poblar esta pestaña.",
+        "advisory": "El ajuste fino no elimina la aprobación humana; cada ejecución sigue siendo consultiva y auditada."
+      }
     }
   },
   "components": {

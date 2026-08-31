@@ -70,3 +70,41 @@ variable "eventhub_partition_count" {
   description = "Partitions for the real-time transactions event hub."
   default     = 4
 }
+
+# --- Azure AI Search over the OneLake corpus (RAFT retrieval layer, WS-2) ---
+variable "enable_search" {
+  type        = bool
+  description = "Provision the Azure AI Search service backing the RAFT corpus. Off by default to keep base cost down."
+  default     = false
+}
+
+variable "search_sku" {
+  type        = string
+  description = "Search SKU. Basic tier or higher is required for the OneLake indexer."
+  default     = "basic"
+}
+
+variable "search_index_name" {
+  type        = string
+  description = "Corpus search index name created by modules/search/create_indexer.ps1."
+  default     = "fraud-corpus-index"
+}
+
+# --- RAFT fine-tuned student deployment (WS-6) ---
+variable "raft_student_ft_model_id" {
+  type        = string
+  description = "Fine-tuned student model id (e.g. gpt-4.1-mini.ft-<jobid>). Empty disables the deployment; training itself runs from foundry/raft, not Terraform."
+  default     = ""
+}
+
+variable "raft_student_deployment_name" {
+  type        = string
+  description = "Deployment name for the RAFT student — surfaced to the app as VITE_RAFT_STUDENT_DEPLOYMENT."
+  default     = "raft-student"
+}
+
+variable "raft_student_sku" {
+  type        = string
+  description = "Deployment tier for the fine-tuned student. Developer avoids the hourly hosting fee (auto-removed after 24h; redeploy with foundry/raft/redeploy_student.ps1)."
+  default     = "Developer"
+}

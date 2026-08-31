@@ -151,3 +151,38 @@ and a pilot on a real scope.
 - **11** governed Delta tables in `fraud_lakehouse` (~12.8k rows loaded in the demo)
 - **~10,000** customer journeys analyzed in the Fraud Flow
 - **4** fraud typologies + **5** benign journeys modeled
+
+---
+
+## RAFT segment — "teaching the agent to read like an AML expert"
+
+The emotional peak. Open the **AML Copilot**, pick an alert, and press **Compare baseline vs
+RAFT**. Two answers appear side by side:
+
+- **Baseline (`gpt-4.1`)** — plausible but vague: "could be layering or structuring", weak
+  grounding, no rule cited.
+- **RAFT student (`gpt-4.1-mini`)** — the structured, SAR-ready narrative: exact typology,
+  the precise monitoring rule, an assessment against expected profile, and a recommendation.
+  Fewer tokens, lower latency.
+
+Then open **Settings & Governance → Model quality**: the same story as numbers — groundedness,
+retrieval quality and relevance up, tokens/latency/cost per 1,000 investigations down. These are
+reproducible from `foundry/raft/eval/` (baseline **and** tuned, always together).
+
+The narrative hook: this is the `model iteration` edge of the remediation loop — the retraining
+backlog feeding a fine-tuned model — now **solid**, not dotted. RAFT completes the architecture
+the repository already drew. Everything stays advisory; human approval is still required.
+
+## Day-of checklist (Developer-tier deployment)
+
+Developer-tier fine-tuned deployments have **no hourly hosting fee** but are **auto-removed after
+24 hours**. On the morning of the demo:
+
+1. `az login` into the demo tenant/subscription.
+2. Redeploy the student (one command):
+   `foundry/raft/redeploy_student.ps1 -ResourceGroup <rg> -AccountName <aif>`.
+3. Set `VITE_RAFT_ENABLED=true` and `VITE_RAFT_STUDENT_DEPLOYMENT=raft-student`.
+4. Smoke-test the A/B on one AML alert; confirm the Model quality tab renders.
+5. If the endpoint is not needed live, leave the flags off — the app shows the deterministic
+   mock A/B and the committed sample evaluation, fully offline.
+

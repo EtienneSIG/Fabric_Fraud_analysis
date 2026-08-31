@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric-fraud-intelligence/corpus.schema.json",
+  "title": "Fraud Document Corpus Manifest",
+  "description": "Validates fabric/lakehouse/corpus/manifest.yaml. The corpus is the unstructured document layer RAFT is trained against; AML is the single training domain, every other domain is present as a distractor.",
+  "type": "object",
+  "required": ["version", "corpus_id", "training_domain", "documents"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "corpus_id": { "type": "string", "minLength": 1 },
+    "training_domain": {
+      "description": "The single fraud sub-domain RAFT trains on. Everything else is a distractor.",
+      "type": "string",
+      "const": "aml"
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/document" }
+    }
+  },
+  "$defs": {
+    "document": {
+      "type": "object",
+      "required": ["id", "title", "path", "domain", "role", "language"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "path": {
+          "type": "string",
+          "pattern": "^(aml|card|kyc|identity|claims|procedures)/[a-z0-9-]+\\.md$"
+        },
+        "domain": {
+          "type": "string",
+          "enum": ["aml", "card", "kyc", "identity", "claims", "procedures"]
+        },
+        "typology": { "type": "string", "minLength": 1 },
+        "role": {
+          "description": "training: golden AML source. distractor: confusable non-training content. procedure: cross-domain operational text.",
+          "type": "string",
+          "enum": ["training", "distractor", "procedure"]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["en", "fr", "es"]
+        },
+        "confusable_with": {
+          "description": "Optional ids of near-duplicate documents kept intentionally confusable.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

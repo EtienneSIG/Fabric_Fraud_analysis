@@ -20,6 +20,15 @@ export function bearer(authHeader: string | null | undefined): string | null {
   return m ? m[1] : null;
 }
 
+/** Redacts PII before an AgentRun trace leaves the trust boundary (mirrors the app's maskPII
+ *  intent for exported free text). Deterministic so exports stay reproducible. */
+export function scrubPII(text: string): string {
+  return text
+    .replace(/\b(?:\d[ -]?){13,19}\b/g, '[card]')
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]')
+    .replace(/\b\d{6,}\b/g, '[num]');
+}
+
 let secretClient: SecretClient | null = null;
 function kv(): SecretClient {
   if (!secretClient) {

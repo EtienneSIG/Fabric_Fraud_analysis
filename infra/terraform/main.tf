@@ -85,6 +85,44 @@ resource "azurerm_cognitive_deployment" "models" {
   }
 }
 
+# RAFT fine-tuned student deployment (WS-6). Terraform only provisions the DEPLOYMENT of an
+# already-trained model; the fine-tuning job runs from foundry/raft (data-plane), not here.
+# Default tier Developer has no hourly hosting fee but is auto-removed after 24h — redeploy
+# with foundry/raft/redeploy_student.ps1. If the provider/API rejects the Developer SKU,
+# fall back to the azapi/REST path documented in foundry/raft/README.md.
+resource "azurerm_cognitive_deployment" "raft_student" {
+  count                = var.raft_student_ft_model_id != "" ? 1 : 0
+  name                 = var.raft_student_deployment_name
+  cognitive_account_id = azurerm_cognitive_account.this.id
+
+  model {
+    format = "OpenAI"
+    name   = var.raft_student_ft_model_id
+  }
+
+  sku {
+    name     = var.raft_student_sku
+    capacity = var.model_capacity
+  }
+}
+
+# --------------------------------------------------------------------------
+# Azure AI Search over the OneLake corpus (RAFT retrieval layer, WS-2).
+# Service + identity + data-plane RBAC only; index/indexer via modules/search/create_indexer.ps1.
+# --------------------------------------------------------------------------
+module "search" {
+  count  = var.enable_search ? 1 : 0
+  source = "./modules/search"
+
+  name                  = local.names.ai_search
+  resource_group_name   = azurerm_resource_group.this.name
+  location              = azurerm_resource_group.this.location
+  sku                   = var.search_sku
+  index_name            = var.search_index_name
+  deployer_principal_id = data.azurerm_client_config.current.object_id
+  tags                  = var.tags
+}
+
 # --------------------------------------------------------------------------
 # Event Hub (Eventstream source for real-time transaction scoring)
 # --------------------------------------------------------------------------

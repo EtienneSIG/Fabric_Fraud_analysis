@@ -24,7 +24,8 @@ param(
   [string]$ModelOrchestrator = 'orchestrator',        # tf deployment names (keys), not raw model ids
   [string]$ModelReasoning = 'reasoning',
   [string]$ModelExtraction = 'extraction',
-  [string]$ConnectionName = 'conn-fabric-fraud-dataagent'
+  [string]$ConnectionName = 'conn-fabric-fraud-dataagent',
+  [string]$KnowledgeConnectionName = ''   # optional WS-3 OneLake knowledge (Foundry IQ)
 )
 
 $ErrorActionPreference = 'Stop'
@@ -71,6 +72,13 @@ Invoke-Foundry -Method 'PUT' -Path "connections/$ConnectionName" -Body $connecti
 
 $fabricTool = @{ type = 'fabric_dataagent'; connection = $ConnectionName }
 
+# Optional Foundry IQ knowledge tool over the OneLake corpus (WS-3). Additive: when the
+# knowledge connection is supplied, every agent can also reason over the document corpus.
+$agentTools = @($fabricTool)
+if (-not [string]::IsNullOrWhiteSpace($KnowledgeConnectionName)) {
+  $agentTools += @{ type = 'knowledge'; connection = $KnowledgeConnectionName }
+}
+
 # 2) Connected sub-agents. Each declares it is a sub-agent (single-response principle).
 $subAgents = @(
   @{ name = 'fraud-investigation-agent'; model = $ModelReasoning
@@ -88,7 +96,7 @@ foreach ($a in $subAgents) {
     name         = $a.name
     model        = $a.model
     instructions = $a.instructions
-    tools        = @($fabricTool)
+    tools        = $agentTools
   }
   $created = Invoke-Foundry -Method 'PUT' -Path "assistants/$($a.name)" -Body $body
   $connectedTools += @{
@@ -110,7 +118,7 @@ You are the ORCHESTRATOR and the only agent that replies to the user. Classify t
 (investigation / AML / claims) and delegate to the matching connected agent. Combine their
 findings into ONE response. Always append that human approval is required.
 "@
-  tools        = @($fabricTool) + $connectedTools
+  tools        = $agentTools + $connectedTools
 }
 $orchestrator = Invoke-Foundry -Method 'PUT' -Path 'assistants/fraud-triage-agent' -Body $triage
 

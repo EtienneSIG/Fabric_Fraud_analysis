@@ -15,6 +15,8 @@ interface IntegrationConfig {
   foundryEnabled: boolean;
   workIqEnabled: boolean;
   teamsEnabled: boolean;
+  raftEnabled: boolean;
+  raftStudentDeployment: string;
 }
 
 function env(key: string): string {
@@ -39,6 +41,8 @@ export const integrationConfig: IntegrationConfig = {
   foundryEnabled: flag('VITE_FOUNDRY_ENABLED'),
   workIqEnabled: flag('VITE_WORKIQ_ENABLED'),
   teamsEnabled: flag('VITE_TEAMS_ENABLED'),
+  raftEnabled: flag('VITE_RAFT_ENABLED'),
+  raftStudentDeployment: env('VITE_RAFT_STUDENT_DEPLOYMENT'),
 };
 
 export const isMock = (): boolean => fabricConfig.mode !== 'fabric' || !fabricConfig.dataAgentId;
@@ -49,3 +53,8 @@ const backendReady = (): boolean => !isMock() && !!integrationConfig.backendApiU
 export const isFoundryEnabled = (): boolean => backendReady() && integrationConfig.foundryEnabled;
 export const isWorkIqEnabled = (): boolean => backendReady() && integrationConfig.workIqEnabled;
 export const isTeamsEnabled = (): boolean => backendReady() && integrationConfig.teamsEnabled;
+
+// The RAFT student A/B path is live only when a fine-tuned deployment is wired; otherwise the
+// app shows the deterministic mock A/B so the demo peak still works offline.
+export const isRaftEnabled = (): boolean =>
+  backendReady() && integrationConfig.raftEnabled && !!integrationConfig.raftStudentDeployment;

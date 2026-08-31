@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useRole } from '@/app/RoleContext';
 import { fabricConfig } from '@/backend/config';
 import { audit } from '@/backend/services/AuditService';
+import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
 import { ROLES, ROLE_PERMISSIONS } from '@/backend/models';
 
 export function Settings() {
   const { t } = useTranslation();
   const { role } = useRole();
   const [, refresh] = useState(0);
+  const [tab, setTab] = useState<'governance' | 'quality'>('governance');
   const entries = audit.listEntries();
 
   return (
@@ -19,7 +21,25 @@ export function Settings() {
         <p className="text-sm text-gray-400">{t('pages.settings.subtitle')}</p>
       </div>
 
-      <section className="ffi-card p-6">
+      <div className="flex gap-1 border-b border-gray-100">
+        {(['governance', 'quality'] as const).map((k) => (
+          <button
+            key={k}
+            onClick={() => setTab(k)}
+            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${
+              tab === k ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            {t(k === 'governance' ? 'pages.settings.tabGovernance' : 'pages.settings.tabModelQuality')}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'quality' && <ModelQualityTab />}
+
+      {tab === 'governance' && (
+        <>
+          <section className="ffi-card p-6">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.settings.roleMatrix')}</h3>
         <table className="w-full text-sm">
           <thead>
@@ -111,6 +131,91 @@ export function Settings() {
           </table>
         )}
       </section>
+        </>
+      )}
     </div>
+  );
+}
+
+function ModelQualityTab() {
+  const { t } = useTranslation();
+  const [evaluation, setEvaluation] = useState<RaftEvaluation | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void raftEval.getEvaluation().then((e) => {
+      if (active) setEvaluation(e);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (!evaluation) {
+    return (
+      <section className="ffi-card p-6">
+        <p className="text-sm text-gray-400">{t('pages.settings.modelQuality.noResults')}</p>
+      </section>
+    );
+  }
+
+  const { baseline, raft } = evaluation.summary;
+  const quality: { key: string; b: number; r: number; pct: boolean }[] = [
+    { key: 'groundedness', b: baseline.groundedness, r: raft.groundedness, pct: true },
+    { key: 'retrievalQuality', b: baseline.retrieval_quality, r: raft.retrieval_quality, pct: true },
+    { key: 'relevance', b: baseline.relevance, r: raft.relevance, pct: true },
+  ];
+  const economics: { key: string; b: number; r: number; fmt: (n: number) => string }[] = [
+    { key: 'tokensPerInvestigation', b: baseline.tokens_per_investigation, r: raft.tokens_per_investigation, fmt: (n) => n.toLocaleString() },
+    { key: 'latency', b: baseline.latency_ms, r: raft.latency_ms, fmt: (n) => `${n} ms` },
+    { key: 'costPer1000', b: baseline.cost_per_1000, r: raft.cost_per_1000, fmt: (n) => `$${n.toFixed(2)}` },
+  ];
+
+  return (
+    <section className="ffi-card p-6 space-y-4">
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.modelQuality.title')}</h3>
+        <p className="text-xs text-gray-400">{t('pages.settings.modelQuality.subtitle')}</p>
+      </div>
+
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-xs uppercase tracking-wider text-gray-400 border-b border-gray-100">
+            <th className="py-2">{t('pages.settings.modelQuality.metric')}</th>
+            <th className="py-2 text-right">{t('pages.settings.modelQuality.baseline')}</th>
+            <th className="py-2 text-right">{t('pages.settings.modelQuality.raft')}</th>
+            <th className="py-2 text-right">{t('pages.settings.modelQuality.delta')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {quality.map((m) => (
+            <tr key={m.key} className="border-b border-gray-50">
+              <td className="py-1.5 text-gray-700">{t(`pages.settings.modelQuality.${m.key}`)}</td>
+              <td className="py-1.5 text-right text-gray-600">{Math.round(m.b * 100)}%</td>
+              <td className="py-1.5 text-right font-medium text-gray-800">{Math.round(m.r * 100)}%</td>
+              <td className="py-1.5 text-right font-medium text-emerald-600">+{Math.round((m.r - m.b) * 100)}</td>
+            </tr>
+          ))}
+          {economics.map((m) => (
+            <tr key={m.key} className="border-b border-gray-50">
+              <td className="py-1.5 text-gray-700">{t(`pages.settings.modelQuality.${m.key}`)}</td>
+              <td className="py-1.5 text-right text-gray-600">{m.fmt(m.b)}</td>
+              <td className="py-1.5 text-right font-medium text-gray-800">{m.fmt(m.r)}</td>
+              <td className="py-1.5 text-right font-medium text-emerald-600">{m.fmt(m.b - m.r)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="flex items-center justify-between text-[11px] text-gray-400">
+        <span>
+          {t('pages.settings.modelQuality.source')}:{' '}
+          {evaluation.live ? t('pages.settings.modelQuality.live') : t('pages.settings.modelQuality.sample')}
+          {' · '}
+          {t('pages.settings.modelQuality.generatedAt', { at: new Date(evaluation.generated_at).toLocaleDateString() })}
+        </span>
+      </div>
+      <p className="text-xs text-gray-400">{t('pages.settings.modelQuality.advisory')}</p>
+    </section>
   );
 }

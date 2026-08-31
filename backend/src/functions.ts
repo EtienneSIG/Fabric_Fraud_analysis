@@ -10,6 +10,7 @@ import {
   upsertCaseDecision,
   emailReport,
   uploadEvidence,
+  exportAgentRuns,
 } from './handlers.js';
 import { bearer } from './shared.js';
 import {
@@ -18,6 +19,7 @@ import {
   caseDecisionSchema,
   emailReportSchema,
   evidenceUploadSchema,
+  agentRunExportSchema,
 } from './schemas.js';
 
 const json = (status: number, body: unknown): HttpResponseInit => ({
@@ -99,6 +101,17 @@ app.http('evidenceUpload', {
   handler: async (req) => {
     const p = await parse(req, evidenceUploadSchema);
     return p.ok ? json(200, await uploadEvidence(p.data, userToken(req))) : p.res;
+  },
+});
+
+// Exports AgentRun traces into the RAFT seed-question format (WS-5). Read-only; PII scrubbed.
+app.http('agentsRunsExport', {
+  route: 'agents/runs/export',
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  handler: async (req) => {
+    const p = await parse(req, agentRunExportSchema);
+    return p.ok ? json(200, await exportAgentRuns(p.data)) : p.res;
   },
 });
 

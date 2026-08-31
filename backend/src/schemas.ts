@@ -48,3 +48,9 @@ export const evidenceUploadSchema = z.object({
   contentBase64: z.string(),
   contentType: z.string(),
 });
+
+// Exports AgentRun traces into the RAFT seed-question format (WS-5). PII is scrubbed on export.
+export const agentRunExportSchema = z.object({
+  domain: z.string().default('aml'),
+  limit: z.number().int().positive().max(1000).default(200),
+});

@@ -17,7 +17,8 @@ This document captures **what makes the solution innovative today** and the
 | **Foundry ↔ Fabric grounding** | Foundry Agent Service grounds on the Fabric Data Agent through a **connection with OBO** (no hand-rolled NL2SQL proxy on the real path). |
 | **Connected multi-agent** | A triage orchestrator delegates to investigation / AML / claims agents; **only the orchestrator replies**, each sub-agent declares its role, models are matched to task for cost. |
 | **Human-in-the-loop** | All AI output is advisory; every run and decision is written to `AgentRun` + the audit trail; **human approval is always required**. |
-| **Closed remediation loop** | Risk threshold → alert → Teams approval card → analyst decision → **OneLake writeback** → retraining backlog. |
+| **Closed remediation loop** | Risk threshold → alert → Teams approval card → analyst decision → **OneLake writeback** → retraining backlog → **RAFT model iteration** (the loop is now closed). |
+| **RAFT (model iteration)** | An AML document corpus, a Foundry IQ knowledge base and RAFT notebooks train a fine-tuned **`gpt-4.1-mini`** student; a reproducible harness measures **baseline vs RAFT** (groundedness, retrieval, relevance + tokens/latency/cost) surfaced live in the app. |
 | **Microsoft 365 (Work IQ)** | Teams approval cards, Outlook reports, SharePoint evidence and work-graph signals via **Microsoft Graph delegated/OBO** (least-privilege, no app/delegated mixing). |
 | **Explainability** | Risk scores expose per-driver breakdowns; the "90 min → 30 sec" Fraud IQ scenario contrasts manual triage with a single grounded, explainable prompt. |
 | **Localization** | Full UI in **English, French and Spanish** (react-i18next); agent output respects the active locale. |
@@ -39,9 +40,9 @@ flowchart LR
   classDef now fill:#16a34a,color:#fff,stroke:#065f46
   classDef next fill:#4f46e5,color:#fff,stroke:#312e81
   classDef later fill:#7c3aed,color:#fff,stroke:#4c1d95
-  N["Now (done)<br/>i18n EN/FR/ES · Terraform ·<br/>Foundry + O365 handlers · lazy pages"]:::now
+  N["Now (done)<br/>i18n EN/FR/ES · Terraform ·<br/>Foundry + O365 handlers · lazy pages ·<br/>RAFT fine-tuning + eval"]:::now
   X["Next<br/>Rayfin functions host · real Bot adapter ·<br/>Eventstream wiring · CI/CD"]:::next
-  L["Later<br/>Model fine-tuning (SFT/DPO) ·<br/>continuous eval · prod hardening (DR)"]:::later
+  L["Later<br/>RFT from traces · continuous eval ·<br/>prod hardening (DR)"]:::later
   N --> X --> L
 ```
 
@@ -60,8 +61,9 @@ flowchart LR
   compatibility ETL from the 11 singular Lakehouse tables.
 
 ### Later
-- **Model fine-tuning** (SFT/DPO/RFT) on curated case traces to lift narrative quality,
-  with **continuous evaluation** and token/agent monitoring.
+- **Reinforcement fine-tuning (RFT) from traces** on top of the shipped RAFT SFT pipeline,
+  with **continuous evaluation** and token/agent monitoring (the RAFT eval harness is the
+  starting point).
 - **Production hardening** — private endpoints, zone redundancy, DR/failover, secret
   rotation, and full observability dashboards.
 - **Domain-term localization** — enum values (Severity / AlertType / AlertStatus /

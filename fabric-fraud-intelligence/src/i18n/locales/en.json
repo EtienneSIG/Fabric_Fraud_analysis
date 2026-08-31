@@ -162,7 +162,17 @@
       "counterparty": "Counterparty",
       "noLinkedTxns": "No linked account transactions.",
       "exposure": "Estimated exposure {{amount}} across {{count}} movements.",
-      "selectAlert": "Select an AML alert."
+      "selectAlert": "Select an AML alert.",
+      "abCompare": "Compare baseline vs RAFT",
+      "abComparing": "Comparing…",
+      "abTitle": "Baseline vs RAFT (A/B)",
+      "abBaseline": "Baseline",
+      "abRaft": "RAFT student",
+      "abLive": "Live",
+      "abSimulated": "Simulated",
+      "abTokens": "{{count}} tokens",
+      "abLatency": "{{ms}} ms",
+      "abNote": "Same question, two models. The RAFT student is fine-tuned on the AML corpus; both answers remain advisory and require human approval."
     },
     "claims": {
       "title": "Claims Fraud",
@@ -227,6 +237,8 @@
     "settings": {
       "title": "Settings & Governance",
       "subtitle": "Role-based access, PII masking, environment and the audit trail.",
+      "tabGovernance": "Governance",
+      "tabModelQuality": "Model quality",
       "roleMatrix": "Role & access matrix",
       "role": "Role",
       "viewPII": "View PII",
@@ -249,7 +261,27 @@
       "thActor": "Actor",
       "thAction": "Action",
       "thTarget": "Target",
-      "thDetail": "Detail"
+      "thDetail": "Detail",
+      "modelQuality": {
+        "title": "Model quality & cost",
+        "subtitle": "Baseline vs RAFT — groundedness, retrieval and the economics of an investigation.",
+        "metric": "Metric",
+        "baseline": "Baseline",
+        "raft": "RAFT",
+        "delta": "Δ",
+        "groundedness": "Groundedness",
+        "retrievalQuality": "Retrieval quality",
+        "relevance": "Relevance",
+        "tokensPerInvestigation": "Tokens / investigation",
+        "latency": "Latency",
+        "costPer1000": "Cost / 1,000 investigations",
+        "source": "Source",
+        "live": "live",
+        "sample": "sample",
+        "generatedAt": "generated {{at}}",
+        "noResults": "No evaluation results yet. Run foundry/raft/eval to populate this tab.",
+        "advisory": "Fine-tuning does not remove human approval; every run is still advisory and audited."
+      }
     }
   },
   "components": {
