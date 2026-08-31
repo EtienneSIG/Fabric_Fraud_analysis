@@ -78,3 +78,14 @@ export async function foundryToken(userToken: string | null): Promise<string> {
   }
   return (await new DefaultAzureCredential().getToken(scope))?.token ?? '';
 }
+
+/** Bearer token for the Azure OpenAI data plane (Cognitive Services) — used for the RAFT A/B
+ *  baseline-vs-student chat calls. OBO on behalf of the analyst, MI fallback. */
+export async function cognitiveToken(userToken: string | null): Promise<string> {
+  const scope = 'https://cognitiveservices.azure.com/.default';
+  if (userToken) {
+    const cred = await oboCredential(userToken);
+    return (await cred.getToken(scope))?.token ?? '';
+  }
+  return (await new DefaultAzureCredential().getToken(scope))?.token ?? '';
+}

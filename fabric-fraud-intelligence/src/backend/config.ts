@@ -58,3 +58,25 @@ export const isTeamsEnabled = (): boolean => backendReady() && integrationConfig
 // app shows the deterministic mock A/B so the demo peak still works offline.
 export const isRaftEnabled = (): boolean =>
   backendReady() && integrationConfig.raftEnabled && !!integrationConfig.raftStudentDeployment;
+
+export type FeatureKey = 'fabric' | 'foundry' | 'raft' | 'workiq' | 'teams';
+
+export interface IntegrationStatus {
+  overall: 'mock' | 'partial' | 'live';
+  features: Record<FeatureKey, boolean>;
+}
+
+// Snapshot of which integrations are live vs mock, for the discreet header mode badge. A feature is
+// "live" only when fully wired; anything not configured degrades gracefully to the mock path.
+export function integrationStatus(): IntegrationStatus {
+  const features: Record<FeatureKey, boolean> = {
+    fabric: !isMock(),
+    foundry: isFoundryEnabled(),
+    raft: isRaftEnabled(),
+    workiq: isWorkIqEnabled(),
+    teams: isTeamsEnabled(),
+  };
+  const live = Object.values(features).filter(Boolean).length;
+  const overall = live === 0 ? 'mock' : live === Object.keys(features).length ? 'live' : 'partial';
+  return { overall, features };
+}

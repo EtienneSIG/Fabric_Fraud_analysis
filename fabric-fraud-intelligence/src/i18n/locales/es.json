@@ -19,7 +19,20 @@
     "signOut": "Cerrar sesión",
     "live": "Real",
     "simulated": "Simulado",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "mode": {
+      "mock": "Demo · mock",
+      "partial": "Parcial · en vivo",
+      "live": "En vivo",
+      "tooltip": "Estado de integraciones",
+      "statusLive": "en vivo",
+      "statusMock": "mock",
+      "fabric": "Datos Fabric",
+      "foundry": "Agentes Foundry",
+      "raft": "Modelo RAFT",
+      "workiq": "Work IQ",
+      "teams": "Teams"
+    }
   },
   "toast": {
     "decisionRecorded": "Decisión registrada: {{decision}}",

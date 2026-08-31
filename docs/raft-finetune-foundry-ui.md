@@ -39,12 +39,64 @@ Le wizard attend deux fichiers **JSONL, format Chat Completions, UTF-8 avec BOM,
 {"messages": [{"role": "system", "content": "You are an AML analyst assistant. Answer only from the provided documents. Cite the exact typology and rule..."}, {"role": "user", "content": "<DOCUMENT ...>\n\nQuestion: ..."}, {"role": "assistant", "content": "##Reason: ... ##Answer: ..."}]}
 ```
 
-Deux options :
+Trois façons de produire ces deux fichiers, du plus simple au plus industriel.
 
-- **Générer** depuis le corpus AML : lancer [`foundry/raft/1_gen.ipynb`](../foundry/raft/1_gen.ipynb)
-  → produit `data/raft_train.jsonl` + `data/raft_val.jsonl` (déjà au bon format, avec BOM).
-- **À la main** : partir de 50+ exemples de qualité (le job accepte 10 minimum, mais c'est trop peu).
-  Voir les échantillons [`data/raft_train.sample.jsonl`](../foundry/raft/data/raft_train.sample.jsonl).
+### Option 1 — Générer en local (SDK / papermill) — *recommandé pour la démo*
+
+Le notebook [`foundry/raft/1_gen.ipynb`](../foundry/raft/1_gen.ipynb) lit le corpus AML
+([`fabric/lakehouse/corpus/manifest.yaml`](../fabric/lakehouse/corpus/manifest.yaml)), assemble
+chaque exemple (question + doc *golden* + distracteurs + réponse *teacher*) et écrit
+`data/raft_train.jsonl` + `data/raft_val.jsonl` **déjà au bon format, avec BOM**.
+
+```powershell
+cd foundry/raft
+uv sync                                              # ou: uv pip install --require-hashes -r requirements.txt
+$env:AI_FOUNDRY_ENDPOINT = "https://<aif-fraudintel-env>.openai.azure.com/"
+az login                                             # le teacher s'authentifie en AAD (aucune clé)
+papermill 1_gen.ipynb out/1_gen.ipynb -f parameters/gpt-4.1-mini.yaml
+```
+
+Sans endpoint, le notebook tourne **à sec** (réponses *teacher* remplacées par un placeholder
+déterministe) — pratique pour vérifier le format sans dépenser de tokens. Paramètres utiles dans
+[`parameters/gpt-4.1-mini.yaml`](../foundry/raft/parameters/gpt-4.1-mini.yaml) : `n_questions`,
+`n_distractors`, `oracle_probability` (proba de garder le doc golden — le reste apprend à
+s'abstenir), `val_fraction`.
+
+### Option 2 — À la main
+
+Partir de 50+ exemples de qualité (le job accepte 10 minimum, mais c'est trop peu). Voir
+[`data/raft_train.sample.jsonl`](../foundry/raft/data/raft_train.sample.jsonl) comme gabarit.
+
+### Option 3 — Pipeline d'ingestion Fabric (OneLake)
+
+Oui, c'est possible et cohérent avec le reste du repo : le corpus est **déjà** dans OneLake
+(déposé par [`fabric/lakehouse/corpus/upload_corpus.ps1`](../fabric/lakehouse/corpus/upload_corpus.ps1)
+sous `Files/corpus`). **Matérialisé** dans [`foundry/raft/fabric/`](../foundry/raft/fabric/) :
+
+- [`gen_fabric.ipynb`](../foundry/raft/fabric/gen_fabric.ipynb) — jumeau OneLake-aware de `1_gen.ipynb` :
+  lit `Files/corpus`, écrit `Files/raft/raft_train.jsonl` + `raft_val.jsonl`, avec une cellule
+  optionnelle qui pousse directement à Foundry (`files.create`).
+- [`deploy_pipeline.ps1`](../foundry/raft/fabric/deploy_pipeline.ps1) — importe le notebook comme item
+  Fabric et crée/replace la **Data Pipeline** `raft-ingestion` (idempotent, Fabric REST).
+- [`pipeline-content.json`](../foundry/raft/fabric/pipeline-content.json) — définition de la pipeline
+  (une activité *Notebook*).
+
+```mermaid
+flowchart LR
+  A["Corpus .md"] --> B["upload_corpus.ps1"]
+  B --> C[("OneLake Files/corpus")]
+  C --> D["Notebook Fabric<br/>gen_fabric.ipynb"]
+  T["Foundry teacher gpt-4.1<br/>(workspace identity)"] -. grounding .-> D
+  D --> E[("OneLake Files/raft/*.jsonl")]
+  E -->|push_to_foundry=True| F["Fine-tune job"]
+  E -->|download + wizard Etape 5| F
+```
+
+> **Le point à retenir** : le fine-tuning Foundry **n'entraîne pas directement depuis OneLake**. Les
+> fichiers doivent être **uploadés** à la ressource (`files.create`) ou exister comme *dataset* projet.
+> La pipeline Fabric automatise tout *jusqu'à* cet upload — ensuite soit `push_to_foundry=True`
+> (100 % Fabric), soit tu télécharges les JSONL et tu les déposes à l'Étape 5. Détails + diagrammes
+> dans [`foundry/raft/fabric/README.md`](../foundry/raft/fabric/README.md).
 
 > **Règle d'or** : le **message système doit être identique** entre l'entraînement et l'inférence.
 > S'il diffère au moment du déploiement, le modèle se comporte de façon imprévisible.

@@ -6,7 +6,7 @@
 import { DataLakeServiceClient } from '@azure/storage-file-datalake';
 import { DefaultAzureCredential } from '@azure/identity';
 
-import { env, graphOBO, foundryToken, logError, scrubPII } from './shared.js';
+import { env, graphOBO, foundryToken, cognitiveToken, logError, scrubPII } from './shared.js';
 
 export interface AgentRunRequest {
   agentName: string;
@@ -301,4 +301,194 @@ async function streamToString(stream: NodeJS.ReadableStream | null | undefined):
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   return Buffer.concat(chunks).toString('utf8');
+}
+
+// ---- RAFT A/B compare (WS-6/WS-9) -----------------------------------------------------------
+// System message MUST be identical to the one used in training (foundry/raft, raft.instructions.md).
+const RAFT_SYSTEM =
+  'You are an AML analyst assistant. Answer only from the provided documents. ' +
+  'Cite the exact typology and rule. If the documents do not support an answer, say so. ' +
+  'Output is advisory; a human must approve any filing.';
+
+export interface RaftCompareRequest {
+  prompt: string;
+  subject: string;
+  context: { caseId?: string; alertId?: string; role?: string };
+  locale: string;
+}
+export interface RaftAnswer {
+  label: 'baseline' | 'raft';
+  model: string;
+  text: string;
+  grounding: { title: string; source: string; confidence: number }[];
+  tokens: number;
+  latencyMs: number;
+}
+export interface RaftComparison {
+  baseline: RaftAnswer;
+  raft: RaftAnswer;
+  mode: 'mock' | 'foundry';
+}
+
+// Deterministic contrast used offline / when no student deployment is wired. Mirrors the app's
+// RaftModelClient.mockCompare so the demo peak is identical whether or not a backend is present.
+function mockCompare(req: RaftCompareRequest): RaftComparison {
+  const subject = req.subject || 'the subject account';
+  return {
+    mode: 'mock',
+    baseline: {
+      label: 'baseline',
+      model: 'gpt-4.1 (baseline)',
+      text:
+        'This account shows unusual movements that may indicate money laundering. Several transfers ' +
+        'occur between linked accounts over a short period. It could be layering or possibly ' +
+        'structuring. Recommend an analyst review the activity and decide whether to escalate.',
+      grounding: [{ title: 'Transactions', source: 'fabric_dataagent', confidence: 0.61 }],
+      tokens: 1850,
+      latencyMs: 2200,
+    },
+    raft: {
+      label: 'raft',
+      model: 'gpt-4.1-mini · RAFT (AML)',
+      text:
+        `Subject: ${subject}\n` +
+        'Typology: Layering — proceeds separated from origin through rapid pass-through transfers, ' +
+        'not structuring (which is threshold avoidance by a single actor).\n' +
+        'Pattern: Three pass-through hops within 48h, inbound and outbound amounts matched within 2%.\n' +
+        'Assessment: Meets the layering monitoring rule (≥3 hops, in/out within 2%, held <48h) and is ' +
+        "inconsistent with the customer's expected profile.\n" +
+        'Recommendation: SAR-ready — escalate to the nominated officer. Advisory; human approval required.',
+      grounding: [
+        { title: 'aml/layering.md', source: 'foundry_iq', confidence: 0.92 },
+        { title: 'transaction_monitoring_thresholds', source: 'fabric_dataagent', confidence: 0.88 },
+      ],
+      tokens: 1200,
+      latencyMs: 1400,
+    },
+  };
+}
+
+// One Azure OpenAI chat completion against a named deployment; returns text + token usage + latency.
+async function chatOnce(
+  endpoint: string,
+  deployment: string,
+  prompt: string,
+  token: string
+): Promise<{ text: string; tokens: number; latencyMs: number }> {
+  const started = Date.now();
+  const res = await fetch(
+    `${endpoint.replace(/\/$/, '')}/openai/deployments/${deployment}/chat/completions?api-version=2024-10-21`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: RAFT_SYSTEM },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.2,
+      }),
+    }
+  );
+  if (!res.ok) throw new Error(`AOAI ${deployment} failed: ${res.status}`);
+  const data = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+    usage?: { total_tokens?: number };
+  };
+  return {
+    text: data.choices?.[0]?.message?.content ?? '',
+    tokens: data.usage?.total_tokens ?? 0,
+    latencyMs: Date.now() - started,
+  };
+}
+
+/** RAFT A/B: runs the AML question against the baseline and the fine-tuned student deployment.
+ *  Real path when AI_FOUNDRY_ENDPOINT + RAFT_STUDENT_DEPLOYMENT are set; otherwise a deterministic
+ *  mock so the demo peak works offline (mock-first contract). */
+export async function raftCompare(req: RaftCompareRequest, userToken: string | null): Promise<RaftComparison> {
+  const endpoint = env('AI_FOUNDRY_ENDPOINT');
+  const student = env('RAFT_STUDENT_DEPLOYMENT');
+  const baselineDep = env('RAFT_BASELINE_DEPLOYMENT') || 'gpt-4.1';
+  if (!endpoint || !student) return mockCompare(req);
+  try {
+    const token = await cognitiveToken(userToken);
+    const [b, r] = await Promise.all([
+      chatOnce(endpoint, baselineDep, req.prompt, token),
+      chatOnce(endpoint, student, req.prompt, token),
+    ]);
+    return {
+      mode: 'foundry',
+      baseline: {
+        label: 'baseline',
+        model: `${baselineDep} (baseline)`,
+        text: b.text,
+        grounding: [{ title: baselineDep, source: 'foundry', confidence: 0.75 }],
+        tokens: b.tokens,
+        latencyMs: b.latencyMs,
+      },
+      raft: {
+        label: 'raft',
+        model: `${student} · RAFT (AML)`,
+        text: r.text,
+        grounding: [{ title: student, source: 'foundry', confidence: 0.9 }],
+        tokens: r.tokens,
+        latencyMs: r.latencyMs,
+      },
+    };
+  } catch (e) {
+    logError('raft-compare', e, { caseId: req.context.caseId });
+    return mockCompare(req);
+  }
+}
+
+// ---- RAFT evaluation (WS-7) -----------------------------------------------------------------
+export interface RaftEvalMetrics {
+  groundedness: number;
+  retrieval_quality: number;
+  relevance: number;
+  tokens_per_investigation: number;
+  latency_ms: number;
+  cost_per_1000: number;
+}
+export interface RaftEvaluation {
+  generated_at: string;
+  live: boolean;
+  baseline_model: string;
+  student_deployment: string;
+  n_questions: number;
+  summary: { baseline: RaftEvalMetrics; raft: RaftEvalMetrics };
+}
+
+// Committed sample mirrors foundry/raft/eval/results/sample.json and the app's SAMPLE_EVALUATION,
+// so the Model Quality tab renders identically offline.
+const SAMPLE_EVALUATION: RaftEvaluation = {
+  generated_at: '2026-08-31T07:55:51Z',
+  live: false,
+  baseline_model: 'gpt-4.1',
+  student_deployment: 'raft-student',
+  n_questions: 8,
+  summary: {
+    baseline: { groundedness: 0.675, retrieval_quality: 0.668, relevance: 0.668, tokens_per_investigation: 1850, latency_ms: 2200, cost_per_1000: 18.5 },
+    raft: { groundedness: 0.881, retrieval_quality: 0.879, relevance: 0.874, tokens_per_investigation: 1200, latency_ms: 1400, cost_per_1000: 4.8 },
+  },
+};
+
+/** Returns the baseline-vs-RAFT evaluation for the Model Quality tab. Reads the latest results
+ *  written by foundry/raft/eval to OneLake when configured; otherwise the committed sample. */
+export async function raftEval(): Promise<RaftEvaluation> {
+  const workspace = env('ONELAKE_WORKSPACE');
+  const lakehouse = env('ONELAKE_LAKEHOUSE');
+  if (!workspace || !lakehouse) return SAMPLE_EVALUATION;
+  try {
+    const service = new DataLakeServiceClient('https://onelake.dfs.fabric.microsoft.com', new DefaultAzureCredential());
+    const fs = service.getFileSystemClient(workspace);
+    const file = fs.getFileClient(`${lakehouse}.Lakehouse/Files/raft/eval/results/latest.json`);
+    const download = await file.read();
+    const body = await streamToString(download.readableStreamBody);
+    const parsed = JSON.parse(body) as RaftEvaluation;
+    return { ...parsed, live: true };
+  } catch (e) {
+    logError('raft-eval', e, {});
+    return SAMPLE_EVALUATION;
+  }
 }

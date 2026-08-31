@@ -7,6 +7,7 @@ import { useRole } from '@/app/RoleContext';
 import { NAV } from '@/app/routes';
 import { ROLES } from '@/backend/models';
 import { SUPPORTED_LOCALES } from '@/i18n/i18n';
+import { IntegrationModeBadge } from '@/app/layout/IntegrationModeBadge';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { signOut } = useAuth();
@@ -54,6 +55,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             {t('common.appTitle')}
           </h1>
           <div className="flex items-center gap-4">
+            <IntegrationModeBadge />
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-400">{t('common.language')}</span>
               <select

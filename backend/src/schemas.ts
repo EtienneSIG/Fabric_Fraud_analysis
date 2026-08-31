@@ -54,3 +54,17 @@ export const agentRunExportSchema = z.object({
   domain: z.string().default('aml'),
   limit: z.number().int().positive().max(1000).default(200),
 });
+
+// RAFT A/B compare (WS-6/WS-9): same AML question against baseline vs the fine-tuned student.
+export const raftCompareSchema = z.object({
+  prompt: z.string().min(1),
+  subject: z.string().default(''),
+  context: z
+    .object({
+      caseId: z.string().optional(),
+      alertId: z.string().optional(),
+      role: z.string().optional(),
+    })
+    .default({}),
+  locale: z.string().default('en'),
+});

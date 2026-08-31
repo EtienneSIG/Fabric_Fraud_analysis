@@ -11,6 +11,8 @@ import {
   emailReport,
   uploadEvidence,
   exportAgentRuns,
+  raftCompare,
+  raftEval,
 } from './handlers.js';
 import { bearer } from './shared.js';
 import {
@@ -20,6 +22,7 @@ import {
   emailReportSchema,
   evidenceUploadSchema,
   agentRunExportSchema,
+  raftCompareSchema,
 } from './schemas.js';
 
 const json = (status: number, body: unknown): HttpResponseInit => ({
@@ -113,6 +116,25 @@ app.http('agentsRunsExport', {
     const p = await parse(req, agentRunExportSchema);
     return p.ok ? json(200, await exportAgentRuns(p.data)) : p.res;
   },
+});
+
+// RAFT A/B: same AML question against baseline vs the fine-tuned student (real or deterministic mock).
+app.http('raftCompare', {
+  route: 'raft/compare',
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  handler: async (req) => {
+    const p = await parse(req, raftCompareSchema);
+    return p.ok ? json(200, await raftCompare(p.data, userToken(req))) : p.res;
+  },
+});
+
+// RAFT evaluation summary for the Model Quality tab (live OneLake results or committed sample).
+app.http('raftEval', {
+  route: 'raft/eval',
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  handler: async () => json(200, await raftEval()),
 });
 
 // Bot Framework messaging endpoint. On an Action.Execute approve/escalate/dismiss card action,

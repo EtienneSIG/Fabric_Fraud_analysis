@@ -34,6 +34,10 @@ the environment. Model names come from `parameters/*.yaml`, never from a noteboo
 papermill 1_gen.ipynb out/1_gen.ipynb -f parameters/gpt-4.1-mini.yaml
 ```
 
+> **Générer dans Fabric plutôt qu'en local ?** [`fabric/`](fabric/) matérialise l'ingestion OneLake :
+> `gen_fabric.ipynb` (lit `Files/corpus`, écrit `Files/raft/*.jsonl`) + `deploy_pipeline.ps1` (Data
+> Pipeline planifiable). Même logique que `1_gen.ipynb`, IO OneLake. Voir [`fabric/README.md`](fabric/README.md).
+
 Install the notebook dependencies with **uv** (`pyproject.toml`):
 
 ```powershell

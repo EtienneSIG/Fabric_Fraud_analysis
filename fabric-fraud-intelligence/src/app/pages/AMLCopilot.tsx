@@ -7,7 +7,6 @@ import { eur } from '@/app/format';
 import { amlNarrative } from '@/backend/api/agents';
 import { getAlerts } from '@/backend/api/alerts';
 import { getCase } from '@/backend/api/cases';
-import { isRaftEnabled } from '@/backend/config';
 import { SEVERITY_COLORS } from '@/backend/models';
 import { warehouse } from '@/backend/services/FabricWarehouseClient';
 import { raftModel, type RaftAnswer, type RaftComparison } from '@/backend/services/RaftModelClient';
@@ -135,7 +134,7 @@ export function AMLCopilot() {
                 </div>
               </div>
 
-              {ab && <AbPanel ab={ab} live={isRaftEnabled()} />}
+              {ab && <AbPanel ab={ab} live={ab.mode === 'foundry'} />}
 
               {res && (() => {
                 const p = parseNarrative(res.text);
