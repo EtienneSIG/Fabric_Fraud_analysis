@@ -10,13 +10,18 @@
     "settings": "Settings"
   },
   "common": {
-    "appTitle": "Fabric Fraud Intelligence",
-    "brandTop": "Fabric Fraud",
+    "appTitle": "IQ Fraud Intelligence",
+    "brandTop": "IQ Fraud",
     "brandBottom": "Intelligence",
     "platform": "Microsoft Fabric · Rayfin App",
     "role": "Role",
     "language": "Language",
     "signOut": "Sign out",
+    "theme": {
+      "toggle": "Toggle theme",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "live": "Live",
     "simulated": "Simulated",
     "close": "Close",
@@ -185,7 +190,17 @@
       "abSimulated": "Simulated",
       "abTokens": "{{count}} tokens",
       "abLatency": "{{ms}} ms",
-      "abNote": "Same question, two models. The RAFT student is fine-tuned on the AML corpus; both answers remain advisory and require human approval."
+      "abNote": "Same question, two models. The RAFT student is fine-tuned on the AML corpus; both answers remain advisory and require human approval.",
+      "abScenario": "Pick the question",
+      "scStructuring": "Structuring (single actor)",
+      "scSmurfing": "Smurfing (many actors)",
+      "scLayering": "Layering (pass-through)",
+      "scNotAml": "Not AML (chargeback)",
+      "abModel": "Model",
+      "abModelBaseline": "Baseline model",
+      "abModelRaft": "Fine-tuned (RAFT)",
+      "abModelBoth": "Both (side by side)",
+      "abSystemPrompt": "System prompt · identical for both models · read-only"
     },
     "claims": {
       "title": "Claims Fraud",
@@ -329,7 +344,7 @@
       "panHint": "Scroll to zoom · drag background to pan · drag nodes · click to inspect"
     },
     "auth": {
-      "appName": "Fabric Fraud Intelligence",
+      "appName": "IQ Fraud Intelligence",
       "subtitle": "Sign in to get started.",
       "signIn": "Sign in with Microsoft",
       "openingFabric": "Opening Fabric...",

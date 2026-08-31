@@ -70,7 +70,7 @@ export function JourneyMap({ events }: { events: CustomerEvent[] }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ background: '#eff6ff', borderRadius: 12 }} role="img" aria-label="Event locations map">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ background: 'var(--ffi-map)', borderRadius: 12 }} role="img" aria-label="Event locations map">
           <defs>
             <marker id="jm-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8" />

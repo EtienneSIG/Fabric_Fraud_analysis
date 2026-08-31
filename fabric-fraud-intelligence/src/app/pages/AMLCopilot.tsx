@@ -9,7 +9,7 @@ import { getAlerts } from '@/backend/api/alerts';
 import { getCase } from '@/backend/api/cases';
 import { SEVERITY_COLORS } from '@/backend/models';
 import { warehouse } from '@/backend/services/FabricWarehouseClient';
-import { raftModel, type RaftAnswer, type RaftComparison } from '@/backend/services/RaftModelClient';
+import { raftModel, type RaftAnswer, type RaftComparison, type RaftScenario, RAFT_QUESTIONS, RAFT_SYSTEM_PROMPT } from '@/backend/services/RaftModelClient';
 import type { AgentResult } from '@/backend/agents/AgentOrchestrator';
 
 function parseNarrative(text: string) {
@@ -45,14 +45,18 @@ export function AMLCopilot() {
     setBusy(false);
   };
 
-  const compare = async () => {
+  const [scenario, setScenario] = useState<RaftScenario>('layering');
+  const [modelView, setModelView] = useState<AbView>('baseline');
+  const compare = async (sc: RaftScenario) => {
+    setScenario(sc);
     setAbBusy(true);
     setAb(
       await raftModel.compare({
-        prompt: `Assess AML alert ${bundle?.alert?.id ?? caseId} and produce a SAR-readiness narrative.`,
+        prompt: RAFT_QUESTIONS[sc],
         subject: bundle?.customer?.name ?? bundle?.account?.id ?? caseId,
         context: { caseId, alertId: bundle?.alert?.id, role: user },
         locale: 'en',
+        scenario: sc,
       })
     );
     setAbBusy(false);
@@ -103,9 +107,31 @@ export function AMLCopilot() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
+                  <select
+                    value={scenario}
+                    onChange={(e) => setScenario(e.target.value as RaftScenario)}
+                    disabled={abBusy}
+                    title={t('pages.aml.abScenario')}
+                    className="rounded-lg border border-gray-200 bg-white px-2 py-2 text-xs text-gray-700 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
+                  >
+                    <option value="structuring">{t('pages.aml.scStructuring')}</option>
+                    <option value="smurfing">{t('pages.aml.scSmurfing')}</option>
+                    <option value="layering">{t('pages.aml.scLayering')}</option>
+                    <option value="not-aml">{t('pages.aml.scNotAml')}</option>
+                  </select>
+                  <select
+                    value={modelView}
+                    onChange={(e) => setModelView(e.target.value as AbView)}
+                    title={t('pages.aml.abModel')}
+                    className="rounded-lg border border-gray-200 bg-white px-2 py-2 text-xs text-gray-700 focus:border-indigo-500 focus:outline-none"
+                  >
+                    <option value="baseline">{t('pages.aml.abModelBaseline')}</option>
+                    <option value="raft">{t('pages.aml.abModelRaft')}</option>
+                    <option value="both">{t('pages.aml.abModelBoth')}</option>
+                  </select>
                   <button
                     disabled={abBusy}
-                    onClick={() => void compare()}
+                    onClick={() => void compare(scenario)}
                     className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3.5 py-2 text-xs font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50 disabled:opacity-50"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={abBusy ? 'animate-spin' : ''}>
@@ -134,7 +160,7 @@ export function AMLCopilot() {
                 </div>
               </div>
 
-              {ab && <AbPanel ab={ab} live={ab.mode === 'foundry'} />}
+              {ab && <AbPanel ab={ab} live={ab.mode === 'foundry'} view={modelView} />}
 
               {res && (() => {
                 const p = parseNarrative(res.text);
@@ -319,8 +345,12 @@ function RiskDonut({ score, color, severity }: { score: number; color: string; s
   );
 }
 
-function AbPanel({ ab, live }: { ab: RaftComparison; live: boolean }) {
+type AbView = 'baseline' | 'raft' | 'both';
+
+function AbPanel({ ab, live, view }: { ab: RaftComparison; live: boolean; view: AbView }) {
   const { t } = useTranslation();
+  const showBase = view !== 'raft';
+  const showRaft = view !== 'baseline';
   return (
     <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -333,9 +363,16 @@ function AbPanel({ ab, live }: { ab: RaftComparison; live: boolean }) {
           {live ? t('pages.aml.abLive') : t('pages.aml.abSimulated')}
         </span>
       </div>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <AbColumn label={t('pages.aml.abBaseline')} answer={ab.baseline} accent="gray" />
-        <AbColumn label={t('pages.aml.abRaft')} answer={ab.raft} accent="violet" />
+      {ab.question && <p className="mb-2 -mt-1 text-xs italic text-gray-500">{ab.question}</p>}
+      <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-2.5">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+          {t('pages.aml.abSystemPrompt')}
+        </p>
+        <p className="text-[11px] leading-relaxed text-gray-500">{RAFT_SYSTEM_PROMPT}</p>
+      </div>
+      <div className={`grid grid-cols-1 gap-3 ${view === 'both' ? 'md:grid-cols-2' : ''}`}>
+        {showBase && <AbColumn label={t('pages.aml.abBaseline')} answer={ab.baseline} accent="gray" />}
+        {showRaft && <AbColumn label={t('pages.aml.abRaft')} answer={ab.raft} accent="violet" />}
       </div>
       <p className="mt-3 text-[11px] text-gray-400">{t('pages.aml.abNote')}</p>
     </div>

@@ -198,7 +198,7 @@ export function EntityNetwork({ nodes, edges, selected, onSelect, height = 520, 
         ref={svgRef}
         viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
         className="w-full touch-none select-none"
-        style={{ height, background: '#f8fafc', borderRadius: 12, cursor: grabbing ? 'grabbing' : 'grab' }}
+        style={{ height, background: 'var(--ffi-canvas)', borderRadius: 12, cursor: grabbing ? 'grabbing' : 'grab' }}
         onPointerDown={(e) => {
           drag.current = { id: null, panning: true, lastX: e.clientX, lastY: e.clientY, moved: false };
           setGrabbing(true);
@@ -284,7 +284,7 @@ export function EntityNetwork({ nodes, edges, selected, onSelect, height = 520, 
         <CtrlButton label="−" title={t('components.graphCtrl.zoomOut')} onClick={() => zoomCenter(1.25)} />
         <CtrlButton label="⤢" title={t('components.graphCtrl.resetView')} onClick={() => setView(base)} />
       </div>
-      <div className="absolute bottom-3 left-3 text-[11px] text-slate-400 bg-white/70 rounded-md px-2 py-0.5">
+      <div className="absolute bottom-3 left-3 text-[11px] text-slate-400 bg-white/70 dark:bg-slate-900/70 rounded-md px-2 py-0.5">
         {t('components.graphCtrl.panHint')}
       </div>
     </div>

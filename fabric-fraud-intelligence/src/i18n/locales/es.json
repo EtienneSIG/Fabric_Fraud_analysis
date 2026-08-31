@@ -10,13 +10,18 @@
     "settings": "Configuración"
   },
   "common": {
-    "appTitle": "Fabric Fraud Intelligence",
-    "brandTop": "Fabric Fraud",
+    "appTitle": "IQ Fraud Intelligence",
+    "brandTop": "IQ Fraud",
     "brandBottom": "Intelligence",
     "platform": "Microsoft Fabric · Aplicación Rayfin",
     "role": "Rol",
     "language": "Idioma",
     "signOut": "Cerrar sesión",
+    "theme": {
+      "toggle": "Cambiar tema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
     "live": "Real",
     "simulated": "Simulado",
     "close": "Cerrar",
@@ -185,7 +190,17 @@
       "abSimulated": "Simulado",
       "abTokens": "{{count}} tokens",
       "abLatency": "{{ms}} ms",
-      "abNote": "Misma pregunta, dos modelos. El estudiante RAFT está ajustado sobre el corpus AML; ambas respuestas siguen siendo consultivas y requieren aprobación humana."
+      "abNote": "Misma pregunta, dos modelos. El estudiante RAFT está ajustado sobre el corpus AML; ambas respuestas siguen siendo consultivas y requieren aprobación humana.",
+      "abScenario": "Elige la pregunta",
+      "scStructuring": "Structuring (un actor)",
+      "scSmurfing": "Smurfing (varios actores)",
+      "scLayering": "Layering (transferencias)",
+      "scNotAml": "No es AML (contracargo)",
+      "abModel": "Modelo",
+      "abModelBaseline": "Modelo base",
+      "abModelRaft": "Ajustado (RAFT)",
+      "abModelBoth": "Ambos (lado a lado)",
+      "abSystemPrompt": "Prompt de sistema · idéntico para ambos modelos · solo lectura"
     },
     "claims": {
       "title": "Fraude en siniestros",
@@ -329,7 +344,7 @@
       "panHint": "Rueda para acercar · arrastra el fondo para desplazar · arrastra los nodos · clic para inspeccionar"
     },
     "auth": {
-      "appName": "Fabric Fraud Intelligence",
+      "appName": "IQ Fraud Intelligence",
       "subtitle": "Inicia sesión para empezar.",
       "signIn": "Iniciar sesión con Microsoft",
       "openingFabric": "Abriendo Fabric...",

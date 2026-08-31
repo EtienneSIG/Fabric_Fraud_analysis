@@ -10,13 +10,18 @@
     "settings": "Paramètres"
   },
   "common": {
-    "appTitle": "Fabric Fraud Intelligence",
-    "brandTop": "Fabric Fraud",
+    "appTitle": "IQ Fraud Intelligence",
+    "brandTop": "IQ Fraud",
     "brandBottom": "Intelligence",
     "platform": "Microsoft Fabric · Application Rayfin",
     "role": "Rôle",
     "language": "Langue",
     "signOut": "Se déconnecter",
+    "theme": {
+      "toggle": "Changer de thème",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
     "live": "Réel",
     "simulated": "Simulé",
     "close": "Fermer",
@@ -185,7 +190,17 @@
       "abSimulated": "Simulé",
       "abTokens": "{{count}} jetons",
       "abLatency": "{{ms}} ms",
-      "abNote": "Même question, deux modèles. L'élève RAFT est affiné sur le corpus LCB-FT ; les deux réponses restent consultatives et exigent une validation humaine."
+      "abNote": "Même question, deux modèles. L'élève RAFT est affiné sur le corpus LCB-FT ; les deux réponses restent consultatives et exigent une validation humaine.",
+      "abScenario": "Choisir la question",
+      "scStructuring": "Structuring (1 acteur)",
+      "scSmurfing": "Smurfing (plusieurs mules)",
+      "scLayering": "Layering (transferts gigognes)",
+      "scNotAml": "Hors LCB-FT (chargeback)",
+      "abModel": "Modèle",
+      "abModelBaseline": "Modèle de base",
+      "abModelRaft": "Affiné (RAFT)",
+      "abModelBoth": "Les deux (côte à côte)",
+      "abSystemPrompt": "Prompt système · identique pour les deux modèles · lecture seule"
     },
     "claims": {
       "title": "Fraude aux sinistres",
@@ -329,7 +344,7 @@
       "panHint": "Molette pour zoomer · glisser le fond pour déplacer · glisser les nœuds · cliquer pour inspecter"
     },
     "auth": {
-      "appName": "Fabric Fraud Intelligence",
+      "appName": "IQ Fraud Intelligence",
       "subtitle": "Connectez-vous pour commencer.",
       "signIn": "Se connecter avec Microsoft",
       "openingFabric": "Ouverture de Fabric...",
