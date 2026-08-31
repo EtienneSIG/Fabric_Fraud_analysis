@@ -22,6 +22,8 @@
       "light": "Light",
       "dark": "Dark"
     },
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu",
     "live": "Live",
     "simulated": "Simulated",
     "close": "Close",

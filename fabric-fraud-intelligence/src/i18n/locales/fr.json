@@ -22,6 +22,8 @@
       "light": "Clair",
       "dark": "Sombre"
     },
+    "collapseMenu": "Réduire le menu",
+    "expandMenu": "Déplier le menu",
     "live": "Réel",
     "simulated": "Simulé",
     "close": "Fermer",
