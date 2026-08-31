@@ -246,9 +246,9 @@ export function EntityGraph() {
 
 function Metric({ k, v, active }: { k: string; v: number; active: boolean }) {
   return (
-    <div className={`rounded-lg px-2 py-1.5 text-center ${active ? 'bg-indigo-50' : 'bg-gray-50'}`}>
+    <div className={`rounded-lg px-2 py-1.5 text-center ${active ? 'bg-indigo-50 dark:bg-indigo-500/20' : 'bg-gray-50'}`}>
       <p className="text-[10px] uppercase tracking-wide text-gray-400">{k}</p>
-      <p className={`text-sm font-semibold ${active ? 'text-indigo-700' : 'text-gray-700'}`}>{v}</p>
+      <p className={`text-sm font-semibold ${active ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-700'}`}>{v}</p>
     </div>
   );
 }

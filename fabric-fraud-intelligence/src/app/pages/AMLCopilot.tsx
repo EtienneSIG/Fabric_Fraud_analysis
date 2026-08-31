@@ -82,7 +82,7 @@ export function AMLCopilot() {
                   setAb(null);
                 }}
                 className={`rounded-lg px-3 py-2 cursor-pointer ${
-                  a.caseId === caseId ? 'bg-indigo-50' : 'hover:bg-gray-50'
+                  a.caseId === caseId ? 'bg-indigo-50 dark:bg-indigo-500/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -320,7 +320,7 @@ function RiskDonut({ score, color, severity }: { score: number; color: string; s
   return (
     <div className="relative h-20 w-20 shrink-0">
       <svg viewBox="0 0 64 64" className="h-20 w-20 -rotate-90">
-        <circle cx="32" cy="32" r={r} fill="none" stroke="#f1f5f9" strokeWidth="8" />
+        <circle cx="32" cy="32" r={r} fill="none" className="stroke-slate-100" strokeWidth="8" />
         <circle
           cx="32"
           cy="32"

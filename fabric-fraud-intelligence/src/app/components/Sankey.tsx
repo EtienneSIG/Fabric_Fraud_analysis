@@ -70,14 +70,15 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
     return null;
   }, [hoverKey, hoverNode, nodeKeys]);
 
-  const ribbons = useMemo(() => {
+  const ribbonGeo = useMemo(() => {
     const outOff = new Map<string, number>();
     const inOff = new Map<string, number>();
     const sorted = [...links].sort((a, b) => (laid.get(a.source)?.y0 ?? 0) - (laid.get(b.source)?.y0 ?? 0));
-    return sorted.map((lk, i) => {
+    const out: { key: string; d: string; color: string; value: number; sLabel: string; tLabel: string }[] = [];
+    for (const lk of sorted) {
       const s = laid.get(lk.source);
       const t = laid.get(lk.target);
-      if (!s || !t) return null;
+      if (!s || !t) continue;
       const thick = Math.max((lk.value / (s.node.value || 1)) * s.h, 1.2);
       const so = outOff.get(lk.source) ?? 0;
       const to = inOff.get(lk.target) ?? 0;
@@ -89,29 +90,10 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
       const sy = s.y0 + so;
       const ty = t.y0 + to;
       const d = `M${x0},${sy} C${xm},${sy} ${xm},${ty} ${x1},${ty} L${x1},${ty + thick} C${xm},${ty + thick} ${xm},${sy + thick} ${x0},${sy + thick} Z`;
-      const on = activeKeys ? activeKeys.has(lk.key) : null;
-      const opacity = on === null ? 0.36 : on ? 0.82 : 0.08;
-      return (
-        <path
-          key={i}
-          d={d}
-          fill={lk.color}
-          fillOpacity={opacity}
-          style={{ cursor: 'pointer', transition: 'fill-opacity 120ms' }}
-          onMouseEnter={() => {
-            setHoverKey(lk.key);
-            setTip(`${s.node.label} → ${t.node.label} · ${tr('components.sankey.customers', { count: lk.value })}`);
-          }}
-          onMouseLeave={() => {
-            setHoverKey(null);
-            setTip(null);
-          }}
-        >
-          <title>{tr('components.sankey.customers', { count: lk.value })}</title>
-        </path>
-      );
-    });
-  }, [links, laid, activeKeys]);
+      out.push({ key: lk.key, d, color: lk.color, value: lk.value, sLabel: s.node.label, tLabel: t.node.label });
+    }
+    return out;
+  }, [links, laid]);
 
   return (
     <div
@@ -138,7 +120,29 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
           {c}
         </text>
       ))}
-      {ribbons}
+      {ribbonGeo.map((rb) => {
+        const on = activeKeys ? activeKeys.has(rb.key) : null;
+        const opacity = on === null ? 0.36 : on ? 0.82 : 0.08;
+        return (
+          <path
+            key={rb.key}
+            d={rb.d}
+            fill={rb.color}
+            fillOpacity={opacity}
+            style={{ cursor: 'pointer', transition: 'fill-opacity 120ms' }}
+            onMouseEnter={() => {
+              setHoverKey(rb.key);
+              setTip(`${rb.sLabel} → ${rb.tLabel} · ${tr('components.sankey.customers', { count: rb.value })}`);
+            }}
+            onMouseLeave={() => {
+              setHoverKey(null);
+              setTip(null);
+            }}
+          >
+            <title>{tr('components.sankey.customers', { count: rb.value })}</title>
+          </path>
+        );
+      })}
       {[...laid.values()].map(({ node, x, y0, h }) => {
         const on = activeKeys ? [...(nodeKeys.get(node.id) ?? [])].some((k) => activeKeys.has(k)) : null;
         const dim = on === false;

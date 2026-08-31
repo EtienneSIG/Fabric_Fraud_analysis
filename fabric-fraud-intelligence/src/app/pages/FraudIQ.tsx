@@ -64,7 +64,9 @@ function IqColumn({ id, items, revealed }: { id: IqId; items: string[]; revealed
 
 export function FraudIQ() {
   const { t, i18n } = useTranslation();
-  const scenario = useMemo(() => cardFraudScenario(), []);
+  // Localized content: rebuild when the UI language changes (i18n is read inside).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const scenario = useMemo(() => cardFraudScenario(), [i18n.language]);
 
   // Flagship scenario run
   const [started, setStarted] = useState(false);
@@ -83,7 +85,8 @@ export function FraudIQ() {
   const done = phase >= 4;
 
   // Free-form multi-IQ ask
-  const samples = useMemo(() => getSampleQuestions(), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const samples = useMemo(() => getSampleQuestions(), [i18n.language]);
   const [question, setQuestion] = useState(samples[0]);
   const [result, setResult] = useState<IqResult | null>(null);
   const [askPhase, setAskPhase] = useState(0);
@@ -215,7 +218,7 @@ export function FraudIQ() {
             </div>
 
             <div
-              className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 transition-opacity ${
+              className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 dark:bg-indigo-500/10 p-4 transition-opacity ${
                 done ? 'opacity-100' : 'opacity-40'
               }`}
             >
@@ -304,7 +307,7 @@ export function FraudIQ() {
               <IqColumn id="foundry" items={result.foundry} revealed={askPhase >= 3} />
             </div>
             <div
-              className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 transition-opacity ${
+              className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 dark:bg-indigo-500/10 p-4 transition-opacity ${
                 askPhase >= 4 ? 'opacity-100' : 'opacity-40'
               }`}
             >

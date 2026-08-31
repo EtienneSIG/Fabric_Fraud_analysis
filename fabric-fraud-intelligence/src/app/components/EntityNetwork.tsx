@@ -264,7 +264,7 @@ export function EntityNetwork({ nodes, edges, selected, onSelect, height = 520, 
               <circle
                 r={rad}
                 fill={KIND_COLORS[n.kind]}
-                stroke={n.id === selected ? '#0f172a' : '#fff'}
+                className={n.id === selected ? 'stroke-slate-900' : 'stroke-white'}
                 strokeWidth={n.id === selected ? 3 : 1.5}
               />
               {(n.kind === 'fraud' || n.degree >= 3 || focus === n.id) && (

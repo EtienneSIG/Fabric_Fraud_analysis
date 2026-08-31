@@ -89,7 +89,6 @@ export function buildJourneyFlow(
   terminal: string,
   steps = 5
 ): { nodes: SankeyNode[]; links: SankeyLink[] } {
-  const isFraud = terminal.startsWith('Fraud');
   const groups = new Map<string, { ids: string[]; count: number }>();
   for (const arr of sequences()) {
     if (!arr.length || arr[arr.length - 1].event !== terminal) continue;
@@ -122,7 +121,7 @@ export function buildJourneyFlow(
         value: g.count,
         key,
         nodes: g.ids,
-        color: isFraud ? FRAUD_RED : '#4f46e5',
+        color: colorForEvent(labelOf(g.ids[k])),
       });
     }
   }

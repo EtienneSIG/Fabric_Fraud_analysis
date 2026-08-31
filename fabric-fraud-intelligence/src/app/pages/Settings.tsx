@@ -54,7 +54,7 @@ export function Settings() {
             {ROLES.map((r) => {
               const p = ROLE_PERMISSIONS[r];
               return (
-                <tr key={r} className={`border-b border-gray-50 ${r === role ? 'bg-indigo-50/60' : ''}`}>
+                <tr key={r} className={`border-b border-gray-50 ${r === role ? 'bg-indigo-50/60 dark:bg-indigo-500/15' : ''}`}>
                   <td className="py-2 font-medium text-gray-800">
                     {r}
                     {r === role && <span className="ml-2 text-[11px] text-indigo-600">{t('pages.settings.you')}</span>}
