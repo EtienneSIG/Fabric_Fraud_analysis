@@ -54,6 +54,11 @@
     "fr": "Français",
     "es": "Español"
   },
+  "authRelay": {
+    "title": "Connexion Microsoft",
+    "continue": "Continuer avec Microsoft",
+    "signingIn": "Ouverture de la connexion…"
+  },
   "fraudIqPage": {
     "investigationTitle": "Investigation libre",
     "askHint": "— posez une question sur un client, une alerte ou une typologie",

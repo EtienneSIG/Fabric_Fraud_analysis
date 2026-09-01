@@ -54,6 +54,11 @@
     "fr": "Français",
     "es": "Español"
   },
+  "authRelay": {
+    "title": "Inicio de sesión de Microsoft",
+    "continue": "Continuar con Microsoft",
+    "signingIn": "Abriendo el inicio de sesión…"
+  },
   "fraudIqPage": {
     "investigationTitle": "Investigación libre",
     "askHint": "— pregunta sobre un cliente, una alerta o una tipología",

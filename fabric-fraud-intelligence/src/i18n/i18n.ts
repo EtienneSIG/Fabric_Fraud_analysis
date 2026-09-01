@@ -12,7 +12,7 @@ import esFraudIq from './locales/es.fraudiq.json';
 export const SUPPORTED_LOCALES = ['en', 'fr', 'es'] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
-void i18n
+export const i18nReady = i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({

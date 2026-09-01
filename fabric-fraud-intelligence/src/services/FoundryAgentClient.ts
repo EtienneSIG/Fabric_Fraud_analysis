@@ -64,7 +64,7 @@ function getApplication(): PublicClientApplication {
       system: {
         popupBridgeTimeout: 180_000,
         iframeBridgeTimeout: 30_000,
-        navigatePopups: false,
+        navigatePopups: true,
       },
     });
     initialization = application.initialize();
