@@ -25,6 +25,10 @@ rayfin/.deployments.json
 **/terraform.tfvars
 **/*.auto.tfvars
 
+# Generated Fabric ontology definition (rebuilt per-workspace by build_ontology.py at deploy time)
+fabric/ontology/create_body.json
+fabric/ontology/parts/
+
 # OS / editor
 .DS_Store
 .idea/

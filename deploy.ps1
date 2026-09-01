@@ -396,13 +396,18 @@ if ($Fabric -and -not $WhatIf) {
     }
   } else { Write-Host '  Skip lakehouse fixtures: pass -LakehouseId to enable.' -ForegroundColor DarkYellow }
 
-  if ($TenantId) {
+  if ($TenantId -and $LakehouseId) {
     if (Confirm-Step 'Deploy the Fabric ontology (Fabric IQ)?') {
       Measure-Step 'Fabric: ontology' {
+        # Rebuild the definition for THIS workspace/lakehouse so bindings are never hardcoded.
+        $py = Get-Command python -ErrorAction SilentlyContinue
+        if (-not $py) { $py = Get-Command python3 -ErrorAction SilentlyContinue }
+        if (-not $py) { throw 'python not found on PATH (needed to build the ontology definition).' }
+        Invoke-Native 'build_ontology.py' { & $py.Source (Join-Path $fab 'ontology/build_ontology.py') --workspace-id $WorkspaceId --lakehouse-id $LakehouseId }
         & (Join-Path $fab 'ontology/post_ontology.ps1') -Ws $WorkspaceId -TenantId $TenantId
       }
     }
-  } else { Write-Host '  Skip ontology: pass -TenantId to enable.' -ForegroundColor DarkYellow }
+  } else { Write-Host '  Skip ontology: pass -TenantId and -LakehouseId to enable.' -ForegroundColor DarkYellow }
 
   if ($LakehouseId) {
     if (Confirm-Step 'Deploy the Fabric Data Agent?') {
@@ -425,7 +430,7 @@ if ($Fabric -and -not $WhatIf) {
     } elseif (-not $PowerBiModelId) {
       Write-Host '  Skip Power BI report: pass -PowerBiModelId (from the model step) to enable.' -ForegroundColor DarkYellow
     }
-  } else { Write-Host '  Skip Power BI: pass -SqlEndpoint (lakehouse SQL endpoint) to enable.' -ForegroundColor DarkYellow }
+  } else { Write-Host '  Skip Power BI: pass -SqlEndpoint (lakehouse SQL connection string, e.g. <id>.datawarehouse.fabric.microsoft.com) to enable.' -ForegroundColor DarkYellow }
 
   if ($KqlCluster) {
     if (Confirm-Step 'Deploy the realtime KQL schema?') {
