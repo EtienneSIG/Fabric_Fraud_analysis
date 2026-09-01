@@ -1,0 +1,191 @@
+{
+  "generated_at": "2026-08-31T09:57:40.405707+00:00",
+  "live": false,
+  "baseline_model": "gpt-4.1",
+  "student_deployment": "raft-student",
+  "n_questions": 8,
+  "summary": {
+    "baseline": {
+      "groundedness": 0.675,
+      "retrieval_quality": 0.668,
+      "relevance": 0.668,
+      "tokens_per_investigation": 1850,
+      "latency_ms": 2200,
+      "cost_per_1000": 18.5
+    },
+    "raft": {
+      "groundedness": 0.881,
+      "retrieval_quality": 0.879,
+      "relevance": 0.874,
+      "tokens_per_investigation": 1200,
+      "latency_ms": 1400,
+      "cost_per_1000": 4.8
+    }
+  },
+  "details": {
+    "baseline": [
+      {
+        "id": "EVAL-AML-001",
+        "scores": {
+          "groundedness": 0.681,
+          "retrieval_quality": 0.66,
+          "relevance": 0.682
+        },
+        "tokens": 1850,
+        "latency_ms": 2200
+      },
+      {
+        "id": "EVAL-AML-002",
+        "scores": {
+          "groundedness": 0.713,
+          "retrieval_quality": 0.69,
+          "relevance": 0.682
+        },
+        "tokens": 1850,
+        "latency_ms": 2200
+      },
+      {
+        "id": "EVAL-AML-003",
+        "scores": {
+          "groundedness": 0.627,
+          "retrieval_quality": 0.674,
+          "relevance": 0.638
+        },
+        "tokens": 1850,
+        "latency_ms": 2200
+      },
+      {
+        "id": "EVAL-AML-004",
+        "scores": {
+          "groundedness": 0.689,
+          "retrieval_quality": 0.692,
+          "relevance": 0.65
+        },
+        "tokens": 1850,
+        "latency_ms": 2200
+      },
+      {
+        "id": "EVAL-AML-005",
+        "scores": {
+          "groundedness": 0.701,
+          "retrieval_quality": 0.621,
+          "relevance": 0.662
+        },
+        "tokens": 1850,
+        "latency_ms": 2200
+      },
+      {
+        "id": "EVAL-AML-006",
+        "scores": {
+          "groundedness": 0.706,
+          "retrieval_quality": 0.688,
+          "relevance": 0.698
+        },
+        "tokens": 1850,
+        "latency_ms": 2200
+      },
+      {
+        "id": "EVAL-AML-007",
+        "scores": {
+          "groundedness": 0.63,
+          "retrieval_quality": 0.632,
+          "relevance": 0.699
+        },
+        "tokens": 1850,
+        "latency_ms": 2200
+      },
+      {
+        "id": "EVAL-AML-008",
+        "scores": {
+          "groundedness": 0.65,
+          "retrieval_quality": 0.688,
+          "relevance": 0.631
+        },
+        "tokens": 1850,
+        "latency_ms": 2200
+      }
+    ],
+    "raft": [
+      {
+        "id": "EVAL-AML-001",
+        "scores": {
+          "groundedness": 0.874,
+          "retrieval_quality": 0.847,
+          "relevance": 0.865
+        },
+        "tokens": 1200,
+        "latency_ms": 1400
+      },
+      {
+        "id": "EVAL-AML-002",
+        "scores": {
+          "groundedness": 0.919,
+          "retrieval_quality": 0.916,
+          "relevance": 0.866
+        },
+        "tokens": 1200,
+        "latency_ms": 1400
+      },
+      {
+        "id": "EVAL-AML-003",
+        "scores": {
+          "groundedness": 0.873,
+          "retrieval_quality": 0.828,
+          "relevance": 0.883
+        },
+        "tokens": 1200,
+        "latency_ms": 1400
+      },
+      {
+        "id": "EVAL-AML-004",
+        "scores": {
+          "groundedness": 0.881,
+          "retrieval_quality": 0.884,
+          "relevance": 0.831
+        },
+        "tokens": 1200,
+        "latency_ms": 1400
+      },
+      {
+        "id": "EVAL-AML-005",
+        "scores": {
+          "groundedness": 0.85,
+          "retrieval_quality": 0.902,
+          "relevance": 0.91
+        },
+        "tokens": 1200,
+        "latency_ms": 1400
+      },
+      {
+        "id": "EVAL-AML-006",
+        "scores": {
+          "groundedness": 0.864,
+          "retrieval_quality": 0.862,
+          "relevance": 0.849
+        },
+        "tokens": 1200,
+        "latency_ms": 1400
+      },
+      {
+        "id": "EVAL-AML-007",
+        "scores": {
+          "groundedness": 0.891,
+          "retrieval_quality": 0.876,
+          "relevance": 0.915
+        },
+        "tokens": 1200,
+        "latency_ms": 1400
+      },
+      {
+        "id": "EVAL-AML-008",
+        "scores": {
+          "groundedness": 0.895,
+          "retrieval_quality": 0.913,
+          "relevance": 0.877
+        },
+        "tokens": 1200,
+        "latency_ms": 1400
+      }
+    ]
+  }
+}
