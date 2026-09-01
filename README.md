@@ -224,6 +224,50 @@ examples. The public Fabric REST API manages its lifecycle and grounding configu
 it does not currently expose a conversation endpoint, so the embedded app keeps its
 deterministic fallback for in-app agent responses.
 
+### Example prompts
+
+Use the **Fabric Data Agent** for questions that can be answered exclusively from
+the governed Lakehouse data:
+
+```text
+Quels sont les dix signaux de fraude les plus risqués ? Pour chaque alerte, donne
+l'identifiant, le type, le score, la sévérité, le statut et les faits justificatifs.
+
+Quels dossiers ouverts faut-il traiter en priorité ? Classe-les par score de risque
+et indique l'analyste assigné ainsi que l'identifiant de l'alerte associée.
+
+Quels réparateurs concentrent le plus de sinistres ? Compare le nombre de dossiers,
+le montant total réclamé et les éléments de preuve disponibles.
+
+Pour le client associé à l'alerte la plus risquée, reconstitue la chronologie des
+transactions et événements disponibles. Signale explicitement toute donnée manquante.
+```
+
+Use the **`fraud-iq-orchestrator` agent in Microsoft Foundry** when the answer must
+combine governed Fabric facts with current regulatory guidance from official sources:
+
+```text
+Pour le dossier AML ouvert le plus risqué, distingue les faits disponibles dans
+Fabric, les obligations réglementaires européennes applicables et les actions à
+soumettre à validation humaine. Cite les textes officiels et conserve les identifiants.
+
+Analyse les signaux d'une possible fraude au paiement dans le dossier sélectionné.
+Rapproche-les des exigences réglementaires en vigueur, cite uniquement des sources
+officielles et indique clairement ce que les données ne permettent pas de conclure.
+
+Pour les sinistres liés au réparateur le plus concentré, résume les éléments factuels,
+recherche les obligations françaises pertinentes en matière de lutte contre la fraude
+et propose les prochaines vérifications sans prendre de décision finale.
+
+Quelles sont les obligations réglementaires européennes actuellement applicables en
+matière de détection et de déclaration des opérations suspectes ? Cite uniquement des
+sources officielles et précise la date de chaque texte utilisé.
+```
+
+Do not place personal data, account numbers, transaction details, or case evidence in
+the regulatory-search portion of a prompt. The Foundry agent retrieves case facts from
+Fabric and uses only generic legal concepts, rules, dates, and thresholds for web search.
+
 ```powershell
 # 1. materialize app data as Delta tables
 & fabric/lakehouse/run_load.ps1
