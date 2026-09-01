@@ -1,13 +1,11 @@
 import {
-  createNestablePublicClientApplication,
   InteractionRequiredAuthError,
+  PublicClientApplication,
   type AccountInfo,
-  type Configuration,
-  type IPublicClientApplication,
 } from '@azure/msal-browser';
 
 const TENANT_ID = import.meta.env.VITE_FOUNDRY_TENANT_ID || 'b7b9a0c6-fe36-41b6-a38d-582c6573e2ff';
-const CLIENT_ID = import.meta.env.VITE_FOUNDRY_CLIENT_ID || 'd5828f3b-2fc2-4ee5-89d6-e4200da4d1a8';
+const CLIENT_ID = import.meta.env.VITE_FOUNDRY_CLIENT_ID || 'f3468125-d8c3-4863-bb7c-968a70683f06';
 const AGENT_ENDPOINT =
   import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT ||
   'https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ/agents/fraud-iq-orchestrator/endpoint/protocols/openai/responses';
@@ -47,14 +45,15 @@ export interface FoundryAgentResult {
   citations: FoundryCitation[];
 }
 
-let application: Promise<IPublicClientApplication> | undefined;
+let application: PublicClientApplication | undefined;
+let initialization: Promise<void> | undefined;
 
-function getApplication(): Promise<IPublicClientApplication> {
+function getApplication(): PublicClientApplication {
   if (!CLIENT_ID) {
     throw new Error('Foundry IQ is not configured. Set VITE_FOUNDRY_CLIENT_ID.');
   }
   if (!application) {
-    const configuration: Configuration = {
+    application = new PublicClientApplication({
       auth: {
         clientId: CLIENT_ID,
         authority: `https://login.microsoftonline.com/${TENANT_ID}`,
@@ -67,13 +66,14 @@ function getApplication(): Promise<IPublicClientApplication> {
         iframeBridgeTimeout: 30_000,
         navigatePopups: false,
       },
-    };
-    application = createNestablePublicClientApplication(configuration);
+    });
+    initialization = application.initialize();
   }
   return application;
 }
 
-async function getAccount(client: IPublicClientApplication): Promise<AccountInfo> {
+async function getAccount(client: PublicClientApplication): Promise<AccountInfo> {
+  await initialization;
   const existing = client.getActiveAccount() ?? client.getAllAccounts()[0];
   if (existing) {
     client.setActiveAccount(existing);
@@ -94,7 +94,7 @@ export function requiresInteractiveAuth(error: unknown): boolean {
     (typeof error === 'object' && error !== null && 'errorCode' in error && error.errorCode === 'timed_out');
 }
 
-async function getAccessToken(client: IPublicClientApplication): Promise<string> {
+async function getAccessToken(client: PublicClientApplication): Promise<string> {
   const account = await getAccount(client);
   try {
     const token = await client.acquireTokenSilent({ account, scopes: SCOPES });
@@ -133,7 +133,7 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
 }
 
 export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
-  const client = await getApplication();
+  const client = getApplication();
   const accessToken = await getAccessToken(client);
   const response = await fetch(AGENT_ENDPOINT, {
     method: 'POST',
