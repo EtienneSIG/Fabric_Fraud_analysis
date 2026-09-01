@@ -65,6 +65,20 @@ deployed by PowerShell + REST, and an Azure support layer provisioned by Terrafo
 - PowerShell deploy scripts: mind the pitfalls recorded in user memory (`-var=$x` no expansion,
   `az` errors via `$LASTEXITCODE`, HTTP error body in `$_.ErrorDetails.Message`).
 
+## Demo assets — keep screenshots & slide deck in sync (MANDATORY)
+When a change adds, removes, or visibly alters a UI screen/feature, you MUST update the demo
+assets in the same change so the guided demo stays accurate:
+- Regenerate the affected screenshot(s) in `docs/images/*.png` (used by the README).
+- Copy them into the Remotion deck: `video/remotion-slidedeck/public/` (same filenames)
+  — e.g. `Copy-Item docs/images/*.png video/remotion-slidedeck/public/ -Force`.
+- If a screen is added / removed / reordered, update the flow in
+  `video/remotion-slidedeck/src/slides.ts` (order, title, caption, `say` cue) AND the
+  README "Screens" section.
+- Never ship a feature change that leaves the README screenshots or the slide deck stale.
+
 ## Verify after changes
 - `cd fabric-fraud-intelligence && npm run build && npm test` must pass (mock mode).
 - `cd infra/terraform && terraform validate` for infra changes.
+- If UI screens changed: screenshots in `docs/images/` and `video/remotion-slidedeck/public/`
+  (+ `slides.ts` flow) are refreshed and consistent.
+

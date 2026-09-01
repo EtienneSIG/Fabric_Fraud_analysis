@@ -1,0 +1,98 @@
+// Demo flow + timing for the Fraud Intelligence guided slide deck.
+// Each slide maps to a README screenshot in ./public and a presenter cue.
+
+export type SlideData = {
+  image: string; // filename in public/
+  screen: string; // product screen name
+  title: string;
+  caption: string; // what the screen shows
+  say: string; // presenter cue (FR) — "à dire" pendant la démo
+};
+
+export const WIDTH = 1920;
+export const HEIGHT = 1080;
+export const FPS = 30;
+
+export const SLIDE_FRAMES = 6 * FPS;
+export const TITLE_FRAMES = 4 * FPS;
+export const END_FRAMES = 4 * FPS;
+
+export const THEME = {
+  bg: '#0b1220',
+  panel: '#111a2e',
+  text: '#e5e7eb',
+  muted: '#94a3b8',
+  accent: '#6366f1',
+  accent2: '#10b981',
+  border: 'rgba(148,163,184,0.25)',
+};
+
+export const BRAND = { top: 'Fraud', bottom: 'Intelligence' };
+
+export const slides: SlideData[] = [
+  {
+    image: 'dashboard.png',
+    screen: 'Dashboard',
+    title: 'Fraud Command Center',
+    caption: 'KPIs, alerts by fraud type & severity, and the ranked high-risk alerts.',
+    say: "On part de la vue d'ensemble : KPI (alertes du jour, exposition estimée, taux de faux positifs) et le top des alertes à risque.",
+  },
+  {
+    image: 'alert-queue.png',
+    screen: 'Alert Queue',
+    title: "The analyst's entry point",
+    caption: 'Open alerts across every fraud type, with risk scoring, severity and status.',
+    say: "Le point d'entrée : on filtre la file des alertes ouvertes et on sélectionne un cas à investiguer.",
+  },
+  {
+    image: 'case-detail.png',
+    screen: 'Case Detail',
+    title: 'Investigate with a grounded agent',
+    caption: 'Alert context, customer 360, timeline, evidence panel and an agent chat.',
+    say: "On ouvre le cas : contexte, 360 client, timeline, preuves. Le chat agent propose les prochaines actions — décisions escalade/clôture tracées.",
+  },
+  {
+    image: 'fraud-flow.png',
+    screen: 'Fraud Flow',
+    title: 'Customer 360 event journeys',
+    caption: 'A Sankey of pre-fraud events, a geographic event map and an example 360 log.',
+    say: "On explore les parcours : le Sankey montre les 5 événements qui précèdent le plus souvent une fraude, avec la carte géographique.",
+  },
+  {
+    image: 'entity-graph.png',
+    screen: 'Entity Graph',
+    title: 'Typology hubs & AI narrative',
+    caption: 'Force-directed graph — red hubs are fraud typologies; centrality-sized nodes.',
+    say: "Graphe d'entités : les hubs rouges sont les typologies de fraude ; un clic génère une narration IA du rôle de l'entité et des signaux clés.",
+  },
+  {
+    image: 'aml-copilot.png',
+    screen: 'AML Copilot',
+    title: 'SAR readiness on Fabric data',
+    caption: 'Structured suspicious-activity narrative and the underlying money-movement wires.',
+    say: "AML : on génère un récit d'activité suspecte structuré (sujet, typologie, évaluation, recommandation) prêt pour le SAR.",
+  },
+  {
+    image: 'claims-fraud.png',
+    screen: 'Claims Fraud',
+    title: 'Image-hash reuse & collusion rings',
+    caption: 'Perceptual image-hash reuse and repair-provider concentration expose organised rings.',
+    say: "Assurance : réutilisation de hash d'images et concentration de prestataires révèlent les réseaux organisés.",
+  },
+  {
+    image: 'fraud-iq.png',
+    screen: 'Fraud IQ',
+    title: '90 min → 30 sec — the four IQs',
+    caption: 'Fabric IQ · Work IQ · Foundry IQ · Web IQ — one agentic prompt, explainable & human-approvable.',
+    say: "Le clou : le scénario temps réel 90 min → 30 s. Un seul prompt agentique combine Fabric IQ, Work IQ, Foundry IQ et Web IQ (obligations réglementaires citées).",
+  },
+  {
+    image: 'settings.png',
+    screen: 'Settings & Governance',
+    title: 'Roles, audit trail & agents',
+    caption: 'Role & access matrix (PII / decisions / audit), environment, audit trail, Agents & Web IQ key.',
+    say: "Gouvernance : matrice rôles/accès, piste d'audit de chaque run agent, onglet Agents + clé Web IQ. Human-in-the-loop de bout en bout.",
+  },
+];
+
+export const totalFrames = TITLE_FRAMES + slides.length * SLIDE_FRAMES + END_FRAMES;
