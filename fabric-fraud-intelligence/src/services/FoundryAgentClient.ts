@@ -24,9 +24,10 @@ const AGENT_ENDPOINT =
     ? `https://${FOUNDRY_ACCOUNT}.services.ai.azure.com/api/projects/${FOUNDRY_PROJECT}` +
       `/agents/${FOUNDRY_AGENT_NAME}/endpoint/protocols/openai/responses`
     : '');
-
+const AGENT_API_VERSION = '2025-11-15-preview';
 const SCOPES = ['https://ai.azure.com/.default'];
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
+const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
 
 /** True only when this deployment wired its OWN Foundry agent (tenant + client + endpoint). */
 export const foundryDirectConfigured = (): boolean =>
@@ -70,6 +71,12 @@ export interface FoundryAgentResult {
   citations: FoundryCitation[];
 }
 
+export function getVersionedAgentEndpoint(endpoint: string): string {
+  const url = new URL(endpoint);
+  url.searchParams.set('api-version', AGENT_API_VERSION);
+  return url.toString();
+}
+
 let application: PublicClientApplication | undefined;
 let initialization: Promise<void> | undefined;
 
@@ -83,8 +90,14 @@ function getApplication(): PublicClientApplication {
         clientId: CLIENT_ID,
         authority: `https://login.microsoftonline.com/${TENANT_ID}`,
         redirectUri: AUTH_REDIRECT_URI,
+        popupRelayUri: POPUP_RELAY_URI,
       },
-      cache: { cacheLocation: 'sessionStorage' },
+      cache: { cacheLocation: 'localStorage' },
+      system: {
+        popupBridgeTimeout: 180_000,
+        iframeBridgeTimeout: 30_000,
+        navigatePopups: true,
+      },
     });
     initialization = application.initialize();
   }
@@ -100,7 +113,6 @@ async function getAccount(client: PublicClientApplication): Promise<AccountInfo>
   }
   const login = await client.loginPopup({
     scopes: SCOPES,
-    prompt: 'select_account',
     redirectUri: AUTH_REDIRECT_URI,
   });
   if (!login.account) throw new Error('Microsoft Entra sign-in returned no account.');
@@ -155,7 +167,7 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
   if (!foundryDirectConfigured()) return mockFoundryAnswer();
   const client = getApplication();
   const accessToken = await getAccessToken(client);
-  const response = await fetch(AGENT_ENDPOINT, {
+  const response = await fetch(getVersionedAgentEndpoint(AGENT_ENDPOINT), {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,

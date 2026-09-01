@@ -5,13 +5,14 @@ the `esigfoundry` Foundry resource, the `FraudIQ` project, the model deployments
 delegated connection to the published Fabric Data Agent, and the versioned
 `fraud-iq-orchestrator` prompt agent.
 
-The agent combines two server-side tools:
+The agent uses one server-side tool:
 
-- **Fabric IQ** queries the published `Fraud Intelligence Data Agent` over its MCP
-  endpoint and preserves Fabric permissions through user identity passthrough.
 - **Web Search** retrieves current regulatory guidance with URL citations. The
   prompt limits accepted evidence to the official domains in `config.json`, and
   the validation script rejects citations outside that list.
+
+The Fabric Data Agent connection remains provisioned for other consumers, but it is
+not attached to `fraud-iq-orchestrator` as a tool.
 
 ## Prerequisites
 
@@ -67,12 +68,12 @@ different existing deployment is protected from replacement unless `-Force` is
 specified. The manifest includes the three GPT deployments, MAI Image, and the
 embedding deployment used by this project.
 
-## First-run Fabric consent
+## Fabric connection consent
 
-The Fabric Data Agent connection uses delegated user authentication. Each operator
-must have access to the Data Agent and its source data. On the first query, Foundry
-can return `CONSENT_REQUIRED`; open the consent URL from that error, authenticate,
-and rerun:
+The optional Fabric Data Agent connection uses delegated user authentication. Consumers
+that attach it to another agent must have access to the Data Agent and its source data.
+On the first query, Foundry can return `CONSENT_REQUIRED`; open the consent URL from
+that error, authenticate, and rerun:
 
 ```powershell
 & foundry/deploy_foundry.ps1 `

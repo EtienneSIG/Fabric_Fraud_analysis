@@ -56,6 +56,11 @@
     "es": "Español",
     "zh": "中文（香港）"
   },
+  "authRelay": {
+    "title": "Microsoft sign-in",
+    "continue": "Continue with Microsoft",
+    "signingIn": "Opening sign-in…"
+  },
   "fraudIqPage": {
     "investigationTitle": "Free investigation",
     "askHint": "— ask about a customer, an alert or a typology",
@@ -88,7 +93,29 @@
     "synthesisInProgress": "Synthesis in progress…",
     "fraudIqTitle": "Fraud IQ",
     "groundingCol": "grounding…",
-    "microsoftIqIntro": "Anti-fraud intelligence powered by <b>Microsoft IQ</b>: <b>Fabric IQ</b> (data & ontology, live on our tables), <b>Work IQ</b> (Microsoft 365 work context) and <b>Foundry IQ</b> (agent knowledge & reasoning)."
+    "microsoftIqIntro": "Anti-fraud intelligence powered by <b>Microsoft IQ</b>: <b>Fabric IQ</b> (data & ontology, live on our tables), <b>Work IQ</b> (Microsoft 365 work context) and <b>Foundry IQ</b> (agent knowledge & reasoning).",
+    "iq": {
+      "fabric": {
+        "tagline": "Intelligence of your data",
+        "grounds": "Enterprise data & semantics",
+        "description": "The semantic layer over OneLake — ontology, business concepts and relationships — that lets agents reason over governed enterprise data, not raw tables."
+      },
+      "work": {
+        "tagline": "Intelligence of your work",
+        "grounds": "Microsoft 365 work graph",
+        "description": "The intelligence layer over work in Microsoft 365 — people, documents, meetings and communications — giving agents organizational context."
+      },
+      "foundry": {
+        "tagline": "Intelligence for your agents",
+        "grounds": "Agent knowledge & tools",
+        "description": "Unified knowledge, retrieval and memory for agents in Microsoft Foundry — grounding reasoning in policies, regulations and tool outputs."
+      },
+      "web": {
+        "tagline": "Intelligence of the live web",
+        "grounds": "Official regulatory sources",
+        "description": "Real-time web grounding via Microsoft Web IQ — restricted to official regulatory domains, returning cited obligations with source links."
+      }
+    }
   },
   "pages": {
     "dashboard": {

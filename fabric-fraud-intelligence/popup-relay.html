@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Microsoft Authentication</title>
+    <style>
+      :root {
+        color: #242424;
+        background: #f5f5f5;
+        font-family: "Segoe UI", sans-serif;
+      }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+      }
+      main {
+        width: min(360px, calc(100% - 48px));
+        padding: 32px;
+        background: #fff;
+        border: 1px solid #d1d1d1;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+      }
+      h1 {
+        margin: 0 0 24px;
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: 0;
+      }
+      button {
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 16px;
+        border: 0;
+        border-radius: 2px;
+        color: #fff;
+        background: #0067b8;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover { background: #005a9e; }
+      button:focus-visible { outline: 2px solid #242424; outline-offset: 2px; }
+      button:disabled { cursor: wait; background: #8a8a8a; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 data-auth-title>Microsoft Authentication</h1>
+      <button type="button" data-auth-continue>Continue with Microsoft</button>
+    </main>
+    <script type="module" src="/src/auth/popupRelay.ts"></script>
+  </body>
+</html>

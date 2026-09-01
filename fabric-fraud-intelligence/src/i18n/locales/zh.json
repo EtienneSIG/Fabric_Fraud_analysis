@@ -56,6 +56,11 @@
     "es": "Español",
     "zh": "中文（香港）"
   },
+  "authRelay": {
+    "title": "Microsoft 登入",
+    "continue": "以 Microsoft 繼續",
+    "signingIn": "正在開啟登入…"
+  },
   "fraudIqPage": {
     "investigationTitle": "自由調查",
     "askHint": "— 查詢客戶、警示或詐騙類型",
@@ -88,7 +93,29 @@
     "synthesisInProgress": "綜合分析進行中…",
     "fraudIqTitle": "Fraud IQ",
     "groundingCol": "建立依據中…",
-    "microsoftIqIntro": "由 <b>Microsoft IQ</b> 驅動的反詐騙智能：<b>Fabric IQ</b>（數據與本體，即時連接我們的資料表）、<b>Work IQ</b>（Microsoft 365 工作情境）及 <b>Foundry IQ</b>（代理知識與推理）。"
+    "microsoftIqIntro": "由 <b>Microsoft IQ</b> 驅動的反詐騙智能：<b>Fabric IQ</b>（數據與本體，即時連接我們的資料表）、<b>Work IQ</b>（Microsoft 365 工作情境）及 <b>Foundry IQ</b>（代理知識與推理）。",
+    "iq": {
+      "fabric": {
+        "tagline": "您數據的智能",
+        "grounds": "企業數據與語義",
+        "description": "OneLake 之上的語義層 — 本體、業務概念與關係 — 讓代理能就受管治的企業數據推理，而非原始資料表。"
+      },
+      "work": {
+        "tagline": "您工作的智能",
+        "grounds": "Microsoft 365 工作圖譜",
+        "description": "Microsoft 365 中工作的智能層 — 人員、文件、會議與通訊 — 為代理提供組織情境。"
+      },
+      "foundry": {
+        "tagline": "為您代理而設的智能",
+        "grounds": "代理知識與工具",
+        "description": "Microsoft Foundry 中代理的統一知識、檢索與記憶 — 將推理錨定於政策、法規與工具輸出。"
+      },
+      "web": {
+        "tagline": "即時網絡的智能",
+        "grounds": "官方監管來源",
+        "description": "透過 Microsoft Web IQ 進行的即時網絡依據 — 僅限官方監管網域，返回附來源連結的引用義務。"
+      }
+    }
   },
   "pages": {
     "dashboard": {

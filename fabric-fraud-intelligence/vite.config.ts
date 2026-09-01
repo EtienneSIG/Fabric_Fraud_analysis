@@ -27,6 +27,11 @@ export default defineConfig({
   build: {
     target: 'es2022',
     rollupOptions: {
+      input: {
+        app: resolve(import.meta.dirname, 'index.html'),
+        msalRedirect: resolve(import.meta.dirname, 'msal-redirect.html'),
+        popupRelay: resolve(import.meta.dirname, 'popup-relay.html'),
+      },
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
