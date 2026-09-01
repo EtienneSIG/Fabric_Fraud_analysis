@@ -38,12 +38,12 @@ output "bot_messaging_endpoint" {
 
 output "bot_app_id" {
   description = "Bot Entra app (client) id — used in the Teams app manifest."
-  value       = azuread_application.bot.client_id
+  value       = try(azuread_application.bot[0].client_id, null)
 }
 
 output "graph_obo_client_id" {
   description = "Delegated Graph app (client) id — VITE_GRAPH_OBO_CLIENT_ID."
-  value       = azuread_application.graph_obo.client_id
+  value       = try(azuread_application.graph_obo[0].client_id, null)
 }
 
 output "webiq_client_secret_name" {

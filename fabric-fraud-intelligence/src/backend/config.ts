@@ -1,4 +1,6 @@
 // Central configuration read from Vite env vars. Fabric Apps inject VITE_*.
+import { hasWebIqKey } from '@/backend/services/webIqSettings';
+
 export type AppMode = 'mock' | 'fabric';
 
 interface FabricConfig {
@@ -54,7 +56,9 @@ const backendReady = (): boolean => !isMock() && !!integrationConfig.backendApiU
 
 export const isFoundryEnabled = (): boolean => backendReady() && integrationConfig.foundryEnabled;
 export const isWorkIqEnabled = (): boolean => backendReady() && integrationConfig.workIqEnabled;
-export const isWebIqEnabled = (): boolean => backendReady() && integrationConfig.webIqEnabled;
+// Live when enabled at build time OR when the analyst has entered their own key in Settings.
+export const isWebIqEnabled = (): boolean =>
+  backendReady() && (integrationConfig.webIqEnabled || hasWebIqKey());
 export const isTeamsEnabled = (): boolean => backendReady() && integrationConfig.teamsEnabled;
 
 // The RAFT student A/B path is live only when a fine-tuned deployment is wired; otherwise the

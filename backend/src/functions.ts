@@ -53,7 +53,7 @@ app.http('agentsRun', {
   authLevel: 'anonymous',
   handler: async (req) => {
     const p = await parse(req, agentRunSchema);
-    return p.ok ? json(200, await runAgent(p.data, userToken(req))) : p.res;
+    return p.ok ? json(200, await runAgent(p.data, userToken(req), req.headers.get('x-foundry-agent'))) : p.res;
   },
 });
 
@@ -76,7 +76,9 @@ app.http('webiqSearch', {
   authLevel: 'anonymous',
   handler: async (req) => {
     const p = await parse(req, regulatoryWebSearchSchema);
-    return p.ok ? json(200, await regulatoryWebSearch(p.data, userToken(req))) : p.res;
+    return p.ok
+      ? json(200, await regulatoryWebSearch(p.data, userToken(req), req.headers.get('x-webiq-key')))
+      : p.res;
   },
 });
 

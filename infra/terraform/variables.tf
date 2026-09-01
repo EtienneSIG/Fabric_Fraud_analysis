@@ -136,6 +136,12 @@ variable "eventhub_partition_count" {
 }
 
 # --- Azure AI Search over the OneLake corpus (RAFT retrieval layer, WS-2) ---
+variable "enable_entra_apps" {
+  type        = bool
+  description = "Provision the Entra app registrations (Teams bot + Graph OBO). Disable when the deploying principal lacks directory-write rights; the app stays mock-first and the Function App backend still deploys."
+  default     = true
+}
+
 variable "enable_search" {
   type        = bool
   description = "Provision the Azure AI Search service backing the RAFT corpus. Off by default to keep base cost down."

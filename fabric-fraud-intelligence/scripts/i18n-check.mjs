@@ -19,8 +19,8 @@ function keys(obj, prefix = '') {
 }
 
 const groups = {
-  translation: ['en.json', 'fr.json', 'es.json'],
-  fraudIq: ['en.fraudiq.json', 'fr.fraudiq.json', 'es.fraudiq.json'],
+  translation: ['en.json', 'fr.json', 'es.json', 'zh.json'],
+  fraudIq: ['en.fraudiq.json', 'fr.fraudiq.json', 'es.fraudiq.json', 'zh.fraudiq.json'],
 };
 
 let failed = false;

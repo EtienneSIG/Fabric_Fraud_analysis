@@ -47,16 +47,21 @@ interface ResponseItem {
 
 /** Runs the Foundry triage orchestrator (delegates to connected agents, grounds on Fabric via
  *  conn-fabric-fraud-dataagent with OBO) through the Responses API. */
-export async function runAgent(req: AgentRunRequest, userToken: string | null): Promise<AgentReply> {
+export async function runAgent(
+  req: AgentRunRequest,
+  userToken: string | null,
+  agentOverride?: string | null
+): Promise<AgentReply> {
   const endpoint = env('FOUNDRY_PROJECT_ENDPOINT') || env('AI_FOUNDRY_ENDPOINT');
   if (!endpoint) return { runId: `RUN-${Date.now()}`, text: '', generatedQuery: '', grounding: [], mode: 'mock' };
+  const agentName = (agentOverride ?? '').trim() || FOUNDRY_ORCHESTRATOR;
   try {
     const token = await foundryToken(userToken);
     const res = await fetch(`${endpoint.replace(/\/$/, '')}/openai/v1/responses`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        agent_reference: { type: 'agent_reference', name: FOUNDRY_ORCHESTRATOR },
+        agent_reference: { type: 'agent_reference', name: agentName },
         input: req.prompt,
         metadata: { ...req.context, locale: req.locale },
       }),
@@ -157,15 +162,19 @@ function hostAllowed(url: string, domains: string[]): boolean {
  *  fallback, deterministic mock when neither credential is configured. Advisory only (HITL). */
 export async function regulatoryWebSearch(
   req: RegulatoryWebSearchRequest,
-  _userToken: string | null
+  _userToken: string | null,
+  userKey?: string | null
 ): Promise<RegulatoryWebSearchReply> {
   const domains = officialDomains();
   const safeQuery = scrubPII(req.query).slice(0, 400);
   const siteScope = domains.length ? ` (${domains.map((d) => `site:${d}`).join(' OR ')})` : '';
   const query = `${safeQuery}${siteScope}`.slice(0, 1000);
 
-  const token = await webIqToken().catch(() => '');
-  const apiKey = token ? '' : await getSecret(env('WEBIQ_API_KEY_SECRET_NAME') || 'webiq-api-key').catch(() => '');
+  // Analyst-supplied key (from Settings) takes precedence; then Entra app token; then KV secret.
+  const suppliedKey = (userKey ?? '').trim();
+  const token = suppliedKey ? '' : await webIqToken().catch(() => '');
+  const apiKey =
+    suppliedKey || (token ? '' : await getSecret(env('WEBIQ_API_KEY_SECRET_NAME') || 'webiq-api-key').catch(() => ''));
   if (!token && !apiKey) return { citations: mockCitations(domains, req.locale), mode: 'mock' };
 
   try {

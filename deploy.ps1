@@ -218,15 +218,33 @@ if ($Verify) {
 if ($Infra) {
   if (-not $SubscriptionId -or -not $TenantId) { throw '-Infra requires -SubscriptionId and -TenantId.' }
   Measure-Step 'Discovery (reuse existing RG if already deployed)' { Invoke-Discovery -Sub $SubscriptionId }
-  Measure-Step 'Terraform plan' {
+  Measure-Step 'Terraform plan (what-if / delta)' {
     Push-Location $tf
     try {
       # Full-token vars (PowerShell expands the whole string, avoiding the -var=$x pitfall).
       $vSub = "-var=subscription_id=$SubscriptionId"
       $vTid = "-var=tenant_id=$TenantId"
       $vEnv = "-var=environment=$Environment"
-      Invoke-Native 'plan' { terraform plan -input=false -out tfplan $vSub $vTid $vEnv }
-      if (-not $WhatIf -and (Confirm-Step 'Apply this Terraform plan?')) {
+      # -detailed-exitcode: 0 = no delta, 1 = error, 2 = changes pending.
+      terraform plan -input=false -detailed-exitcode -out tfplan $vSub $vTid $vEnv | Tee-Object -Variable planLog
+      $planCode = $LASTEXITCODE
+      if ($planCode -eq 1) { throw 'Terraform plan failed.' }
+      $hasDelta = $planCode -eq 2
+      $m = $planLog | Select-String -Pattern 'Plan:|No changes' | Select-Object -Last 1
+      $summary = if ($m) { $m.Line.Trim() } else { '' }
+      if ($hasDelta) {
+        Write-Host ("  Delta detected: {0}" -f $(if ($summary) { $summary } else { 'changes pending' })) -ForegroundColor Yellow
+      }
+      else {
+        Write-Host '  Delta: none — infrastructure already matches the configuration.' -ForegroundColor DarkGreen
+      }
+      if ($WhatIf) {
+        Write-Host '  WhatIf: plan only, nothing applied.' -ForegroundColor Yellow
+      }
+      elseif (-not $hasDelta) {
+        Write-Host '  Nothing to apply.' -ForegroundColor DarkGray
+      }
+      elseif (Confirm-Step 'Apply this Terraform plan?') {
         Invoke-Native 'apply' { terraform apply -input=false tfplan }
       }
     }

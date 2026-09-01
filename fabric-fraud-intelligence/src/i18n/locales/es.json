@@ -10,10 +10,10 @@
     "settings": "Configuración"
   },
   "common": {
-    "appTitle": "IQ Fraud Intelligence",
-    "brandTop": "IQ Fraud",
+    "appTitle": "Fraud Intelligence",
+    "brandTop": "Fraud",
     "brandBottom": "Intelligence",
-    "platform": "Microsoft Fabric · Aplicación Rayfin",
+    "platform": "Fraud Intelligence",
     "role": "Rol",
     "language": "Idioma",
     "signOut": "Cerrar sesión",
@@ -27,6 +27,7 @@
     "live": "Real",
     "simulated": "Simulado",
     "close": "Cerrar",
+    "loading": "Cargando…",
     "mode": {
       "mock": "Demo · mock",
       "partial": "Parcial · en vivo",
@@ -52,7 +53,8 @@
   "lang": {
     "en": "English",
     "fr": "Français",
-    "es": "Español"
+    "es": "Español",
+    "zh": "中文（香港）"
   },
   "fraudIqPage": {
     "investigationTitle": "Investigación libre",
@@ -270,6 +272,7 @@
       "subtitle": "Acceso por rol, enmascaramiento de PII, entorno y pista de auditoría.",
       "tabGovernance": "Gobernanza",
       "tabModelQuality": "Calidad del modelo",
+      "tabAgents": "Agentes",
       "roleMatrix": "Matriz de roles y acceso",
       "role": "Rol",
       "viewPII": "Ver PII",
@@ -284,7 +287,44 @@
       "dataAgentId": "ID del Data Agent",
       "tenantId": "ID de inquilino",
       "notConfigured": "no configurado",
+      "deployedAt": "Desplegado",
+      "commit": "Commit",
       "envNote": "Cuando hay un Fabric Data Agent configurado (FABRIC_APP_MODE=fabric), los agentes se fundamentan en datos de Fabric en vivo vía REST; de lo contrario se usan respuestas de demo deterministas.",
+      "probe": {
+        "test": "Probar conexión",
+        "testing": "Probando…",
+        "live": "Disponible — en vivo",
+        "mock": "Accesible — reserva simulada",
+        "unreachable": "Inaccesible",
+        "off": "No configurado"
+      },
+      "foundry": {
+        "title": "Foundry Agent Service",
+        "desc": "Elija el agente orquestador que se ejecutará para el proyecto de Foundry configurado. La selección se almacena solo en este navegador y se envía al backend en cada ejecución, anulando el valor predeterminado desplegado.",
+        "project": "Proyecto",
+        "active": "Agente activo",
+        "agentLabel": "Nombre del agente orquestador",
+        "save": "Guardar agente",
+        "reset": "Restablecer",
+        "statusLive": "En vivo — Foundry configurado",
+        "statusMock": "Mock — agentes deterministas",
+        "overrideNote": "Anulando el FOUNDRY_ORCHESTRATOR_AGENT desplegado para este navegador.",
+        "auditSet": "Orquestador de Foundry establecido en {{name}}",
+        "auditReset": "Orquestador de Foundry restablecido al valor predeterminado"
+      },
+      "webiq": {
+        "title": "Microsoft Web IQ",
+        "desc": "Fundamenta las citas normativas en fuentes oficiales. Introduzca su clave de API de Web IQ para activar el pilar en vivo. La clave se almacena solo en este navegador y se envía al proxy del backend en cada solicitud, nunca se empaqueta ni se confirma.",
+        "keyLabel": "Clave de API",
+        "placeholder": "Pegue su clave de API de Web IQ",
+        "save": "Guardar clave",
+        "clear": "Quitar clave",
+        "statusLive": "En vivo — clave configurada",
+        "statusMock": "Mock — sin clave configurada",
+        "needsBackend": "Se requiere un backend accesible (modo no-mock) para la búsqueda normativa en vivo.",
+        "auditSet": "Clave de API de Web IQ establecida",
+        "auditCleared": "Clave de API de Web IQ eliminada"
+      },
       "auditTrail": "Pista de auditoría",
       "refresh": "Actualizar",
       "noAudit": "Aún no hay entradas de auditoría. Ejecuta un agente o registra una decisión para poblar la pista.",
@@ -347,7 +387,7 @@
       "panHint": "Rueda para acercar · arrastra el fondo para desplazar · arrastra los nodos · clic para inspeccionar"
     },
     "auth": {
-      "appName": "IQ Fraud Intelligence",
+      "appName": "Fraud Intelligence",
       "subtitle": "Inicia sesión para empezar.",
       "signIn": "Iniciar sesión con Microsoft",
       "openingFabric": "Abriendo Fabric...",

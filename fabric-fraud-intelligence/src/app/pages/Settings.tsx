@@ -2,16 +2,34 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useRole } from '@/app/RoleContext';
-import { fabricConfig } from '@/backend/config';
+import { fabricConfig, integrationConfig, isFoundryEnabled, isWebIqEnabled } from '@/backend/config';
 import { audit } from '@/backend/services/AuditService';
+import { getWebIqKey, hasWebIqKey, setWebIqKey } from '@/backend/services/webIqSettings';
+import { webIq } from '@/backend/services/WebIqClient';
+import { foundryAgent } from '@/backend/services/FoundryAgentClient';
+import type { ProbeState, ProbeResult } from '@/backend/services/probe';
+import {
+  DEFAULT_FOUNDRY_AGENT,
+  KNOWN_FOUNDRY_AGENTS,
+  getFoundryAgent,
+  setFoundryAgent,
+} from '@/backend/services/foundrySettings';
 import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
 import { ROLES, ROLE_PERMISSIONS } from '@/backend/models';
+
+type SettingsTab = 'governance' | 'agents' | 'quality';
+const TAB_LABELS: Record<SettingsTab, string> = {
+  governance: 'pages.settings.tabGovernance',
+  agents: 'pages.settings.tabAgents',
+  quality: 'pages.settings.tabModelQuality',
+};
 
 export function Settings() {
   const { t } = useTranslation();
   const { role } = useRole();
   const [, refresh] = useState(0);
-  const [tab, setTab] = useState<'governance' | 'quality'>('governance');
+  const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState<SettingsTab>('governance');
   const entries = audit.listEntries();
 
   return (
@@ -22,7 +40,7 @@ export function Settings() {
       </div>
 
       <div className="flex gap-1 border-b border-gray-100">
-        {(['governance', 'quality'] as const).map((k) => (
+        {(['governance', 'agents', 'quality'] as const).map((k) => (
           <button
             key={k}
             onClick={() => setTab(k)}
@@ -30,10 +48,12 @@ export function Settings() {
               tab === k ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}
           >
-            {t(k === 'governance' ? 'pages.settings.tabGovernance' : 'pages.settings.tabModelQuality')}
+            {t(TAB_LABELS[k])}
           </button>
         ))}
       </div>
+
+      {tab === 'agents' && <AgentsTab />}
 
       {tab === 'quality' && <ModelQualityTab />}
 
@@ -84,6 +104,10 @@ export function Settings() {
           <dd className="text-gray-800 font-medium">{fabricConfig.dataAgentId || t('pages.settings.notConfigured')}</dd>
           <dt className="text-gray-400">{t('pages.settings.tenantId')}</dt>
           <dd className="text-gray-800 font-medium">{fabricConfig.tenantId || '—'}</dd>
+          <dt className="text-gray-400">{t('pages.settings.deployedAt')}</dt>
+          <dd className="text-gray-800 font-medium">{new Date(__BUILD_TIME__).toLocaleString()}</dd>
+          <dt className="text-gray-400">{t('pages.settings.commit')}</dt>
+          <dd className="font-mono text-gray-800 font-medium">{__COMMIT__}</dd>
         </dl>
         <p className="mt-3 text-xs text-gray-400">{t('pages.settings.envNote')}</p>
       </section>
@@ -92,9 +116,22 @@ export function Settings() {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.auditTrail')}</h3>
           <button
-            onClick={() => refresh((n) => n + 1)}
-            className="text-xs text-indigo-600 hover:text-indigo-800"
+            onClick={() => {
+              setRefreshing(true);
+              refresh((n) => n + 1);
+              setTimeout(() => setRefreshing(false), 600);
+            }}
+            className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800"
           >
+            <svg
+              className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             {t('pages.settings.refresh')}
           </button>
         </div>
@@ -134,6 +171,210 @@ export function Settings() {
         </>
       )}
     </div>
+  );
+}
+
+function AgentsTab() {
+  return (
+    <>
+      <FoundryAgentCard />
+      <WebIqKeyCard />
+    </>
+  );
+}
+
+// On-demand connectivity check: pings the backend and shows the real availability (green = live).
+const PROBE_DOT: Record<ProbeState | 'idle' | 'testing', string> = {
+  live: 'bg-emerald-500',
+  mock: 'bg-amber-500',
+  unreachable: 'bg-red-500',
+  off: 'bg-gray-400',
+  idle: 'bg-gray-300',
+  testing: 'bg-indigo-400 animate-pulse',
+};
+
+function ConnectionProbe({ run }: { run: () => Promise<ProbeResult> }) {
+  const { t } = useTranslation();
+  const [state, setState] = useState<ProbeState | 'idle' | 'testing'>('idle');
+  const [detail, setDetail] = useState<string>();
+  const test = async () => {
+    setState('testing');
+    setDetail(undefined);
+    const r = await run();
+    setState(r.state);
+    setDetail(r.detail);
+  };
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <button
+        onClick={test}
+        disabled={state === 'testing'}
+        className="rounded-md border border-gray-200 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700"
+      >
+        {state === 'testing' ? t('pages.settings.probe.testing') : t('pages.settings.probe.test')}
+      </button>
+      {state !== 'idle' && (
+        <span className="inline-flex items-center gap-1.5 text-xs text-gray-500" title={detail}>
+          <span className={`h-2 w-2 rounded-full ${PROBE_DOT[state]}`} />
+          {state !== 'testing' && t(`pages.settings.probe.${state}`)}
+        </span>
+      )}
+      {detail && state !== 'testing' && (
+        <code className="max-w-[240px] truncate text-[11px] text-gray-400 dark:text-gray-500" title={detail}>
+          {detail}
+        </code>
+      )}
+    </div>
+  );
+}
+
+function FoundryAgentCard() {
+  const { t } = useTranslation();
+  const { role } = useRole();
+  const [value, setValue] = useState(getFoundryAgent());
+  const [, bump] = useState(0);
+
+  const endpoint = integrationConfig.foundryEndpoint;
+  const live = isFoundryEnabled();
+  const custom = getFoundryAgent().length > 0;
+  const effective = value.trim() || DEFAULT_FOUNDRY_AGENT;
+
+  const save = () => {
+    if (!value.trim()) return;
+    setFoundryAgent(value);
+    audit.logConfigChange(role, 'Foundry agent', t('pages.settings.foundry.auditSet', { name: value.trim() }));
+    bump((n) => n + 1);
+  };
+  const reset = () => {
+    setFoundryAgent('');
+    setValue('');
+    audit.logConfigChange(role, 'Foundry agent', t('pages.settings.foundry.auditReset'));
+    bump((n) => n + 1);
+  };
+
+  return (
+    <section className="ffi-card p-6">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.foundry.title')}</h3>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            live ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-gray-100 text-gray-500'
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+          {live ? t('pages.settings.foundry.statusLive') : t('pages.settings.foundry.statusMock')}
+        </span>
+      </div>
+      <p className="mb-3 max-w-lg text-xs text-gray-400">{t('pages.settings.foundry.desc')}</p>
+      <dl className="mb-4 grid max-w-lg grid-cols-[8rem_1fr] gap-y-1 text-sm">
+        <dt className="text-gray-400">{t('pages.settings.foundry.project')}</dt>
+        <dd className="truncate font-medium text-gray-800">{endpoint || t('pages.settings.notConfigured')}</dd>
+        <dt className="text-gray-400">{t('pages.settings.foundry.active')}</dt>
+        <dd className="font-medium text-gray-800">{effective}</dd>
+      </dl>
+      <label className="mb-1 block text-xs font-medium text-gray-500">{t('pages.settings.foundry.agentLabel')}</label>
+      <div className="flex max-w-lg gap-2">
+        <input
+          list="ffi-foundry-agents"
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={DEFAULT_FOUNDRY_AGENT}
+          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+        />
+        <datalist id="ffi-foundry-agents">
+          {KNOWN_FOUNDRY_AGENTS.map((a) => (
+            <option key={a} value={a} />
+          ))}
+        </datalist>
+        <button
+          onClick={save}
+          disabled={!value.trim()}
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+        >
+          {t('pages.settings.foundry.save')}
+        </button>
+        <button
+          onClick={reset}
+          disabled={!custom}
+          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
+        >
+          {t('pages.settings.foundry.reset')}
+        </button>
+      </div>
+      {custom && <p className="mt-2 text-xs text-amber-600">{t('pages.settings.foundry.overrideNote')}</p>}
+      <ConnectionProbe run={() => foundryAgent.probe()} />
+    </section>
+  );
+}
+
+function WebIqKeyCard() {
+  const { t } = useTranslation();
+  const { role } = useRole();
+  const [value, setValue] = useState(getWebIqKey());
+  const [, bump] = useState(0);
+
+  const configured = hasWebIqKey();
+  const live = isWebIqEnabled();
+
+  const save = () => {
+    const v = value.trim();
+    if (!v) return;
+    setWebIqKey(v);
+    audit.logConfigChange(role, 'Web IQ', t('pages.settings.webiq.auditSet'));
+    bump((n) => n + 1);
+  };
+  const clear = () => {
+    setWebIqKey('');
+    setValue('');
+    audit.logConfigChange(role, 'Web IQ', t('pages.settings.webiq.auditCleared'));
+    bump((n) => n + 1);
+  };
+
+  return (
+    <section className="ffi-card p-6">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.webiq.title')}</h3>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            configured && live ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-gray-100 text-gray-500'
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${configured && live ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+          {configured && live ? t('pages.settings.webiq.statusLive') : t('pages.settings.webiq.statusMock')}
+        </span>
+      </div>
+      <p className="mb-3 max-w-lg text-xs text-gray-400">{t('pages.settings.webiq.desc')}</p>
+      <label className="mb-1 block text-xs font-medium text-gray-500">{t('pages.settings.webiq.keyLabel')}</label>
+      <div className="flex max-w-lg gap-2">
+        <input
+          type="password"
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={t('pages.settings.webiq.placeholder')}
+          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+        />
+        <button
+          onClick={save}
+          disabled={!value.trim()}
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+        >
+          {t('pages.settings.webiq.save')}
+        </button>
+        <button
+          onClick={clear}
+          disabled={!configured}
+          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
+        >
+          {t('pages.settings.webiq.clear')}
+        </button>
+      </div>
+      {configured && !live && <p className="mt-2 text-xs text-amber-600">{t('pages.settings.webiq.needsBackend')}</p>}
+      <ConnectionProbe run={() => webIq.probe()} />
+    </section>
   );
 }
 

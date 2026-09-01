@@ -10,10 +10,10 @@
     "settings": "Settings"
   },
   "common": {
-    "appTitle": "IQ Fraud Intelligence",
-    "brandTop": "IQ Fraud",
+    "appTitle": "Fraud Intelligence",
+    "brandTop": "Fraud",
     "brandBottom": "Intelligence",
-    "platform": "Microsoft Fabric · Rayfin App",
+    "platform": "Fraud Intelligence",
     "role": "Role",
     "language": "Language",
     "signOut": "Sign out",
@@ -27,6 +27,7 @@
     "live": "Live",
     "simulated": "Simulated",
     "close": "Close",
+    "loading": "Loading…",
     "mode": {
       "mock": "Demo · mock",
       "partial": "Partial · live",
@@ -52,7 +53,8 @@
   "lang": {
     "en": "English",
     "fr": "Français",
-    "es": "Español"
+    "es": "Español",
+    "zh": "中文（香港）"
   },
   "fraudIqPage": {
     "investigationTitle": "Free investigation",
@@ -270,6 +272,7 @@
       "subtitle": "Role-based access, PII masking, environment and the audit trail.",
       "tabGovernance": "Governance",
       "tabModelQuality": "Model quality",
+      "tabAgents": "Agents",
       "roleMatrix": "Role & access matrix",
       "role": "Role",
       "viewPII": "View PII",
@@ -284,7 +287,44 @@
       "dataAgentId": "Data Agent ID",
       "tenantId": "Tenant ID",
       "notConfigured": "not configured",
+      "deployedAt": "Deployed",
+      "commit": "Commit",
       "envNote": "When a Fabric Data Agent is configured (FABRIC_APP_MODE=fabric), agents ground on live Fabric data over REST; otherwise deterministic demo responses are used.",
+      "probe": {
+        "test": "Test connection",
+        "testing": "Testing…",
+        "live": "Available — live",
+        "mock": "Reachable — mock fallback",
+        "unreachable": "Unreachable",
+        "off": "Not configured"
+      },
+      "foundry": {
+        "title": "Foundry Agent Service",
+        "desc": "Choose the orchestrator agent to run for the wired Foundry project. The selection is stored only in this browser and sent to the backend on each run, overriding the deployed default.",
+        "project": "Project",
+        "active": "Active agent",
+        "agentLabel": "Orchestrator agent name",
+        "save": "Save agent",
+        "reset": "Reset to default",
+        "statusLive": "Live — Foundry wired",
+        "statusMock": "Mock — deterministic agents",
+        "overrideNote": "Overriding the deployed FOUNDRY_ORCHESTRATOR_AGENT for this browser.",
+        "auditSet": "Foundry orchestrator set to {{name}}",
+        "auditReset": "Foundry orchestrator reset to default"
+      },
+      "webiq": {
+        "title": "Microsoft Web IQ",
+        "desc": "Ground regulatory citations on official sources. Enter your Web IQ API key to enable the live pillar. The key is stored only in this browser and sent to the backend proxy on each request — it is never bundled or committed.",
+        "keyLabel": "API key",
+        "placeholder": "Paste your Web IQ API key",
+        "save": "Save key",
+        "clear": "Remove key",
+        "statusLive": "Live — key configured",
+        "statusMock": "Mock — no key configured",
+        "needsBackend": "A reachable backend (non-mock mode) is required for the live regulatory search.",
+        "auditSet": "Web IQ API key set",
+        "auditCleared": "Web IQ API key removed"
+      },
       "auditTrail": "Audit trail",
       "refresh": "Refresh",
       "noAudit": "No audit entries yet. Run an agent or record a decision to populate the trail.",
@@ -347,7 +387,7 @@
       "panHint": "Scroll to zoom · drag background to pan · drag nodes · click to inspect"
     },
     "auth": {
-      "appName": "IQ Fraud Intelligence",
+      "appName": "Fraud Intelligence",
       "subtitle": "Sign in to get started.",
       "signIn": "Sign in with Microsoft",
       "openingFabric": "Opening Fabric...",

@@ -71,3 +71,56 @@
 .dark .bg-slate-900 {
   background-color: #0b1220;
 }
+
+/* ---- Motion: page-load fade-in + indeterminate progress bar -------------- */
+@keyframes ffi-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.ffi-fade-in {
+  animation: ffi-fade-in 0.28s ease-out both;
+}
+
+@keyframes ffi-indeterminate {
+  0% {
+    left: -40%;
+    width: 40%;
+  }
+  50% {
+    left: 25%;
+    width: 55%;
+  }
+  100% {
+    left: 100%;
+    width: 40%;
+  }
+}
+.ffi-progress {
+  position: relative;
+}
+.ffi-progress > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: var(--ffi-brand);
+  animation: ffi-indeterminate 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ffi-fade-in,
+  .ffi-progress > span {
+    animation: none;
+  }
+  .ffi-progress > span {
+    left: 0;
+    width: 100%;
+  }
+}
+

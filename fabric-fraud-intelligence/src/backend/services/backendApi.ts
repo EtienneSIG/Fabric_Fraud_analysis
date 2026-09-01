@@ -18,11 +18,16 @@ async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>, timeoutM
 }
 
 /** POST JSON to the Rayfin/Azure backend. Throws on non-2xx so callers can fall back to mock. */
-export async function postJson<T>(path: string, body: unknown, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<T> {
+export async function postJson<T>(
+  path: string,
+  body: unknown,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  headers?: Record<string, string>
+): Promise<T> {
   return withTimeout(async (signal) => {
     const res = await fetch(`${base()}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...headers },
       credentials: 'include',
       body: JSON.stringify(body),
       signal,

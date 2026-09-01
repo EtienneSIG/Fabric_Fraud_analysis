@@ -40,6 +40,17 @@ export class AuditService {
     });
   }
 
+  logConfigChange(actor: string, target: string, detail: string): void {
+    this.entries.unshift({
+      id: `AUD-${Date.now()}-${this.entries.length}`,
+      at: new Date().toISOString(),
+      actor,
+      action: 'config',
+      target,
+      detail,
+    });
+  }
+
   listEntries(): AuditEntry[] {
     return this.entries;
   }

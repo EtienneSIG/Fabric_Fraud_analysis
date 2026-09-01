@@ -205,21 +205,22 @@ resource "azurerm_function_app_flex_consumption" "bot" {
     application_insights_connection_string = azurerm_application_insights.this.connection_string
   }
 
-  app_settings = {
+  app_settings = merge({
     AZURE_TENANT_ID                       = var.tenant_id
     KEY_VAULT_URI                         = azurerm_key_vault.this.vault_uri
-    BOT_APP_ID                            = azuread_application.bot.client_id
     AI_FOUNDRY_ENDPOINT                   = azurerm_cognitive_account.this.endpoint
     EVENTHUB_NAMESPACE                    = "${azurerm_eventhub_namespace.this.name}.servicebus.windows.net"
     EVENTHUB_NAME                         = azurerm_eventhub.transactions.name
-    GRAPH_OBO_CLIENT_ID                   = azuread_application.graph_obo.client_id
-    GRAPH_OBO_CLIENT_SECRET_NAME          = azurerm_key_vault_secret.graph_obo.name
     WEBIQ_CLIENT_ID                       = var.webiq_client_id
     WEBIQ_TENANT_ID                       = coalesce(var.webiq_tenant_id, var.tenant_id)
     WEBIQ_CLIENT_SECRET_NAME              = var.webiq_client_secret_name
     WEBIQ_OFFICIAL_DOMAINS                = join(",", var.webiq_official_domains)
     APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.this.connection_string
-  }
+    }, var.enable_entra_apps ? {
+    BOT_APP_ID                   = azuread_application.bot[0].client_id
+    GRAPH_OBO_CLIENT_ID          = azuread_application.graph_obo[0].client_id
+    GRAPH_OBO_CLIENT_SECRET_NAME = azurerm_key_vault_secret.graph_obo[0].name
+  } : {})
 
   tags = var.tags
 }
@@ -246,27 +247,31 @@ resource "azurerm_role_assignment" "func_eventhub" {
 # Azure Bot + Teams channel (own app identity — not mixed with Graph OBO app)
 # --------------------------------------------------------------------------
 resource "azuread_application" "bot" {
+  count            = var.enable_entra_apps ? 1 : 0
   display_name     = "bot-${local.suffix}"
   sign_in_audience = "AzureADMultipleOrgs"
 }
 
 resource "azuread_application_password" "bot" {
-  application_id = azuread_application.bot.id
+  count          = var.enable_entra_apps ? 1 : 0
+  application_id = azuread_application.bot[0].id
   display_name   = "bot-secret"
 }
 
 resource "azurerm_key_vault_secret" "bot" {
+  count        = var.enable_entra_apps ? 1 : 0
   name         = "bot-app-secret"
-  value        = azuread_application_password.bot.value
+  value        = azuread_application_password.bot[0].value
   key_vault_id = azurerm_key_vault.this.id
   depends_on   = [azurerm_role_assignment.kv_deployer]
 }
 
 resource "azurerm_bot_service_azure_bot" "this" {
+  count               = var.enable_entra_apps ? 1 : 0
   name                = local.names.bot
   resource_group_name = azurerm_resource_group.this.name
   location            = "global"
-  microsoft_app_id    = azuread_application.bot.client_id
+  microsoft_app_id    = azuread_application.bot[0].client_id
   microsoft_app_type  = "MultiTenant"
   sku                 = "F0"
   endpoint            = "https://${azurerm_function_app_flex_consumption.bot.default_hostname}/api/messages"
@@ -274,8 +279,9 @@ resource "azurerm_bot_service_azure_bot" "this" {
 }
 
 resource "azurerm_bot_channel_ms_teams" "this" {
-  bot_name            = azurerm_bot_service_azure_bot.this.name
-  location            = azurerm_bot_service_azure_bot.this.location
+  count               = var.enable_entra_apps ? 1 : 0
+  bot_name            = azurerm_bot_service_azure_bot.this[0].name
+  location            = azurerm_bot_service_azure_bot.this[0].location
   resource_group_name = azurerm_resource_group.this.name
 }
 
@@ -285,11 +291,13 @@ resource "azurerm_bot_channel_ms_teams" "this" {
 data "azuread_application_published_app_ids" "well_known" {}
 
 resource "azuread_service_principal" "msgraph" {
+  count        = var.enable_entra_apps ? 1 : 0
   client_id    = data.azuread_application_published_app_ids.well_known.result["MicrosoftGraph"]
   use_existing = true
 }
 
 resource "azuread_application" "graph_obo" {
+  count            = var.enable_entra_apps ? 1 : 0
   display_name     = local.names.entra_app
   sign_in_audience = "AzureADMyOrg"
 
@@ -299,7 +307,7 @@ resource "azuread_application" "graph_obo" {
     dynamic "resource_access" {
       for_each = local.graph_delegated_scopes
       content {
-        id   = azuread_service_principal.msgraph.oauth2_permission_scope_ids[resource_access.value]
+        id   = azuread_service_principal.msgraph[0].oauth2_permission_scope_ids[resource_access.value]
         type = "Scope"
       }
     }
@@ -307,13 +315,15 @@ resource "azuread_application" "graph_obo" {
 }
 
 resource "azuread_application_password" "graph_obo" {
-  application_id = azuread_application.graph_obo.id
+  count          = var.enable_entra_apps ? 1 : 0
+  application_id = azuread_application.graph_obo[0].id
   display_name   = "graph-obo-secret"
 }
 
 resource "azurerm_key_vault_secret" "graph_obo" {
+  count        = var.enable_entra_apps ? 1 : 0
   name         = "graph-obo-client-secret"
-  value        = azuread_application_password.graph_obo.value
+  value        = azuread_application_password.graph_obo[0].value
   key_vault_id = azurerm_key_vault.this.id
   depends_on   = [azurerm_role_assignment.kv_deployer]
 }
