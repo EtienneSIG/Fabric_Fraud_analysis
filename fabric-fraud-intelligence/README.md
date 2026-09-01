@@ -80,8 +80,8 @@ devices). Five "hero" alerts drive the demo scenarios below.
   `FABRIC_APP_MODE=fabric` to route to a real Fabric Data Agent over REST.
 - A companion **Microsoft Foundry orchestrator**, deployed from the repository's
   `foundry/` folder, links the Fabric Data Agent to regulatory web grounding on official
-  websites. It combines governed case facts with cited obligations. The current public
-  UI represents this Foundry output with deterministic responses.
+  websites. The Fraud IQ screen calls `fraud-iq-orchestrator` live using interactive
+  Microsoft Entra authentication and displays its cited response.
 - Every interaction is persisted to **AgentRun** and the **audit trail**.
 - All recommendations are **advisory and require human approval**.
 

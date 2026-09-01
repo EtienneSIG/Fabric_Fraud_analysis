@@ -6,7 +6,8 @@
 > et des narratifs générés par l'IA.
 
 **Durée cible :** 10–12 minutes · **Audience :** COMEX / direction risques & conformité
-**App :** https://fleet-north-8c279cc767-swedencentral.webapp.fabricapps.net
+**App :** https://tangy-cove-9493188f6d-centralus.webapp.fabricapps.net
+**Foundry :** [Projet FraudIQ](https://ai.azure.com/nextgen/r/FyQciQyGSOm9599wsQw5qg,esig_demo,,esigfoundry,FraudIQ/home?tid=b7b9a0c6-fe36-41b6-a38d-582c6573e2ff) *(authentification requise)*
 
 ---
 
@@ -32,19 +33,21 @@ auditer.**
 | **Application** — Rayfin Fabric App | Une expérience d'investigation moderne, sécurisée par rôle, directement dans Fabric. |
 | **Intelligence** — Microsoft IQ | La couche d'intelligence qui **ancre les agents** : **Fabric IQ** (données & ontologie), **Work IQ** (contexte de travail M365) et **Foundry IQ** (connaissance & outils des agents). |
 
-**Message clé : pas d'intégration à bâtir, pas de données à copier — tout vit dans Fabric,
-et l'IA est *ancrée* dans le réel via Microsoft IQ (pas d'hallucination).**
+**Message clé : pas de nouvelle copie de données pour l'investigation — les faits restent
+gouvernés dans Fabric, tandis que Foundry orchestre les outils et conserve les citations
+qui rendent la réponse vérifiable.**
 
 > **Microsoft IQ en une phrase :** la couche d'intelligence partagée de Microsoft qui donne
 > aux agents le bon contexte — vos **données** (Fabric IQ), votre **travail** (Work IQ) et la
 > **connaissance** de vos agents (Foundry IQ). Notre plateforme anti-fraude combine les trois.
 
-**Ce qui a été construit dans Microsoft Foundry :** un agent orchestrateur relie le
-**Fabric Data Agent**, qui interroge les faits gouvernés du dossier, à un agent de recherche
-réglementaire doté de **web grounding** sur des sites officiels. La réponse finale rapproche
-les preuves internes des obligations applicables et conserve les liens vers les sources afin
-que l'analyste puisse les vérifier. Cette orchestration est déployée et gérée hors de ce dépôt ;
-l'écran Fraud IQ en présente actuellement une restitution déterministe pour la démo publique.
+**Ce qui a été construit dans Microsoft Foundry :** `fraud-iq-orchestrator`, exécuté par
+`gpt-5.6-terra`, combine deux outils serveur. **Fabric IQ** interroge les faits gouvernés via
+le Fabric Data Agent ; **Web Search** recherche les obligations réglementaires sur une liste
+versionnée de domaines officiels. La réponse sépare faits, interprétation, obligations et
+actions, tout en conservant identifiants et citations. Le déploiement est reproductible depuis
+le dossier `foundry/`. L'écran Fraud IQ appelle désormais cet agent en direct avec une
+authentification Entra interactive ; le grounding réglementaire peut aussi être montré dans Foundry.
 
 ---
 
@@ -108,7 +111,7 @@ révèlent en cascade :
   échanges Teams mentionnent le même hôtel ; une enquête similaire existe déjà.
 - **Fabric IQ** *(en direct sur l'ontologie + le lakehouse)* — première transaction hors
   pays depuis 12 mois, vélocité ~4× la baseline, achat à 03:00, alerte reliée.
-- **Foundry IQ** *(réel dans Foundry, restitué de façon simulée dans cette app)* — orchestre
+- **Foundry IQ** *(en direct via `fraud-iq-orchestrator`)* — orchestre
   le Fabric Data Agent et l'agent réglementaire avec web grounding, rapproche les faits du
   dossier des textes officiels et fournit des **citations vérifiables**.
 
@@ -118,6 +121,24 @@ révèlent en cascade :
 - **Talking point :** *« L'orchestrateur Foundry relie les faits gouvernés du Fabric Data
   Agent aux textes retrouvés par l'agent réglementaire sur les sites officiels. La décision
   est expliquée, sourcée et auditable ; l'analyste garde la validation finale. »*
+
+### Option — Grounding réglementaire dans Foundry (1–2 min)
+
+Ouvrir le projet **FraudIQ**, sélectionner `fraud-iq-orchestrator`, puis saisir :
+
+> *« Quelles sont les obligations réglementaires européennes actuellement applicables en
+> matière de détection et de déclaration des opérations suspectes ? Cite uniquement des
+> sources officielles et précise la date de chaque texte utilisé. »*
+
+- Montrer les citations vers **EUR-Lex**, la **Commission européenne** et l'**EBA**.
+- Ouvrir une citation pour démontrer que l'analyste peut vérifier le texte source.
+- Souligner que la validation automatisée rejette une réponse sans citation ou citant un
+  domaine hors de la liste officielle.
+- Pour une question combinant dossier et réglementation, vérifier au préalable le consentement
+  délégué Fabric de l'opérateur. Ne pas saisir de donnée personnelle dans les termes de recherche web.
+
+- **Talking point :** *« Le modèle ne remplace pas le juriste ou l'enquêteur : il réduit le
+  temps de recherche et rend chaque obligation vérifiable à la source. »*
 
 > **Variantes à évoquer** selon l'audience : fraude documentaire KYC (OCR + vision + RAG +
 > agents), lutte anti-blanchiment (AML), agent d'investigation autonome de bout en bout.
@@ -133,7 +154,7 @@ révèlent en cascade :
    définitions métier alimentent les tableaux de bord, les agents et les workflows.
 3. **Zéro copie de données** — l'app, le lakehouse et l'ontologie partagent OneLake.
 4. **IA de confiance** — les narratifs sont *ancrés* dans les données réelles et l'ontologie,
-   pas des hallucinations.
+  et les obligations réglementaires sont accompagnées de citations contrôlées.
 5. **Gouvernance native** — rôles, masquage PII et audit intégrés dès la conception.
 6. **Time-to-value** — déployé et itéré en jours, pas en mois.
 
@@ -153,6 +174,8 @@ typologies prioritaires et un pilote sur un périmètre réel.
 ### Aide-mémoire chiffres
 
 - **3** Microsoft IQ combinés : Fabric IQ (live), Work IQ, Foundry IQ
+- **2** outils serveur dans l'orchestrateur Foundry : Fabric IQ + Web Search
+- **11** domaines réglementaires officiels autorisés
 - **11** entités métier · **11** relations dans l'ontologie `fraud_ontology`
 - **11** tables Delta gouvernées dans `fraud_lakehouse` (~12,8k lignes chargées en démo)
 - **~10 000** parcours clients analysés dans le Fraud Flow

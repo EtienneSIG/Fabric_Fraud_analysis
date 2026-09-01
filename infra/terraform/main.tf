@@ -4,15 +4,29 @@ data "azurerm_client_config" "current" {}
 # Resource group + observability
 # --------------------------------------------------------------------------
 resource "azurerm_resource_group" "this" {
+  count    = var.existing_resource_group_name == "" ? 1 : 0
   name     = local.names.resource_group
   location = var.location
   tags     = var.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+moved {
+  from = azurerm_resource_group.this
+  to   = azurerm_resource_group.this[0]
+}
+
+locals {
+  resource_group_name = var.existing_resource_group_name != "" ? var.existing_resource_group_name : azurerm_resource_group.this[0].name
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
   name                = local.names.log_analytics
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  resource_group_name = local.resource_group_name
+  location            = var.location
   sku                 = "PerGB2018"
   retention_in_days   = 30
   tags                = var.tags
@@ -20,8 +34,8 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 resource "azurerm_application_insights" "this" {
   name                = local.names.app_insights
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  resource_group_name = local.resource_group_name
+  location            = var.location
   workspace_id        = azurerm_log_analytics_workspace.this.id
   application_type    = "web"
   tags                = var.tags
@@ -31,15 +45,16 @@ resource "azurerm_application_insights" "this" {
 # Key Vault (RBAC data plane, no plaintext secret outputs)
 # --------------------------------------------------------------------------
 resource "azurerm_key_vault" "this" {
-  name                       = local.names.key_vault
-  resource_group_name        = azurerm_resource_group.this.name
-  location                   = azurerm_resource_group.this.location
-  tenant_id                  = var.tenant_id
-  sku_name                   = "standard"
-  rbac_authorization_enabled = true
-  purge_protection_enabled   = false
-  soft_delete_retention_days = 7
-  tags                       = var.tags
+  name                          = local.names.key_vault
+  resource_group_name           = local.resource_group_name
+  location                      = var.location
+  tenant_id                     = var.tenant_id
+  sku_name                      = "standard"
+  rbac_authorization_enabled    = true
+  purge_protection_enabled      = false
+  soft_delete_retention_days    = 7
+  public_network_access_enabled = false
+  tags                          = var.tags
 }
 
 # Let the deploying principal write secrets under RBAC.
@@ -55,11 +70,12 @@ resource "azurerm_role_assignment" "kv_deployer" {
 # --------------------------------------------------------------------------
 resource "azurerm_cognitive_account" "this" {
   name                  = local.names.ai_foundry
-  resource_group_name   = azurerm_resource_group.this.name
-  location              = azurerm_resource_group.this.location
+  resource_group_name   = local.resource_group_name
+  location              = var.location
   kind                  = "AIServices"
   sku_name              = "S0"
   custom_subdomain_name = local.names.ai_foundry
+  local_auth_enabled    = false
 
   identity {
     type = "SystemAssigned"
@@ -116,8 +132,8 @@ module "search" {
   source = "./modules/search"
 
   name                  = local.names.ai_search
-  resource_group_name   = azurerm_resource_group.this.name
-  location              = azurerm_resource_group.this.location
+  resource_group_name   = local.resource_group_name
+  location              = var.location
   sku                   = var.search_sku
   index_name            = var.search_index_name
   deployer_principal_id = data.azurerm_client_config.current.object_id
@@ -128,12 +144,13 @@ module "search" {
 # Event Hub (Eventstream source for real-time transaction scoring)
 # --------------------------------------------------------------------------
 resource "azurerm_eventhub_namespace" "this" {
-  name                = local.names.eventhub_ns
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  sku                 = "Standard"
-  capacity            = 1
-  tags                = var.tags
+  name                         = local.names.eventhub_ns
+  resource_group_name          = local.resource_group_name
+  location                     = var.location
+  sku                          = "Standard"
+  capacity                     = 1
+  local_authentication_enabled = false
+  tags                         = var.tags
 }
 
 resource "azurerm_eventhub" "transactions" {
@@ -148,8 +165,8 @@ resource "azurerm_eventhub" "transactions" {
 # --------------------------------------------------------------------------
 resource "azurerm_storage_account" "func" {
   name                     = local.names.storage
-  resource_group_name      = azurerm_resource_group.this.name
-  location                 = azurerm_resource_group.this.location
+  resource_group_name      = local.resource_group_name
+  location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
@@ -175,8 +192,8 @@ resource "azurerm_storage_container" "func" {
 
 resource "azurerm_service_plan" "func" {
   name                = "asp-${local.suffix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  resource_group_name = local.resource_group_name
+  location            = var.location
   os_type             = "Linux"
   sku_name            = "FC1"
   tags                = var.tags
@@ -184,8 +201,8 @@ resource "azurerm_service_plan" "func" {
 
 resource "azurerm_function_app_flex_consumption" "bot" {
   name                = local.names.function_app
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  resource_group_name = local.resource_group_name
+  location            = var.location
   service_plan_id     = azurerm_service_plan.func.id
 
   storage_container_type      = "blobContainer"
@@ -208,7 +225,7 @@ resource "azurerm_function_app_flex_consumption" "bot" {
   app_settings = merge({
     AZURE_TENANT_ID                       = var.tenant_id
     KEY_VAULT_URI                         = azurerm_key_vault.this.vault_uri
-    AI_FOUNDRY_ENDPOINT                   = azurerm_cognitive_account.this.endpoint
+    AI_FOUNDRY_ENDPOINT                   = local.foundry_endpoint
     EVENTHUB_NAMESPACE                    = "${azurerm_eventhub_namespace.this.name}.servicebus.windows.net"
     EVENTHUB_NAME                         = azurerm_eventhub.transactions.name
     WEBIQ_CLIENT_ID                       = var.webiq_client_id
@@ -269,7 +286,7 @@ resource "azurerm_key_vault_secret" "bot" {
 resource "azurerm_bot_service_azure_bot" "this" {
   count               = var.enable_entra_apps ? 1 : 0
   name                = local.names.bot
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   location            = "global"
   microsoft_app_id    = azuread_application.bot[0].client_id
   microsoft_app_type  = "MultiTenant"
@@ -282,7 +299,7 @@ resource "azurerm_bot_channel_ms_teams" "this" {
   count               = var.enable_entra_apps ? 1 : 0
   bot_name            = azurerm_bot_service_azure_bot.this[0].name
   location            = azurerm_bot_service_azure_bot.this[0].location
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
 }
 
 # --------------------------------------------------------------------------

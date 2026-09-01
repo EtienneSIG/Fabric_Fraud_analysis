@@ -10,6 +10,7 @@
 .PARAMETER Infra      Deploy the Azure support layer (Terraform).
 .PARAMETER FoundryAgents  Deploy the Foundry connected-agent topology.
 .PARAMETER Verify     Discovery + managed-identity/RBAC check only (no deploy).
+.PARAMETER ExistingFoundryProjectEndpoint  Reuse an existing Foundry project and its deployed models.
 .PARAMETER WhatIf     Verify + terraform plan only; no apply/publish/rayfin up.
 .PARAMETER Force      Skip confirmation prompts before real deployments.
 .PARAMETER SkipVerify Skip the build/test/validate gate (not recommended).
@@ -31,6 +32,8 @@ param(
   [string]$SubscriptionId,
   [string]$TenantId,
   [string]$Environment = 'demo',
+  [string]$ExistingResourceGroupName,
+  [string]$ExistingFoundryProjectEndpoint,
   [string]$FunctionAppName,
   [string]$FoundryEndpoint,
   [string]$FabricDataAgentUrl,
@@ -225,8 +228,15 @@ if ($Infra) {
       $vSub = "-var=subscription_id=$SubscriptionId"
       $vTid = "-var=tenant_id=$TenantId"
       $vEnv = "-var=environment=$Environment"
+      $tfVars = @($vSub, $vTid, $vEnv)
+      if ($ExistingResourceGroupName) {
+        $tfVars += "-var=existing_resource_group_name=$ExistingResourceGroupName"
+      }
+      if ($ExistingFoundryProjectEndpoint) {
+        $tfVars += "-var=existing_foundry_project_endpoint=$ExistingFoundryProjectEndpoint"
+      }
       # -detailed-exitcode: 0 = no delta, 1 = error, 2 = changes pending.
-      terraform plan -input=false -detailed-exitcode -out tfplan $vSub $vTid $vEnv | Tee-Object -Variable planLog
+      terraform plan -input=false -detailed-exitcode -out tfplan @tfVars | Tee-Object -Variable planLog
       $planCode = $LASTEXITCODE
       if ($planCode -eq 1) { throw 'Terraform plan failed.' }
       $hasDelta = $planCode -eq 2

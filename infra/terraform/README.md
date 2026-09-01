@@ -5,7 +5,7 @@ Provisions the **Azure support layer** for the Fabric Fraud Intelligence demo. F
 under [`../../fabric/`](../../fabric/); this stack only covers Azure-side resources.
 
 ## What it creates
-- Resource group, Log Analytics workspace + Application Insights
+- Resource group (unless an existing one is selected), Log Analytics workspace + Application Insights
 - Key Vault (RBAC data plane) holding the Graph OBO and Bot secrets
 - **Microsoft Foundry** AI Services account + model deployments (orchestrator / reasoning / extraction / embeddings)
 - Event Hub namespace + `fraud-transactions` hub (real-time source)
@@ -26,6 +26,28 @@ terraform validate
 terraform plan -out tfplan
 # review, then (only with your confirmation):
 terraform apply tfplan
+```
+
+To deploy into an existing resource group, set the optional variable. Terraform uses
+the supplied name but does not create, read, update, or delete the group itself:
+
+```hcl
+existing_resource_group_name = "esig_demo"
+location                     = "eastus"
+existing_foundry_project_endpoint = "https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ"
+```
+
+`location` still selects the region for the resources deployed inside the group. Azure
+resource group location is metadata and does not constrain child resource regions.
+
+Or use the repository deployment entry point:
+
+```powershell
+./deploy.ps1 -Infra `
+	-SubscriptionId "<subscription-id>" `
+	-TenantId "<tenant-id>" `
+	-ExistingResourceGroupName "esig_demo" `
+	-ExistingFoundryProjectEndpoint "https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ"
 ```
 
 ## Wiring the app

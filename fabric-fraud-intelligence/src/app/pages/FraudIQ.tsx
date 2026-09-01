@@ -10,9 +10,10 @@ import {
   type IqId,
   type IqResult,
 } from '@/backend/api/microsoftIq';
-import { isFoundryEnabled, isWorkIqEnabled, isWebIqEnabled } from '@/backend/config';
+import { isWorkIqEnabled, isWebIqEnabled } from '@/backend/config';
 import { workIq } from '@/backend/services/WorkIqGraphClient';
 import { webIq } from '@/backend/services/WebIqClient';
+import { askFoundryAgent } from '@/services/FoundryAgentClient';
 
 const isLive = (id: IqId): boolean =>
   id === 'fabric'
@@ -21,7 +22,7 @@ const isLive = (id: IqId): boolean =>
       ? isWorkIqEnabled()
       : id === 'web'
         ? isWebIqEnabled()
-        : isFoundryEnabled();
+        : true;
 const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed', web: '#ea580c' };
 const IQ_BY_ID = Object.fromEntries(IQS.map((i) => [i.id, i])) as Record<IqId, (typeof IQS)[number]>;
 
@@ -52,12 +53,21 @@ function IqColumn({ id, items, revealed }: { id: IqId; items: string[]; revealed
       <p className="text-[11px] text-gray-400">{iq.grounds}</p>
       {revealed ? (
         <ul className="mt-2 space-y-1.5">
-          {items.map((it, i) => (
+          {items.map((it, i) => {
+            const url = it.match(/https:\/\/\S+$/)?.[0];
+            return (
             <li key={i} className="flex gap-1.5 text-xs text-gray-600 leading-relaxed">
               <span style={{ color: COLOR[id] }}>•</span>
-              <span>{it}</span>
+              {url ? (
+                <a className="break-all text-indigo-600 underline" href={url} target="_blank" rel="noreferrer">
+                  {it.slice(0, -url.length).trim()}
+                </a>
+              ) : (
+                <span className="whitespace-pre-wrap">{it}</span>
+              )}
             </li>
-          ))}
+            );
+          })}
         </ul>
       ) : (
         <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
@@ -78,16 +88,37 @@ export function FraudIQ() {
   // Flagship scenario run
   const [started, setStarted] = useState(false);
   const [phase, setPhase] = useState(0); // 1 work · 2 fabric · 3 foundry · 4 recommendation
+  const [scenarioFoundry, setScenarioFoundry] = useState<string[]>([]);
+  const [scenarioError, setScenarioError] = useState<string | null>(null);
+  const [scenarioRunning, setScenarioRunning] = useState(false);
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
-  const runScenario = () => {
+  const runScenario = async () => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
     setStarted(true);
     setPhase(0);
-    [600, 1200, 1800, 2600].forEach((ms, i) =>
-      timers.current.push(window.setTimeout(() => setPhase(i + 1), ms))
-    );
+    setScenarioError(null);
+    setScenarioRunning(true);
+    timers.current.push(window.setTimeout(() => setPhase(1), 600));
+    timers.current.push(window.setTimeout(() => setPhase(2), 1200));
+    try {
+      const foundry = await askFoundryAgent(
+        `${scenario.prompt}\n\nContexte Fabric : alerte ${scenario.alertId}, client ${scenario.customerId}. ` +
+        `${scenario.context.join('; ')}. Sépare les faits, les obligations réglementaires et les actions ` +
+        'à soumettre à validation humaine. Cite uniquement des sources officielles.'
+      );
+      setScenarioFoundry([
+        foundry.answer,
+        ...foundry.citations.map((citation) => `Source officielle · ${citation.title} · ${citation.url}`),
+      ]);
+      setPhase(3);
+      timers.current.push(window.setTimeout(() => setPhase(4), 500));
+    } catch (error) {
+      setScenarioError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
+    } finally {
+      setScenarioRunning(false);
+    }
   };
   const done = phase >= 4;
 
@@ -96,29 +127,41 @@ export function FraudIQ() {
   const samples = useMemo(() => getSampleQuestions(), [i18n.language]);
   const [question, setQuestion] = useState(samples[0]);
   const [result, setResult] = useState<IqResult | null>(null);
+  const [askError, setAskError] = useState<string | null>(null);
+  const [askRunning, setAskRunning] = useState(false);
   const [askPhase, setAskPhase] = useState(0);
   const askTimers = useRef<number[]>([]);
   useEffect(() => () => askTimers.current.forEach(clearTimeout), []);
-  const runAsk = () => {
+  const runAsk = async () => {
     askTimers.current.forEach(clearTimeout);
     askTimers.current = [];
-    setResult(askMicrosoftIq(question));
+    setResult(null);
+    setAskError(null);
+    setAskRunning(true);
     setAskPhase(0);
-    [400, 800, 1200, 1600].forEach((ms, i) =>
-      askTimers.current.push(window.setTimeout(() => setAskPhase(i + 1), ms))
-    );
-    // Real Work IQ (Microsoft Graph, OBO) replaces the static work column when enabled.
-    if (isWorkIqEnabled()) {
-      void workIq.getSignals(question, flavor(question), i18n.language).then((signals) => {
-        if (signals && signals.length) setResult((r) => (r ? { ...r, work: signals } : r));
-      });
-    }
-    // Real Web IQ (Microsoft Web IQ, backend proxy) replaces the static web column when enabled.
-    if (isWebIqEnabled()) {
-      void webIq.getCitations(question, i18n.language).then((cites) => {
-        if (cites && cites.length)
-          setResult((r) => (r ? { ...r, web: cites.map((c) => `${c.title} — ${c.url}`) } : r));
-      });
+    try {
+      setResult(await askMicrosoftIq(question));
+      [400, 800, 1200, 1600].forEach((ms, i) =>
+        askTimers.current.push(window.setTimeout(() => setAskPhase(i + 1), ms))
+      );
+      if (isWorkIqEnabled()) {
+        void workIq.getSignals(question, flavor(question), i18n.language).then((signals) => {
+          if (signals && signals.length) setResult((current) => (current ? { ...current, work: signals } : current));
+        });
+      }
+      if (isWebIqEnabled()) {
+        void webIq.getCitations(question, i18n.language).then((citations) => {
+          if (citations && citations.length) {
+            setResult((current) => current
+              ? { ...current, web: citations.map((citation) => `${citation.title} — ${citation.url}`) }
+              : current);
+          }
+        });
+      }
+    } catch (error) {
+      setAskError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
+    } finally {
+      setAskRunning(false);
     }
   };
 
@@ -207,16 +250,18 @@ export function FraudIQ() {
             {!started ? (
               <button
                 onClick={runScenario}
+                disabled={scenarioRunning}
                 className="mt-3 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
               >
-                {t('fraudIqPage.launch')}
+                {scenarioRunning ? t('fraudIqPage.grounding') : t('fraudIqPage.launch')}
               </button>
             ) : (
               <button
                 onClick={runScenario}
+                disabled={scenarioRunning}
                 className="mt-3 w-full rounded-lg border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
               >
-                {t('fraudIqPage.rerun')}
+                {scenarioRunning ? t('fraudIqPage.grounding') : t('fraudIqPage.rerun')}
               </button>
             )}
           </div>
@@ -228,9 +273,15 @@ export function FraudIQ() {
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <IqColumn id="work" items={scenario.work} revealed={phase >= 1} />
               <IqColumn id="fabric" items={scenario.fabric} revealed={phase >= 2} />
-              <IqColumn id="foundry" items={scenario.foundry} revealed={phase >= 3} />
+              <IqColumn id="foundry" items={scenarioFoundry} revealed={phase >= 3} />
               <IqColumn id="web" items={scenario.web} revealed={phase >= 3} />
             </div>
+
+            {scenarioError && (
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                Foundry IQ indisponible : {scenarioError}
+              </p>
+            )}
 
             <div
               className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 dark:bg-indigo-500/10 p-4 transition-opacity ${
@@ -309,11 +360,17 @@ export function FraudIQ() {
           />
           <button
             onClick={runAsk}
+            disabled={askRunning || !question.trim()}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
-            {result && askPhase < 4 ? t('fraudIqPage.grounding') : t('fraudIqPage.run')}
+            {askRunning || (result && askPhase < 4) ? t('fraudIqPage.grounding') : t('fraudIqPage.run')}
           </button>
         </div>
+        {askError && (
+          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            Foundry IQ indisponible : {askError}
+          </p>
+        )}
         {result && (
           <>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

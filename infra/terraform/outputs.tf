@@ -1,10 +1,10 @@
 output "resource_group_name" {
-  value = azurerm_resource_group.this.name
+  value = local.resource_group_name
 }
 
 output "ai_foundry_endpoint" {
   description = "Microsoft Foundry (AI Services) endpoint — VITE_FOUNDRY_ENDPOINT."
-  value       = azurerm_cognitive_account.this.endpoint
+  value       = local.foundry_endpoint
 }
 
 output "ai_foundry_name" {

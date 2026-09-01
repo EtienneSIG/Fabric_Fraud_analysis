@@ -1,17 +1,17 @@
-// Simulated "Microsoft IQ" grounding layer for the fraud platform.
+// Microsoft IQ grounding layer for the fraud platform.
 // Microsoft IQ (Ignite 2025) is the shared intelligence layer that grounds AI
 // agents across four domains:
 //   • Fabric IQ  — enterprise DATA & semantics (OneLake, ontology, digital twins)
 //   • Work IQ    — the WORK graph in Microsoft 365 (people, docs, chats, calendar)
 //   • Foundry IQ — unified KNOWLEDGE & tools for agents in Microsoft Foundry
 //   • Web IQ     — the live WEB (official regulatory sources) via Microsoft Web IQ
-// This module simulates how each IQ contributes grounding to a fraud investigation.
 // NOTE: Fabric IQ grounding is REAL — computed live from the same data that is
 // materialized in fraud_lakehouse and bound to the fraud_ontology. Web IQ is real when
-// enabled (backend proxy over Microsoft Web IQ); Work IQ and Foundry IQ are simulated.
+// enabled (backend proxy over Microsoft Web IQ); Foundry IQ calls the deployed agent.
 
 import { DATASET } from '@/data/seed';
 import i18n from '@/i18n/i18n';
+import { askFoundryAgent } from '@/services/FoundryAgentClient';
 
 export type IqId = 'fabric' | 'work' | 'foundry' | 'web';
 
@@ -192,23 +192,34 @@ export function getSampleQuestions(): string[] {
 }
 
 /**
- * Cross-IQ grounding for a fraud question. Fabric IQ is live (data-derived); Work IQ and
- * Foundry IQ narratives come from static locale resources in mock mode, or from the Foundry
- * agent in the selected locale when the real integration is enabled.
+ * Cross-IQ grounding for a fraud question. Fabric IQ is data-derived and Foundry IQ
+ * calls the deployed agent; localized Work IQ and Web IQ values provide fallbacks.
  */
-export function askMicrosoftIq(question: string): IqResult {
+export async function askMicrosoftIq(question: string): Promise<IqResult> {
   const f = flavor(question);
   const t = i18n.getFixedT(null, 'fraudIq');
   const synthesis: Synthesis = {
     ...(t(`synthesis.${f}`, { returnObjects: true }) as Omit<Synthesis, 'confidence'>),
     confidence: IQ_CONFIDENCE[f],
   };
+  const foundry = await askFoundryAgent(question);
+  const foundryItems = [
+    foundry.answer,
+    ...foundry.citations.map((citation) => `Source officielle · ${citation.title} · ${citation.url}`),
+  ];
   return {
     fabric: fabricIqLive(question),
     work: t(`work.${f}`, { returnObjects: true }) as string[],
-    foundry: t(`foundry.${f}`, { returnObjects: true }) as string[],
+    foundry: foundryItems,
     web: t(`web.${f}`, { returnObjects: true }) as string[],
-    synthesis,
+    synthesis: {
+      ...synthesis,
+      rationale: foundry.answer,
+      findings: [
+        ...synthesis.findings.filter((finding) => !finding.startsWith('Foundry IQ ·')),
+        ...foundry.citations.map((citation) => `Foundry IQ · ${citation.title}`),
+      ],
+    },
   };
 }
 

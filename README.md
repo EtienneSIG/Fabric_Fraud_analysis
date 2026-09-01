@@ -193,10 +193,10 @@ flowchart LR
   Fabric Data Agent** over REST. Every agent run and decision is written to the
   **AgentRun** entity and the **audit trail**, and all AI output is advisory —
   **human approval is always required.**
-- **Foundry orchestration** — a companion agent built in **Microsoft Foundry** links
-  two grounded specialists: the Fabric Data Agent retrieves governed case facts
-  from the lakehouse, while a regulatory research agent uses web grounding against
-  official regulatory websites. The orchestrator reconciles both outputs and keeps
+- **Foundry orchestration** — a companion agent built in **Microsoft Foundry** combines
+  two server-side tools: Fabric IQ retrieves governed case facts from the Data Agent,
+  while Web Search retrieves current guidance from official regulatory websites. The
+  orchestrator reconciles both outputs and keeps
   source links in the answer so an investigator can verify the applicable obligation.
   This Foundry flow is configured in the authenticated [FraudIQ Foundry project](https://ai.azure.com/nextgen/r/FyQciQyGSOm9599wsQw5qg,esig_demo,,esigfoundry,FraudIQ/home?tid=b7b9a0c6-fe36-41b6-a38d-582c6573e2ff)
   and is reproducible from `foundry/`; the public Rayfin demo currently represents
@@ -226,6 +226,17 @@ type, and clicking a node produces an **AI narrative** explaining the entity's r
 and key risk signals.
 
 ![Entity Graph](docs/images/entity-graph.png)
+
+#### Fraud IQ — the fraud application of Microsoft IQ
+A flagship **"90 min → 30 sec"** real-time card-fraud scenario plus free-form
+investigation, combining the three IQs: **Fabric IQ** (live, from the deployed
+ontology + lakehouse), **Work IQ** (simulated) and **Foundry IQ** (live through the
+deployed `fraud-iq-orchestrator`). It contrasts the
+manual, 10-step investigation with a single agentic prompt that grounds across
+enterprise data, work context and agent knowledge, then returns an explainable,
+human-approvable recommendation.
+
+![Fraud IQ](docs/images/fraud-iq.png)
 
 #### Alert Queue
 The working list of open alerts across every fraud type, with risk scoring,
@@ -305,6 +316,63 @@ On deploy, the `@entity` models materialize as a **Fabric SQL Database** item (t
 ontology) with a free **SQL analytics endpoint** any Power BI report can query, and
 the app authenticates users with **Fabric SSO**.
 
+## Microsoft Foundry
+
+The authenticated [FraudIQ project](https://ai.azure.com/nextgen/r/FyQciQyGSOm9599wsQw5qg,esig_demo,,esigfoundry,FraudIQ/home?tid=b7b9a0c6-fe36-41b6-a38d-582c6573e2ff)
+hosts the AI orchestration layer. It is deployed in the `esigfoundry` account in
+East US and is reproducible from the source files under `foundry/`.
+
+| Component | Deployed value | Purpose |
+| --- | --- | --- |
+| Prompt agent | `fraud-iq-orchestrator` | Reconciles internal evidence with regulatory obligations |
+| Model deployment | `gpt-5.6-terra` | Runs the agent reasoning and tool orchestration |
+| Fabric IQ tool | `fraud-fabric-data-agent` | Calls the published Fabric Data Agent through delegated user identity |
+| Web Search tool | France / Paris location | Retrieves current regulatory guidance with URL citations |
+| Validation | Official-domain allow-list | Rejects missing citations and citations outside approved domains |
+
+The agent follows this request flow:
+
+1. Fabric IQ queries the governed Lakehouse through the published Data Agent.
+2. Web Search looks up generic legal concepts, rules, dates, and thresholds.
+3. The model separates case facts, interpretation, applicable obligations, and actions.
+4. The answer preserves Fabric record identifiers and regulatory URL citations.
+5. Any filing, blocking, fraud, or customer decision remains subject to human approval.
+
+Approved regulatory sources include the ACPR, AMF, Banque de France, CNIL, EBA,
+European Commission, EUR-Lex, FATF/GAFI, Legifrance, the French Ministry of Justice,
+and the French Ministry of the Economy. The complete versioned allow-list is in
+`foundry/config.json`. Personal data and case evidence must never be included in a
+web-search query.
+
+Deploy or update the full Foundry layer from the repository root:
+
+```powershell
+az login --tenant "<tenant-id>"
+& foundry/deploy_foundry.ps1 `
+  -SubscriptionId "<subscription-id>" `
+  -ResourceGroup "esig_demo" `
+  -Location "eastus"
+```
+
+The deployment is idempotent. It provisions the account and project when needed,
+reconciles the five model deployments declared in `foundry/models.json`, creates the
+delegated Fabric MCP connection, publishes a new immutable agent version, and validates
+the regulatory grounding. Use `-SkipInfrastructure` to retain the account and project,
+or `-SkipModels` to leave existing model deployments untouched.
+
+The first combined Fabric + Foundry request can require interactive delegated consent.
+Each operator must have access to the Fabric workspace, Data Agent, and Lakehouse. Web-only
+regulatory validation is independent of Fabric consent and is run with:
+
+```powershell
+& foundry/.venv/Scripts/python.exe foundry/validate_foundry.py `
+  --endpoint "https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ" `
+  --config foundry/config.json
+```
+
+See [foundry/README.md](foundry/README.md) for prerequisites, model-only deployment,
+consent handling, and the server-side domain-restriction option.
+
 ## The data + semantic layer
 
 `fraud_lakehouse` holds 11 governed Delta tables (customer, account, transaction, policy,
@@ -383,4 +451,6 @@ python fabric/ontology/build_ontology.py `
 ## Demo
 
 - **Live walkthrough:** see the demo video at the top of this README.
-- **Executive demo script:** [docs/exec-demo-narrative.md](docs/exec-demo-narrative.md) (FR) and [docs/exec-demo-narrative.en.md](docs/exec-demo-narrative.en.md) (EN).
+- **Integrated executive demo:** [docs/exec-demo-narrative.md](docs/exec-demo-narrative.md) (FR) and [docs/exec-demo-narrative.en.md](docs/exec-demo-narrative.en.md) (EN).
+- **Fabric-focused executive demo:** [docs/exec-demo-narrative-fabric.md](docs/exec-demo-narrative-fabric.md) (FR).
+- **Foundry-focused executive demo:** [docs/exec-demo-narrative-foundry.md](docs/exec-demo-narrative-foundry.md) (FR).
