@@ -17,6 +17,11 @@ output "ai_foundry_endpoint" {
   value       = local.foundry_endpoint
 }
 
+output "foundry_project_endpoint" {
+  description = "Foundry PROJECT endpoint (…/api/projects/<name>) — Agent Service base; pass to deploy_agents.ps1 and the app (VITE_FOUNDRY_ENDPOINT)."
+  value       = local.foundry_project_endpoint
+}
+
 output "ai_foundry_name" {
   value = azurerm_cognitive_account.this.name
 }

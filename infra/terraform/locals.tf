@@ -36,6 +36,9 @@ locals {
 
   foundry_endpoint = var.existing_foundry_project_endpoint != "" ? var.existing_foundry_project_endpoint : azurerm_cognitive_account.this.endpoint
 
+  # Agent Service runs at the PROJECT endpoint (…/api/projects/<name>), not the account endpoint.
+  foundry_project_endpoint = var.existing_foundry_project_endpoint != "" ? var.existing_foundry_project_endpoint : "https://${azurerm_cognitive_account.this.name}.services.ai.azure.com/api/projects/${var.foundry_project_name}"
+
   model_deployments = var.existing_foundry_project_endpoint == "" ? {
     orchestrator = { name = var.model_orchestrator, version = var.model_orchestrator_version }
     reasoning    = { name = var.model_reasoning, version = var.model_reasoning_version }

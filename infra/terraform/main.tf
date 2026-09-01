@@ -84,6 +84,44 @@ resource "azurerm_cognitive_account" "this" {
   tags = var.tags
 }
 
+# The AIServices account must allow project management before a project can be created.
+# azurerm doesn't expose this property, so patch it in place (no recreate -> models preserved).
+resource "azapi_update_resource" "enable_project_mgmt" {
+  count       = var.existing_foundry_project_endpoint == "" ? 1 : 0
+  type        = "Microsoft.CognitiveServices/accounts@2025-06-01"
+  resource_id = azurerm_cognitive_account.this.id
+
+  body = {
+    properties = {
+      allowProjectManagement = true
+    }
+  }
+}
+
+# Foundry PROJECT (Agent Service host). Child of the AI Services account; created only when we are
+# not reusing an existing project. Agents themselves are data-plane (foundry/agents/deploy_agents.ps1).
+resource "azapi_resource" "foundry_project" {
+  count     = var.existing_foundry_project_endpoint == "" ? 1 : 0
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-06-01"
+  name      = var.foundry_project_name
+  parent_id = azurerm_cognitive_account.this.id
+  location  = var.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  body = {
+    properties = {
+      displayName = var.foundry_project_name
+      description = "Fraud IQ orchestration project (Agent Service, API 2025-11-15-preview)."
+    }
+  }
+
+  schema_validation_enabled = false
+  depends_on                = [azapi_update_resource.enable_project_mgmt]
+}
+
 resource "azurerm_cognitive_deployment" "models" {
   for_each = local.model_deployments
 
@@ -225,7 +263,7 @@ resource "azurerm_function_app_flex_consumption" "bot" {
   app_settings = merge({
     AZURE_TENANT_ID                       = var.tenant_id
     KEY_VAULT_URI                         = azurerm_key_vault.this.vault_uri
-    AI_FOUNDRY_ENDPOINT                   = local.foundry_endpoint
+    AI_FOUNDRY_ENDPOINT                   = local.foundry_project_endpoint
     EVENTHUB_NAMESPACE                    = "${azurerm_eventhub_namespace.this.name}.servicebus.windows.net"
     EVENTHUB_NAME                         = azurerm_eventhub.transactions.name
     WEBIQ_CLIENT_ID                       = var.webiq_client_id

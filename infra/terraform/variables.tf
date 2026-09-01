@@ -137,6 +137,12 @@ variable "existing_foundry_project_endpoint" {
   default     = ""
 }
 
+variable "foundry_project_name" {
+  type        = string
+  description = "Name of the Foundry project (Agent Service) created under the AI Services account."
+  default     = "fraud-intelligence"
+}
+
 # --- Microsoft Web IQ (regulatory web grounding, Web IQ pillar) ---
 # The Web IQ credential is NOT a Terraform variable: place the app-only client secret directly in
 # Key Vault under var.webiq_client_secret_name so it never lands in Terraform state.
