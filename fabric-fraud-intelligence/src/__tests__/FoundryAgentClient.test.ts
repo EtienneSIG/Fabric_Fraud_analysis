@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseFoundryResponse, requiresInteractiveAuth } from '@/services/FoundryAgentClient';
+import {
+  getVersionedAgentEndpoint,
+  parseFoundryResponse,
+  requiresInteractiveAuth,
+} from '@/services/FoundryAgentClient';
+
+describe('getVersionedAgentEndpoint', () => {
+  it('adds the required API version while preserving existing parameters', () => {
+    expect(getVersionedAgentEndpoint('https://example.test/responses?trace=true')).toBe(
+      'https://example.test/responses?trace=true&api-version=2025-11-15-preview'
+    );
+  });
+});
 
 describe('requiresInteractiveAuth', () => {
   it('recovers from an MSAL silent-token timeout with interactive authentication', () => {

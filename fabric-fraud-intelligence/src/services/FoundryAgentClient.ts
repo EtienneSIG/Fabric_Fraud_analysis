@@ -9,6 +9,7 @@ const CLIENT_ID = import.meta.env.VITE_FOUNDRY_CLIENT_ID || 'f3468125-d8c3-4863-
 const AGENT_ENDPOINT =
   import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT ||
   'https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ/agents/fraud-iq-orchestrator/endpoint/protocols/openai/responses';
+const AGENT_API_VERSION = '2025-11-15-preview';
 const SCOPES = ['https://ai.azure.com/.default'];
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
@@ -43,6 +44,12 @@ export interface FoundryCitation {
 export interface FoundryAgentResult {
   answer: string;
   citations: FoundryCitation[];
+}
+
+export function getVersionedAgentEndpoint(endpoint: string): string {
+  const url = new URL(endpoint);
+  url.searchParams.set('api-version', AGENT_API_VERSION);
+  return url.toString();
 }
 
 let application: PublicClientApplication | undefined;
@@ -134,7 +141,7 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
 export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
   const client = getApplication();
   const accessToken = await getAccessToken(client);
-  const response = await fetch(AGENT_ENDPOINT, {
+  const response = await fetch(getVersionedAgentEndpoint(AGENT_ENDPOINT), {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
