@@ -77,6 +77,10 @@ resource "azurerm_cognitive_account" "this" {
   custom_subdomain_name = local.names.ai_foundry
   local_auth_enabled    = false
 
+  # Reflects the allowProjectManagement patch below; without it azurerm sees drift and
+  # would try to REPLACE the account (destroying project/agent/models).
+  project_management_enabled = true
+
   identity {
     type = "SystemAssigned"
   }
@@ -125,7 +129,8 @@ resource "azapi_resource" "foundry_project" {
 resource "azurerm_cognitive_deployment" "models" {
   for_each = local.model_deployments
 
-  name                 = each.key
+  # Deployment name == model name (matches foundry/models.json + config.json agent references).
+  name                 = each.value.name
   cognitive_account_id = azurerm_cognitive_account.this.id
 
   model {

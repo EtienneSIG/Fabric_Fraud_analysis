@@ -80,7 +80,7 @@ variable "model_orchestrator" {
 variable "model_orchestrator_version" {
   type        = string
   description = "Model version for the orchestrator deployment."
-  default     = "2026-03-17"
+  default     = "2026-07-09"
 }
 
 variable "model_reasoning" {
@@ -104,7 +104,7 @@ variable "model_extraction" {
 variable "model_extraction_version" {
   type        = string
   description = "Model version for the extraction deployment."
-  default     = "2026-03-17"
+  default     = "2026-07-09"
 }
 
 variable "model_embeddings" {
