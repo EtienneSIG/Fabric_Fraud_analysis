@@ -75,12 +75,13 @@ resource "azurerm_cognitive_deployment" "models" {
   cognitive_account_id = azurerm_cognitive_account.this.id
 
   model {
-    format = "OpenAI"
-    name   = each.value
+    format  = "OpenAI"
+    name    = each.value.name
+    version = each.value.version
   }
 
   sku {
-    name     = "GlobalStandard"
+    name     = var.model_deployment_sku
     capacity = var.model_capacity
   }
 }
@@ -152,13 +153,24 @@ resource "azurerm_storage_account" "func" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
-  tags                     = var.tags
+  # Tenant policy forbids shared-key auth; use Entra ID (managed identity) only.
+  shared_access_key_enabled       = false
+  default_to_oauth_authentication = true
+  tags                            = var.tags
+}
+
+# Data-plane access for the deployer so the package container can be created over Entra ID.
+resource "azurerm_role_assignment" "deployer_storage" {
+  scope                = azurerm_storage_account.func.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_storage_container" "func" {
   name                  = "app-package"
   storage_account_id    = azurerm_storage_account.func.id
   container_access_type = "private"
+  depends_on            = [azurerm_role_assignment.deployer_storage]
 }
 
 resource "azurerm_service_plan" "func" {

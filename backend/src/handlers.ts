@@ -22,38 +22,70 @@ export interface AgentReply {
   mode: 'mock' | 'foundry';
 }
 
-const API_VERSION = '2025-11-15-preview';
+// Foundry Agents run over the Responses API (POST {project}/openai/v1/responses with an
+// agent_reference). Overridable so ops can point at the exact project endpoint / agent name.
+const FOUNDRY_ORCHESTRATOR = env('FOUNDRY_ORCHESTRATOR_AGENT') || 'fraud-triage-agent';
+
+// Response `output` items: assistant messages carry output_text content (+ url_citation annotations);
+// tool-call items surface the tools the agent invoked. See learn.microsoft.com Responses API.
+interface ResponseAnnotation {
+  type?: string;
+  url?: string;
+  title?: string;
+}
+interface ResponseContent {
+  type?: string;
+  text?: string;
+  annotations?: ResponseAnnotation[];
+}
+interface ResponseItem {
+  type?: string;
+  role?: string;
+  name?: string;
+  content?: ResponseContent[];
+}
 
 /** Runs the Foundry triage orchestrator (delegates to connected agents, grounds on Fabric via
- *  conn-fabric-fraud-dataagent with OBO). */
+ *  conn-fabric-fraud-dataagent with OBO) through the Responses API. */
 export async function runAgent(req: AgentRunRequest, userToken: string | null): Promise<AgentReply> {
-  const endpoint = env('AI_FOUNDRY_ENDPOINT');
+  const endpoint = env('FOUNDRY_PROJECT_ENDPOINT') || env('AI_FOUNDRY_ENDPOINT');
   if (!endpoint) return { runId: `RUN-${Date.now()}`, text: '', generatedQuery: '', grounding: [], mode: 'mock' };
   try {
     const token = await foundryToken(userToken);
-    const res = await fetch(`${endpoint.replace(/\/$/, '')}/agents/fraud-triage-agent/runs?api-version=${API_VERSION}`, {
+    const res = await fetch(`${endpoint.replace(/\/$/, '')}/openai/v1/responses`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ input: req.prompt, metadata: { ...req.context, locale: req.locale } }),
+      body: JSON.stringify({
+        agent_reference: { type: 'agent_reference', name: FOUNDRY_ORCHESTRATOR },
+        input: req.prompt,
+        metadata: { ...req.context, locale: req.locale },
+      }),
     });
-    if (!res.ok) throw new Error(`Foundry run failed: ${res.status}`);
-    const data = (await res.json()) as {
-      id?: string;
-      output_text?: string;
-      tool_results?: { title?: string; source?: string; score?: number }[];
-      generated_query?: string;
-    };
-    return {
-      runId: data.id ?? `RUN-${Date.now()}`,
-      text: data.output_text ?? '',
-      generatedQuery: data.generated_query ?? '',
-      grounding: (data.tool_results ?? []).map((g) => ({
-        title: g.title ?? 'Fabric',
-        source: g.source ?? 'fabric_dataagent',
-        confidence: g.score ?? 0.8,
-      })),
-      mode: 'foundry',
-    };
+    if (!res.ok) throw new Error(`Foundry response failed: ${res.status}`);
+    const data = (await res.json()) as { id?: string; output_text?: string; output?: ResponseItem[] };
+    const output = data.output ?? [];
+    const messages = output.filter((i) => i.type === 'message').flatMap((i) => i.content ?? []);
+    const text =
+      data.output_text ??
+      messages
+        .filter((c) => c.type === 'output_text')
+        .map((c) => c.text ?? '')
+        .join('\n');
+
+    const grounding: AgentReply['grounding'] = [];
+    for (const item of output) {
+      for (const c of item.content ?? []) {
+        for (const a of c.annotations ?? []) {
+          if (a.type === 'url_citation' && a.url) grounding.push({ title: a.title ?? a.url, source: 'web', confidence: 0.9 });
+        }
+      }
+      // Tool-call items (e.g. fabric_dataagent_call, mcp_call) expose which tools grounded the answer.
+      if (item.type && item.type.endsWith('_call')) {
+        grounding.push({ title: item.name ?? item.type, source: item.type, confidence: 0.8 });
+      }
+    }
+
+    return { runId: data.id ?? `RUN-${Date.now()}`, text, generatedQuery: '', grounding, mode: 'foundry' };
   } catch (e) {
     logError('foundry', e, { caseId: req.context.caseId });
     return { runId: `RUN-${Date.now()}`, text: '', generatedQuery: '', grounding: [], mode: 'mock' };
@@ -459,26 +491,48 @@ function mockCompare(req: RaftCompareRequest): RaftComparison {
   };
 }
 
-// One Azure OpenAI chat completion against a named deployment; returns text + token usage + latency.
+// Azure OpenAI api-version (env-overridable). The default supports gpt-5 / o-series reasoning
+// models (max_completion_tokens, reasoning_effort) as well as classic gpt-4.1 / gpt-4o.
+const AOAI_API_VERSION = env('AOAI_API_VERSION') || '2025-04-01-preview';
+
+// Reasoning models (o-series, gpt-5 family) reject `temperature` and use `max_completion_tokens`;
+// classic chat models (gpt-4.1, gpt-4o) take `temperature`. Detection is by model family name.
+function isReasoningModel(name: string): boolean {
+  const m = name.toLowerCase();
+  return /^o[1-9]/.test(m) || /gpt-5/.test(m);
+}
+
+// One Azure OpenAI chat completion against a named deployment; adapts the request body to the model
+// family. `modelHint` carries the underlying model id when the deployment name is an opaque alias.
+// Returns text + token usage + latency.
 async function chatOnce(
   endpoint: string,
   deployment: string,
   prompt: string,
-  token: string
+  token: string,
+  modelHint?: string
 ): Promise<{ text: string; tokens: number; latencyMs: number }> {
+  const reasoning = isReasoningModel(modelHint ?? deployment);
+  const body: Record<string, unknown> = {
+    messages: [
+      { role: 'system', content: RAFT_SYSTEM },
+      { role: 'user', content: prompt },
+    ],
+    max_completion_tokens: 2000,
+  };
+  if (reasoning) {
+    const effort = env('AOAI_REASONING_EFFORT');
+    if (effort) body.reasoning_effort = effort;
+  } else {
+    body.temperature = 0.2;
+  }
   const started = Date.now();
   const res = await fetch(
-    `${endpoint.replace(/\/$/, '')}/openai/deployments/${deployment}/chat/completions?api-version=2024-10-21`,
+    `${endpoint.replace(/\/$/, '')}/openai/deployments/${deployment}/chat/completions?api-version=${AOAI_API_VERSION}`,
     {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [
-          { role: 'system', content: RAFT_SYSTEM },
-          { role: 'user', content: prompt },
-        ],
-        temperature: 0.2,
-      }),
+      body: JSON.stringify(body),
     }
   );
   if (!res.ok) throw new Error(`AOAI ${deployment} failed: ${res.status}`);
@@ -503,9 +557,13 @@ export async function raftCompare(req: RaftCompareRequest, userToken: string | n
   if (!endpoint || !student) return mockCompare(req);
   try {
     const token = await cognitiveToken(userToken);
+    // Underlying model ids (env-overridable) so chatOnce can adapt classic vs reasoning params
+    // even when the deployment name is an opaque alias.
+    const baselineModel = env('RAFT_BASELINE_MODEL') || baselineDep;
+    const studentModel = env('RAFT_STUDENT_MODEL') || student;
     const [b, r] = await Promise.all([
-      chatOnce(endpoint, baselineDep, req.prompt, token),
-      chatOnce(endpoint, student, req.prompt, token),
+      chatOnce(endpoint, baselineDep, req.prompt, token, baselineModel),
+      chatOnce(endpoint, student, req.prompt, token, studentModel),
     ]);
     return {
       mode: 'foundry',

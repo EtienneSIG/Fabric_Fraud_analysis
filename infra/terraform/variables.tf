@@ -38,25 +38,55 @@ variable "tags" {
 variable "model_orchestrator" {
   type        = string
   description = "Small fast model for the triage/orchestrator agent."
-  default     = "gpt-4o-mini"
+  default     = "gpt-5.4-mini"
+}
+
+variable "model_orchestrator_version" {
+  type        = string
+  description = "Model version for the orchestrator deployment."
+  default     = "2026-03-17"
 }
 
 variable "model_reasoning" {
   type        = string
   description = "Strong model for fraud investigation / AML reasoning."
-  default     = "gpt-4o"
+  default     = "gpt-5.6-sol"
+}
+
+variable "model_reasoning_version" {
+  type        = string
+  description = "Model version for the reasoning deployment."
+  default     = "2026-07-09"
 }
 
 variable "model_extraction" {
   type        = string
   description = "Small model for claims summary / extraction."
-  default     = "gpt-4o-mini"
+  default     = "gpt-5.4-mini"
+}
+
+variable "model_extraction_version" {
+  type        = string
+  description = "Model version for the extraction deployment."
+  default     = "2026-03-17"
 }
 
 variable "model_embeddings" {
   type        = string
   description = "Embeddings model for knowledge / vector grounding."
   default     = "text-embedding-3-large"
+}
+
+variable "model_embeddings_version" {
+  type        = string
+  description = "Model version for the embeddings deployment."
+  default     = "1"
+}
+
+variable "model_deployment_sku" {
+  type        = string
+  description = "Deployment SKU for the Foundry model deployments (e.g. DataZoneStandard, GlobalStandard)."
+  default     = "DataZoneStandard"
 }
 
 variable "model_capacity" {

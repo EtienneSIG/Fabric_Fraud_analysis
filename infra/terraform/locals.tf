@@ -31,9 +31,9 @@ locals {
   ]
 
   model_deployments = {
-    orchestrator = var.model_orchestrator
-    reasoning    = var.model_reasoning
-    extraction   = var.model_extraction
-    embeddings   = var.model_embeddings
+    orchestrator = { name = var.model_orchestrator, version = var.model_orchestrator_version }
+    reasoning    = { name = var.model_reasoning, version = var.model_reasoning_version }
+    extraction   = { name = var.model_extraction, version = var.model_extraction_version }
+    embeddings   = { name = var.model_embeddings, version = var.model_embeddings_version }
   }
 }
