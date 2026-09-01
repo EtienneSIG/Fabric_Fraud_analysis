@@ -40,7 +40,7 @@ export function Settings() {
       </div>
 
       <div className="flex gap-1 border-b border-gray-100">
-        {(['governance', 'agents', 'quality'] as const).map((k) => (
+        {(['governance', 'quality', 'agents'] as const).map((k) => (
           <button
             key={k}
             onClick={() => setTab(k)}
