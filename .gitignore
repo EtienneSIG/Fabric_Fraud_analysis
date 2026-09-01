@@ -17,6 +17,14 @@ node_modules/
 rayfin/.env*
 rayfin/.deployments.json
 
+# Terraform local state, plans, and secrets
+**/.terraform/
+**/*.tfstate*
+**/*.tfplan
+**/tfplan*
+**/terraform.tfvars
+**/*.auto.tfvars
+
 # OS / editor
 .DS_Store
 .idea/

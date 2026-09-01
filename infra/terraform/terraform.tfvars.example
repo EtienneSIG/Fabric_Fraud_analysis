@@ -4,9 +4,13 @@ tenant_id       = "00000000-0000-0000-0000-000000000000"
 environment     = "demo"
 location        = "swedencentral"
 
+# Optional: deploy into an existing resource group instead of creating rg-fraudintel-<environment>.
+# existing_resource_group_name = "esig_demo"
+# existing_foundry_project_endpoint = "https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ"
+
 # Foundry model deployments — validate availability/quota in the region first.
-model_orchestrator = "gpt-4o-mini"
-model_reasoning    = "gpt-4o"
-model_extraction   = "gpt-4o-mini"
-model_embeddings   = "text-embedding-3-large"
+model_orchestrator = "gpt-5.6-terra"
+model_reasoning    = "gpt-5.6-sol"
+model_extraction   = "gpt-5.6-luna"
+model_embeddings   = "text-embedding-3-small"
 model_capacity     = 20

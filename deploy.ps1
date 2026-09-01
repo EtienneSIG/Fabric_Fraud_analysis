@@ -9,6 +9,7 @@
 .PARAMETER Backend    Deploy the Azure Function backend (Teams bot endpoint).
 .PARAMETER Infra      Deploy the Azure support layer (Terraform).
 .PARAMETER FoundryAgents  Deploy the Foundry connected-agent topology.
+.PARAMETER ExistingFoundryProjectEndpoint  Reuse an existing Foundry project and its deployed models.
 .PARAMETER WhatIf     Verify + terraform plan only; no apply/publish/rayfin up.
 .PARAMETER Force      Skip confirmation prompts before real deployments.
 .PARAMETER SkipVerify Skip the build/test/validate gate (not recommended).
@@ -28,6 +29,8 @@ param(
   [string]$SubscriptionId,
   [string]$TenantId,
   [string]$Environment = 'demo',
+  [string]$ExistingResourceGroupName,
+  [string]$ExistingFoundryProjectEndpoint,
   [string]$FunctionAppName,
   [string]$FoundryEndpoint,
   [string]$FabricDataAgentUrl,
@@ -134,7 +137,14 @@ if ($Infra) {
       $vSub = "-var=subscription_id=$SubscriptionId"
       $vTid = "-var=tenant_id=$TenantId"
       $vEnv = "-var=environment=$Environment"
-      Invoke-Native 'plan' { terraform plan -input=false -out tfplan $vSub $vTid $vEnv }
+      $tfVars = @($vSub, $vTid, $vEnv)
+      if ($ExistingResourceGroupName) {
+        $tfVars += "-var=existing_resource_group_name=$ExistingResourceGroupName"
+      }
+      if ($ExistingFoundryProjectEndpoint) {
+        $tfVars += "-var=existing_foundry_project_endpoint=$ExistingFoundryProjectEndpoint"
+      }
+      Invoke-Native 'plan' { terraform plan -input=false -out tfplan @tfVars }
       if (-not $WhatIf -and (Confirm-Step 'Apply this Terraform plan?')) {
         Invoke-Native 'apply' { terraform apply -input=false tfplan }
       }

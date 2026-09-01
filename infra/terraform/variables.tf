@@ -14,6 +14,12 @@ variable "environment" {
   }
 }
 
+variable "existing_resource_group_name" {
+  type        = string
+  description = "Existing resource group to deploy into. Leave empty to create rg-fraudintel-<environment>."
+  default     = ""
+}
+
 variable "location" {
   type        = string
   description = "Azure region for the support resources."
@@ -38,31 +44,37 @@ variable "tags" {
 variable "model_orchestrator" {
   type        = string
   description = "Small fast model for the triage/orchestrator agent."
-  default     = "gpt-4o-mini"
+  default     = "gpt-5.6-terra"
 }
 
 variable "model_reasoning" {
   type        = string
   description = "Strong model for fraud investigation / AML reasoning."
-  default     = "gpt-4o"
+  default     = "gpt-5.6-sol"
 }
 
 variable "model_extraction" {
   type        = string
   description = "Small model for claims summary / extraction."
-  default     = "gpt-4o-mini"
+  default     = "gpt-5.6-luna"
 }
 
 variable "model_embeddings" {
   type        = string
   description = "Embeddings model for knowledge / vector grounding."
-  default     = "text-embedding-3-large"
+  default     = "text-embedding-3-small"
 }
 
 variable "model_capacity" {
   type        = number
   description = "TPM capacity (thousands) per model deployment. Validate against region quota."
   default     = 20
+}
+
+variable "existing_foundry_project_endpoint" {
+  type        = string
+  description = "Existing Foundry project endpoint to use for agents. Empty uses the Terraform-managed AI Services account."
+  default     = ""
 }
 
 # --- Microsoft Web IQ (regulatory web grounding, Web IQ pillar) ---

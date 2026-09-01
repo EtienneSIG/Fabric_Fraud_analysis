@@ -53,7 +53,7 @@ function Invoke-Foundry {
     return Invoke-RestMethod -Method $Method -Uri $uri -Headers $headers -Body $json
   }
   catch {
-    Write-Error "Foundry $Method $Path failed: $($_.ErrorDetails.Message)"
+    $detail = if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.ToString())) { $_.ErrorDetails.ToString() } else { $_.Exception.Message }; Write-Error "Foundry $Method $Path failed: $detail"
     throw
   }
 }
