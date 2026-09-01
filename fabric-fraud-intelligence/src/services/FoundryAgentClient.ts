@@ -1,7 +1,9 @@
 import {
+  createNestablePublicClientApplication,
   InteractionRequiredAuthError,
-  PublicClientApplication,
   type AccountInfo,
+  type Configuration,
+  type IPublicClientApplication,
 } from '@azure/msal-browser';
 
 const TENANT_ID = import.meta.env.VITE_FOUNDRY_TENANT_ID || 'b7b9a0c6-fe36-41b6-a38d-582c6573e2ff';
@@ -45,15 +47,14 @@ export interface FoundryAgentResult {
   citations: FoundryCitation[];
 }
 
-let application: PublicClientApplication | undefined;
-let initialization: Promise<void> | undefined;
+let application: Promise<IPublicClientApplication> | undefined;
 
-function getApplication(): PublicClientApplication {
+function getApplication(): Promise<IPublicClientApplication> {
   if (!CLIENT_ID) {
     throw new Error('Foundry IQ is not configured. Set VITE_FOUNDRY_CLIENT_ID.');
   }
   if (!application) {
-    application = new PublicClientApplication({
+    const configuration: Configuration = {
       auth: {
         clientId: CLIENT_ID,
         authority: `https://login.microsoftonline.com/${TENANT_ID}`,
@@ -66,14 +67,13 @@ function getApplication(): PublicClientApplication {
         iframeBridgeTimeout: 30_000,
         navigatePopups: false,
       },
-    });
-    initialization = application.initialize();
+    };
+    application = createNestablePublicClientApplication(configuration);
   }
   return application;
 }
 
-async function getAccount(client: PublicClientApplication): Promise<AccountInfo> {
-  await initialization;
+async function getAccount(client: IPublicClientApplication): Promise<AccountInfo> {
   const existing = client.getActiveAccount() ?? client.getAllAccounts()[0];
   if (existing) {
     client.setActiveAccount(existing);
@@ -94,7 +94,7 @@ export function requiresInteractiveAuth(error: unknown): boolean {
     (typeof error === 'object' && error !== null && 'errorCode' in error && error.errorCode === 'timed_out');
 }
 
-async function getAccessToken(client: PublicClientApplication): Promise<string> {
+async function getAccessToken(client: IPublicClientApplication): Promise<string> {
   const account = await getAccount(client);
   try {
     const token = await client.acquireTokenSilent({ account, scopes: SCOPES });
@@ -133,7 +133,7 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
 }
 
 export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
-  const client = getApplication();
+  const client = await getApplication();
   const accessToken = await getAccessToken(client);
   const response = await fetch(AGENT_ENDPOINT, {
     method: 'POST',
