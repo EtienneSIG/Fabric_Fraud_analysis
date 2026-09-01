@@ -1,7 +1,7 @@
 param(
   [Parameter(Mandatory=$true)][string]$Ws,
   [Parameter(Mandatory=$true)][string]$Lh,
-  [string]$Dir = "c:\Users\esigwald\01_Dev\Fraud\artifacts\lakehouse_data",
+  [string]$Dir = (Join-Path $PSScriptRoot "..\..\artifacts\lakehouse_data"),
   [string]$Dest = "appdata"
 )
 
