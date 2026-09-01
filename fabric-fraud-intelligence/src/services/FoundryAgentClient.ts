@@ -58,7 +58,11 @@ function getApplication(): PublicClientApplication {
         authority: `https://login.microsoftonline.com/${TENANT_ID}`,
         redirectUri: AUTH_REDIRECT_URI,
       },
-      cache: { cacheLocation: 'sessionStorage' },
+      cache: { cacheLocation: 'localStorage' },
+      system: {
+        popupBridgeTimeout: 180_000,
+        iframeBridgeTimeout: 30_000,
+      },
     });
     initialization = application.initialize();
   }
