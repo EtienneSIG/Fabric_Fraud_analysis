@@ -4,7 +4,10 @@ storyline:
   - compute_scores_and_graph_features
   - detect_population_risk_cluster_in_graph_screen
   - explain_root_cause_drivers
+  - orchestrate_foundry_triage_agent_grounded_on_fabric_obo
+  - surface_work_iq_signals_from_m365_graph
   - review_portfolio_impact_in_executive_view
+  - send_teams_approval_adaptive_card
   - remediate_case_and_writeback_to_onelake
   - verify_feedback_enters_model_iteration_loop
 
@@ -14,3 +17,7 @@ validation_checklist:
   - end_to_end_latency_within_target
   - ontology_refresh_expectation_documented
   - explainability_outputs_present
+  - foundry_connected_agents_single_response_verified
+  - graph_delegated_obo_no_app_permission_mixing
+  - agent_and_ui_output_respect_selected_locale
+  - mock_mode_build_and_tests_green_with_flags_off

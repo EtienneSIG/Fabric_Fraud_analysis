@@ -70,20 +70,20 @@ export function JourneyMap({ events }: { events: CustomerEvent[] }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ background: '#eff6ff', borderRadius: 12 }} role="img" aria-label="Event locations map">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ background: 'var(--ffi-map)', borderRadius: 12 }} role="img" aria-label="Event locations map">
           <defs>
             <marker id="jm-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8" />
             </marker>
           </defs>
           {/* continents */}
-          <path d={LAND_PATH} fill="#dbe3ec" stroke="#b6c2d1" strokeWidth={0.4} fillRule="evenodd" />
+          <path d={LAND_PATH} className="fill-slate-200 stroke-slate-300" strokeWidth={0.4} fillRule="evenodd" />
           {/* graticule */}
           {[60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 660].map((x) => (
-            <line key={`v${x}`} x1={x} y1={0} x2={x} y2={H} stroke="#dbeafe" strokeWidth={1} />
+            <line key={`v${x}`} x1={x} y1={0} x2={x} y2={H} className="stroke-slate-200" strokeWidth={1} />
           ))}
           {[45, 90, 135, 180, 225, 270, 315].map((y) => (
-            <line key={`h${y}`} x1={0} y1={y} x2={W} y2={y} stroke="#dbeafe" strokeWidth={1} />
+            <line key={`h${y}`} x1={0} y1={y} x2={W} y2={y} className="stroke-slate-200" strokeWidth={1} />
           ))}
           {/* journey path */}
           {points.slice(1).map((p, i) => {

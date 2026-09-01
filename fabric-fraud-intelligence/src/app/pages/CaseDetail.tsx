@@ -1,46 +1,51 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { AgentChat } from '@/app/components/AgentChat';
 import { CaseTimeline, type TimelineEvent } from '@/app/components/CaseTimeline';
 import { EvidencePanel } from '@/app/components/EvidencePanel';
 import { RiskScoreBadge } from '@/app/components/RiskScoreBadge';
 import { useRole } from '@/app/RoleContext';
+import { useToast } from '@/app/toast/ToastProvider';
 import { eur } from '@/app/format';
 import { getCase, postDecision } from '@/backend/api/cases';
 import { audit } from '@/backend/services/AuditService';
 import { canDecide, maskPII, type Decision } from '@/backend/models';
 
-const DECISIONS: { label: string; decision: Decision; tone: string }[] = [
-  { label: 'Escalate', decision: 'Escalate', tone: 'bg-red-600 hover:bg-red-700' },
-  { label: 'Monitor', decision: 'Monitor', tone: 'bg-amber-600 hover:bg-amber-700' },
-  { label: 'Close (false positive)', decision: 'Close - False Positive', tone: 'bg-emerald-600 hover:bg-emerald-700' },
-  { label: 'Request documents', decision: 'Request Documents', tone: 'bg-indigo-600 hover:bg-indigo-700' },
+const DECISIONS: { labelKey: string; decision: Decision; tone: string }[] = [
+  { labelKey: 'pages.caseDetail.decisions.escalate', decision: 'Escalate', tone: 'bg-red-600 hover:bg-red-700' },
+  { labelKey: 'pages.caseDetail.decisions.monitor', decision: 'Monitor', tone: 'bg-amber-600 hover:bg-amber-700' },
+  { labelKey: 'pages.caseDetail.decisions.closeFalsePositive', decision: 'Close - False Positive', tone: 'bg-emerald-600 hover:bg-emerald-700' },
+  { labelKey: 'pages.caseDetail.decisions.requestDocuments', decision: 'Request Documents', tone: 'bg-indigo-600 hover:bg-indigo-700' },
 ];
 
 export function CaseDetail() {
+  const { t } = useTranslation();
+  const toast = useToast();
   const { id = '' } = useParams();
   const { role, user } = useRole();
   const [, force] = useState(0);
   const bundle = getCase(id);
 
   if (!bundle) {
-    return <p className="text-sm text-gray-400">Case {id} not found.</p>;
+    return <p className="text-sm text-gray-400">{t('pages.caseDetail.notFound', { id })}</p>;
   }
   const { alert, customer, account, transaction, claim, evidence, risk, case: kase } = bundle;
 
   const decide = (decision: Decision) => {
     postDecision(id, { decision, reason: `${decision} by ${role}`, userId: user });
+    toast.success(t('toast.decisionRecorded', { decision }));
     force((n) => n + 1);
   };
 
   const timeline: TimelineEvent[] = [
-    { at: alert.createdAt, label: `Alert ${alert.id} raised`, detail: alert.explanationShort, tone: 'alert' as const },
-    { at: kase.createdAt, label: `Case ${kase.id} opened`, detail: `Assigned to ${kase.assignedTo}` },
-    ...evidence.slice(0, 2).map((e) => ({ at: e.createdAt, label: `Evidence: ${e.title}`, detail: e.sourceSystem })),
-    ...audit.listRuns(id).map((r) => ({ at: r.createdAt, label: `Agent: ${r.agentName}`, detail: r.response.slice(0, 80), tone: 'agent' as const })),
+    { at: alert.createdAt, label: t('pages.caseDetail.tl.alertRaised', { id: alert.id }), detail: alert.explanationShort, tone: 'alert' as const },
+    { at: kase.createdAt, label: t('pages.caseDetail.tl.caseOpened', { id: kase.id }), detail: t('pages.caseDetail.tl.assignedTo', { name: kase.assignedTo }) },
+    ...evidence.slice(0, 2).map((e) => ({ at: e.createdAt, label: t('pages.caseDetail.tl.evidence', { title: e.title }), detail: e.sourceSystem })),
+    ...audit.listRuns(id).map((r) => ({ at: r.createdAt, label: t('pages.caseDetail.tl.agent', { name: r.agentName }), detail: r.response.slice(0, 80), tone: 'agent' as const })),
     ...(kase.decision !== 'Pending'
-      ? [{ at: kase.updatedAt, label: `Decision: ${kase.decision}`, detail: kase.decisionReason, tone: 'decision' as const }]
+      ? [{ at: kase.updatedAt, label: t('pages.caseDetail.tl.decision', { decision: kase.decision }), detail: kase.decisionReason, tone: 'decision' as const }]
       : []),
   ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
 
@@ -59,52 +64,52 @@ export function CaseDetail() {
         {/* Left: evidence + case facts */}
         <div className="lg:col-span-2 space-y-4">
           <section className="ffi-card p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Customer profile</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.caseDetail.customerProfile')}</h3>
             <dl className="grid grid-cols-2 gap-y-2 text-sm">
-              <Field k="Name" v={maskPII(customer?.name ?? '—', role)} />
-              <Field k="Segment" v={customer?.segment ?? '—'} />
-              <Field k="Country" v={customer?.country ?? '—'} />
-              <Field k="KYC rating" v={customer?.kycRiskRating ?? '—'} />
-              <Field k="PEP" v={customer?.pepFlag ? 'Yes' : 'No'} />
-              <Field k="Sanctions" v={customer?.sanctionsFlag ? '⚠ Potential' : 'No'} />
-              {account && <Field k="IBAN" v={maskPII(account.ibanHash, role)} />}
+              <Field k={t('pages.caseDetail.fields.name')} v={maskPII(customer?.name ?? '—', role)} />
+              <Field k={t('pages.caseDetail.fields.segment')} v={customer?.segment ?? '—'} />
+              <Field k={t('pages.caseDetail.fields.country')} v={customer?.country ?? '—'} />
+              <Field k={t('pages.caseDetail.fields.kyc')} v={customer?.kycRiskRating ?? '—'} />
+              <Field k={t('pages.caseDetail.fields.pep')} v={customer?.pepFlag ? t('pages.caseDetail.yes') : t('pages.caseDetail.no')} />
+              <Field k={t('pages.caseDetail.fields.sanctions')} v={customer?.sanctionsFlag ? t('pages.caseDetail.sanctionsPotential') : t('pages.caseDetail.no')} />
+              {account && <Field k={t('pages.caseDetail.fields.iban')} v={maskPII(account.ibanHash, role)} />}
             </dl>
           </section>
 
           {transaction && (
             <section className="ffi-card p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Transaction</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.caseDetail.transaction')}</h3>
               <dl className="grid grid-cols-2 gap-y-2 text-sm">
-                <Field k="Amount" v={`${transaction.currency} ${transaction.amount}`} />
-                <Field k="Merchant" v={transaction.merchant} />
-                <Field k="Channel" v={transaction.channel} />
-                <Field k="Country / IP" v={`${transaction.country} / ${transaction.ipCountry}`} />
-                <Field k="Device" v={transaction.deviceId} />
-                <Field k="MCC" v={transaction.merchantCategory} />
+                <Field k={t('pages.caseDetail.fields.amount')} v={`${transaction.currency} ${transaction.amount}`} />
+                <Field k={t('pages.caseDetail.fields.merchant')} v={transaction.merchant} />
+                <Field k={t('pages.caseDetail.fields.channel')} v={transaction.channel} />
+                <Field k={t('pages.caseDetail.fields.countryIp')} v={`${transaction.country} / ${transaction.ipCountry}`} />
+                <Field k={t('pages.caseDetail.fields.device')} v={transaction.deviceId} />
+                <Field k={t('pages.caseDetail.fields.mcc')} v={transaction.merchantCategory} />
               </dl>
             </section>
           )}
 
           {claim && (
             <section className="ffi-card p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Claim</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.caseDetail.claim')}</h3>
               <dl className="grid grid-cols-2 gap-y-2 text-sm">
-                <Field k="Type" v={claim.claimType} />
-                <Field k="Amount" v={eur(claim.amountClaimed)} />
-                <Field k="Provider" v={claim.repairProvider} />
-                <Field k="Location" v={claim.location} />
-                <Field k="Status" v={claim.status} />
+                <Field k={t('pages.caseDetail.fields.type')} v={claim.claimType} />
+                <Field k={t('pages.caseDetail.fields.amount')} v={eur(claim.amountClaimed)} />
+                <Field k={t('pages.caseDetail.fields.provider')} v={claim.repairProvider} />
+                <Field k={t('pages.caseDetail.fields.location')} v={claim.location} />
+                <Field k={t('pages.caseDetail.fields.status')} v={claim.status} />
               </dl>
             </section>
           )}
 
           <section className="ffi-card p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Evidence</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.caseDetail.evidence')}</h3>
             <EvidencePanel evidence={evidence} />
           </section>
 
           <section className="ffi-card p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Case timeline</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.caseDetail.timeline')}</h3>
             <CaseTimeline events={timeline} />
           </section>
         </div>
@@ -116,7 +121,7 @@ export function CaseDetail() {
           </section>
 
           <section className="ffi-card p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Model drivers</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.caseDetail.modelDrivers')}</h3>
             <div className="space-y-2">
               {risk.drivers.map((d) => (
                 <div key={d.name} className="flex items-center gap-2">
@@ -131,10 +136,10 @@ export function CaseDetail() {
           </section>
 
           <section className="ffi-card p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Decision</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.caseDetail.decision')}</h3>
             {!canDecide(role) && (
               <p className="mb-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-2 py-1">
-                Role “{role}” is read-only. Decisions require Analyst or Manager.
+                {t('pages.caseDetail.readOnly', { role })}
               </p>
             )}
             <div className="grid grid-cols-2 gap-2">
@@ -145,13 +150,13 @@ export function CaseDetail() {
                   onClick={() => decide(d.decision)}
                   className={`rounded-lg px-3 py-2 text-xs font-medium text-white disabled:opacity-40 ${d.tone}`}
                 >
-                  {d.label}
+                  {t(d.labelKey)}
                 </button>
               ))}
             </div>
             {kase.decision !== 'Pending' && (
               <p className="mt-3 text-xs text-gray-500">
-                Current decision: <strong>{kase.decision}</strong> — {kase.decisionReason}
+                {t('pages.caseDetail.currentDecision')}: <strong>{kase.decision}</strong> — {kase.decisionReason}
               </p>
             )}
           </section>

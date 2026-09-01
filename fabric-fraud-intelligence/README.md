@@ -122,7 +122,8 @@ devices). Five "hero" alerts drive the demo scenarios below.
 ## Commands
 
 ```bash
-npm run dev        # deploy backend to Fabric + run UI locally (Vite)
+npm run dev:demo   # UI only, fully offline (no backend, no Docker)
+npm run dev        # start Rayfin dev backend (needs Docker) + run UI locally (Vite)
 npm run build      # tsc + vite production build
 npm run seed       # notes on seeding (demo data is generated in-app)
 npm run deploy     # rayfin up  (deploy app + apply schema)

@@ -22,5 +22,8 @@ services:
     indexDocument: index.html
   storage:
     enabled: false
+  # Native Rayfin functions = Azure Functions (local port 7071). Preferred host for ../../backend
+  # (shares Fabric SSO/OBO). Kept disabled until the Rayfin functions folder convention is documented
+  # in the installed guide; until then the backend deploys as the standalone Azure Function (Terraform).
   functions:
     enabled: false

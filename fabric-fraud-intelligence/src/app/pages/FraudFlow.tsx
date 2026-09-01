@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { JourneyMap } from '@/app/components/JourneyMap';
 import { Sankey } from '@/app/components/Sankey';
+import { useToast } from '@/app/toast/ToastProvider';
 import {
   buildJourneyFlow,
   exampleJourney,
@@ -15,6 +17,9 @@ import { isLocalBackend } from '@/services/rayfinClient';
 const STEPS = 5;
 
 export function FraudFlow() {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const [, startTransition] = useTransition();
   const terminals = useMemo(() => terminalEvents(), []);
   const [terminal, setTerminal] = useState(terminals[0] ?? '');
   const { nodes, links } = useMemo(() => buildJourneyFlow(terminal, STEPS), [terminal]);
@@ -37,12 +42,14 @@ export function FraudFlow() {
 
   const seed = async () => {
     setSeeding(true);
-    setSeedMsg('Seeding…');
+    setSeedMsg(t('pages.fraudFlow.seeding'));
     try {
       const { created } = await seedCustomerEvents(300, setSeedMsg);
-      setSeedMsg(`Seeded ${created} events into CustomerEvent.`);
+      setSeedMsg(t('pages.fraudFlow.seeded', { count: created }));
+      toast.success(t('toast.seedDone', { count: created }));
     } catch (e) {
-      setSeedMsg(`Seed failed: ${(e as Error).message}`);
+      setSeedMsg(t('pages.fraudFlow.seedFailed', { msg: (e as Error).message }));
+      toast.error(t('toast.seedFailed'));
     } finally {
       setSeeding(false);
     }
@@ -52,17 +59,16 @@ export function FraudFlow() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Customer 360 — event journeys</h2>
-          <p className="text-sm text-gray-400">
-            Pick a final event and see the 5 events that most often precede it.
-            Fraud is one event type — with its fraud typology. Hover a link to
-            see the number of customers.
-          </p>
+          <h2 className="text-lg font-bold text-gray-900">{t('pages.fraudFlow.title')}</h2>
+          <p className="text-sm text-gray-400">{t('pages.fraudFlow.subtitle')}</p>
           <p className="text-xs text-gray-500 mt-1">
-            <strong className="text-gray-800">{(counts[terminal] ?? 0).toLocaleString()}</strong>{' '}
-            journeys end in “{terminal}” · {total.toLocaleString()} total ·{' '}
-            <span className="text-red-600 font-medium">{fraudTotal.toLocaleString()} fraud</span>{' '}
-            ({total ? Math.round((fraudTotal / total) * 100) : 0}%)
+            {t('pages.fraudFlow.journeysStat', {
+              count: (counts[terminal] ?? 0).toLocaleString(),
+              terminal,
+              total: total.toLocaleString(),
+              fraud: fraudTotal.toLocaleString(),
+              pct: total ? Math.round((fraudTotal / total) * 100) : 0,
+            })}
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -80,13 +86,13 @@ export function FraudFlow() {
               }}
               className="h-3.5 w-3.5 accent-red-600"
             />
-            Fraud events only
+            {t('pages.fraudFlow.fraudEventsOnly')}
           </label>
           <label className="flex items-center gap-2 text-xs text-gray-500">
-            Final event
+            {t('pages.fraudFlow.finalEvent')}
             <select
               value={terminal}
-              onChange={(e) => setTerminal(e.target.value)}
+              onChange={(e) => startTransition(() => setTerminal(e.target.value))}
               className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none"
             >
               {visibleTerminals.map((t) => (
@@ -99,10 +105,10 @@ export function FraudFlow() {
           <button
             onClick={() => void seed()}
             disabled={seeding || local}
-            title={local ? 'Deploy to Fabric to seed the SQL database' : 'Seed a sample of events into CustomerEvent'}
+            title={local ? t('pages.fraudFlow.seedTitleLocal') : t('pages.fraudFlow.seedTitle')}
             className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
           >
-            {seeding ? 'Seeding…' : 'Seed sample to SQL DB'}
+            {seeding ? t('pages.fraudFlow.seeding') : t('pages.fraudFlow.seedBtn')}
           </button>
           {seedMsg && <span className="text-[11px] text-gray-400 max-w-56 text-right">{seedMsg}</span>}
         </div>
@@ -110,14 +116,13 @@ export function FraudFlow() {
 
       <section className="ffi-card p-6">
         <h3 className="text-sm font-semibold text-gray-700 mb-1">
-          Top event paths leading to “{terminal}”
+          {t('pages.fraudFlow.topPaths', { terminal })}
         </h3>
         <p className="text-xs text-gray-400 mb-3">
-          Ribbon width = number of customers following that path · hover a ribbon
-          for the exact count.
+          {t('pages.fraudFlow.ribbonNote')}
         </p>
         {nodes.length === 0 ? (
-          <p className="text-center text-gray-400 py-16 text-sm">No journeys for this event.</p>
+          <p className="text-center text-gray-400 py-16 text-sm">{t('pages.fraudFlow.noJourneys')}</p>
         ) : (
           <Sankey nodes={nodes} links={links} columns={columns} height={330} />
         )}
@@ -126,28 +131,28 @@ export function FraudFlow() {
       <section className="ffi-card p-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-gray-700">
-            Event locations map{example.length ? ` — ${example[0].customerId}` : ''}
+            {t('pages.fraudFlow.mapTitle')}{example.length ? ` — ${example[0].customerId}` : ''}
           </h3>
-          <span className="text-xs text-gray-400">Geographic path of the journey · red = fraud</span>
+          <span className="text-xs text-gray-400">{t('pages.fraudFlow.geoPath')}</span>
         </div>
         <JourneyMap events={example} />
       </section>
 
       <section className="ffi-card p-6">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">
-          Example Customer 360 event log{example.length ? ` — ${example[0].customerId}` : ''}
+          {t('pages.fraudFlow.eventLog')}{example.length ? ` — ${example[0].customerId}` : ''}
         </h3>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto ffi-cv-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                <th className="py-2 pr-3">Client</th>
-                <th className="py-2 pr-3">Event</th>
-                <th className="py-2 pr-3">Date</th>
-                <th className="py-2 pr-3">Location</th>
-                <th className="py-2 pr-3">Channel</th>
-                <th className="py-2 pr-3 text-right">Amount</th>
-                <th className="py-2">Description</th>
+                <th className="py-2 pr-3">{t('pages.fraudFlow.thClient')}</th>
+                <th className="py-2 pr-3">{t('pages.fraudFlow.thEvent')}</th>
+                <th className="py-2 pr-3">{t('pages.fraudFlow.thDate')}</th>
+                <th className="py-2 pr-3">{t('pages.fraudFlow.thLocation')}</th>
+                <th className="py-2 pr-3">{t('pages.fraudFlow.thChannel')}</th>
+                <th className="py-2 pr-3 text-right">{t('pages.fraudFlow.thAmount')}</th>
+                <th className="py-2">{t('pages.fraudFlow.thDescription')}</th>
               </tr>
             </thead>
             <tbody>
@@ -174,7 +179,7 @@ export function FraudFlow() {
               {example.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-6 text-center text-gray-400 text-xs">
-                    No example journey.
+                    {t('pages.fraudFlow.noExample')}
                   </td>
                 </tr>
               )}

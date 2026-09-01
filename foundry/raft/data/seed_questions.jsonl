@@ -1,0 +1,12 @@
+{"id": "SEED-AML-001", "domain": "aml", "question": "Is this pattern of sub-threshold cash deposits structuring or smurfing, and which rule was breached?"}
+{"id": "SEED-AML-002", "domain": "aml", "question": "Three customers credited one beneficiary with cash under the reporting limit in a week — what typology is this?"}
+{"id": "SEED-AML-003", "domain": "aml", "question": "Assess these rapid pass-through transfers for layering and state whether the case is SAR-ready."}
+{"id": "SEED-AML-004", "domain": "aml", "question": "The invoice unit price is 40% above the reference band — is this trade-based money laundering?"}
+{"id": "SEED-AML-005", "domain": "aml", "question": "Given the customer risk rating, is this velocity alert consistent with expected activity?"}
+{"id": "SEED-AML-006", "domain": "aml", "question": "Draft the subject, typology, pattern, assessment and recommendation for this AML alert."}
+{"id": "SEED-AML-007", "domain": "aml", "question": "A cash-intensive business shows deposits inconsistent with footfall — which stage of laundering is this?"}
+{"id": "SEED-AML-008", "domain": "aml", "question": "The account belongs to a PEP with unexplained inflows — how does that change the assessment?"}
+{"id": "SEED-AML-009", "domain": "aml", "question": "These correspondent-banking hops obscure the originator — is layering the right typology to cite?"}
+{"id": "SEED-AML-010", "domain": "aml", "question": "Dormant account reactivated with high-value wires — is this SAR-ready and what rule fired?"}
+{"id": "SEED-AML-011", "domain": "aml", "question": "Distinguish structuring from smurfing for this set of deposits and cite the exact threshold."}
+{"id": "SEED-AML-012", "domain": "aml", "question": "Should this alert be escalated to the nominated officer, and what is the exculpatory analysis?"}

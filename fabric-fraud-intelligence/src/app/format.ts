@@ -1,5 +1,7 @@
+import { localeTag } from '@/i18n/i18n';
+
 export const eur = (n: number): string =>
-  new Intl.NumberFormat('en-US', {
+  new Intl.NumberFormat(localeTag(), {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0,

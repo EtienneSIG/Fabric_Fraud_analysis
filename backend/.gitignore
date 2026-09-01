@@ -1,0 +1,6 @@
+node_modules/
+dist/
+local.settings.json
+# Lockfile intentionally untracked: generated under an internal package mirror.
+# Regenerate with `npm install` (relock from a non-mirror environment to commit).
+package-lock.json

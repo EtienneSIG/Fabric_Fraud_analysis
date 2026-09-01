@@ -157,3 +157,37 @@ typologies prioritaires et un pilote sur un périmètre réel.
 - **11** tables Delta gouvernées dans `fraud_lakehouse` (~12,8k lignes chargées en démo)
 - **~10 000** parcours clients analysés dans le Fraud Flow
 - **4** typologies de fraude + **5** parcours bénins modélisés
+
+---
+
+## Segment RAFT — « apprendre à l'agent à lire comme un expert LCB-FT »
+
+Le pic émotionnel. Ouvrir **AML Copilot**, choisir une alerte, cliquer **Comparer base vs RAFT**.
+Deux réponses côte à côte :
+
+- **Base (`gpt-4.1`)** — plausible mais vague : « peut-être du layering ou du structuring »,
+  ancrage faible, aucune règle citée.
+- **Élève RAFT (`gpt-4.1-mini`)** — le récit structuré, prêt pour la DAS : typologie exacte,
+  règle de surveillance précise, évaluation par rapport au profil attendu et recommandation.
+  Moins de jetons, latence plus basse.
+
+Puis **Paramètres et gouvernance → Qualité du modèle** : la même histoire en chiffres — ancrage,
+qualité de récupération et pertinence en hausse, jetons/latence/coût pour 1 000 investigations en
+baisse. Reproductibles depuis `foundry/raft/eval/` (base **et** affiné, toujours ensemble).
+
+Le fil narratif : c'est l'arête `model iteration` de la boucle de remédiation — le backlog de
+réentraînement qui alimente un modèle affiné — désormais **solide**, plus en pointillés. RAFT
+complète l'architecture déjà dessinée. Tout reste consultatif ; la validation humaine demeure requise.
+
+## Checklist du jour J (déploiement Developer tier)
+
+Les déploiements affinés en Developer tier n'ont **aucun coût horaire d'hébergement** mais sont
+**supprimés automatiquement après 24 h**. Le matin de la démo :
+
+1. `az login` sur le locataire/abonnement de démo.
+2. Redéployer l'élève (une commande) :
+   `foundry/raft/redeploy_student.ps1 -ResourceGroup <rg> -AccountName <aif>`.
+3. Positionner `VITE_RAFT_ENABLED=true` et `VITE_RAFT_STUDENT_DEPLOYMENT=raft-student`.
+4. Tester l'A/B sur une alerte LCB-FT ; vérifier le rendu de l'onglet Qualité du modèle.
+5. Si l'endpoint n'est pas nécessaire en direct, laisser les drapeaux désactivés — l'app affiche
+   l'A/B mock déterministe et l'évaluation échantillon committée, entièrement hors-ligne.

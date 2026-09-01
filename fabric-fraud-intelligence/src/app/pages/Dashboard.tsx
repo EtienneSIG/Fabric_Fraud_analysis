@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { KPIGrid } from '@/app/components/KPIGrid';
 import { AlertTable } from '@/app/components/AlertTable';
 import { eur } from '@/app/format';
@@ -6,35 +8,33 @@ import { getKpis } from '@/backend/api/dashboard';
 import { SEVERITY_COLORS } from '@/backend/models';
 
 export function Dashboard() {
+  const { t } = useTranslation();
   const k = getKpis();
   const highRisk = getAlerts()
     .filter((a) => a.severity === 'High' || a.severity === 'Critical')
     .slice(0, 7);
-  const maxType = Math.max(...k.byType.map((t) => t.count), 1);
+  const maxType = Math.max(...k.byType.map((x) => x.count), 1);
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Fraud Command Center</h2>
-        <p className="text-sm text-gray-400">
-          Governed data + AI on Microsoft Fabric · real-time fraud, AML, KYC,
-          identity &amp; claims.
-        </p>
+        <h2 className="text-lg font-bold text-gray-900">{t('pages.dashboard.title')}</h2>
+        <p className="text-sm text-gray-400">{t('pages.dashboard.subtitle')}</p>
       </div>
 
       <KPIGrid
         items={[
-          { label: 'Alerts today', value: String(k.alertsToday), accent: '#4f46e5' },
-          { label: 'High-risk alerts', value: String(k.highRiskAlerts), accent: '#dc2626' },
-          { label: 'Avg investigation', value: `${k.avgInvestigationHours}h` },
-          { label: 'Est. fraud exposure', value: eur(k.estimatedFraudExposure), accent: '#dc2626' },
-          { label: 'False-positive rate', value: `${k.falsePositiveRate}%`, accent: '#16a34a' },
+          { label: t('pages.dashboard.kpiAlertsToday'), value: String(k.alertsToday), accent: '#4f46e5' },
+          { label: t('pages.dashboard.kpiHighRisk'), value: String(k.highRiskAlerts), accent: '#dc2626' },
+          { label: t('pages.dashboard.kpiAvgInvestigation'), value: `${k.avgInvestigationHours}h` },
+          { label: t('pages.dashboard.kpiFraudExposure'), value: eur(k.estimatedFraudExposure), accent: '#dc2626' },
+          { label: t('pages.dashboard.kpiFalsePositive'), value: `${k.falsePositiveRate}%`, accent: '#16a34a' },
         ]}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="ffi-card p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Alerts by fraud type</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('pages.dashboard.byType')}</h3>
           <div className="space-y-2.5">
             {k.byType.map((t) => (
               <div key={t.type} className="flex items-center gap-3">
@@ -52,7 +52,7 @@ export function Dashboard() {
         </section>
 
         <section className="ffi-card p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Severity mix</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('pages.dashboard.severityMix')}</h3>
           <div className="space-y-2.5">
             {k.bySeverity.map((s) => (
               <div key={s.severity} className="flex items-center gap-3">
@@ -74,7 +74,7 @@ export function Dashboard() {
       </div>
 
       <section className="ffi-card p-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Top high-risk alerts</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('pages.dashboard.topHighRisk')}</h3>
         <AlertTable rows={highRisk} />
       </section>
     </div>

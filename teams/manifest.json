@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.17",
+  "version": "1.0.0",
+  "id": "${{BOT_APP_ID}}",
+  "developer": {
+    "name": "Fabric Fraud Intelligence",
+    "websiteUrl": "https://example.com",
+    "privacyUrl": "https://example.com/privacy",
+    "termsOfUseUrl": "https://example.com/terms"
+  },
+  "name": {
+    "short": "Fraud Intelligence",
+    "full": "Fabric Fraud Intelligence"
+  },
+  "description": {
+    "short": "Fraud case approvals in Teams",
+    "full": "Approve, escalate or dismiss fraud cases from Adaptive Cards. All decisions are human-in-the-loop and written back to OneLake."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#4f46e5",
+  "bots": [
+    {
+      "botId": "${{BOT_APP_ID}}",
+      "scopes": ["personal", "team"],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": []
+}

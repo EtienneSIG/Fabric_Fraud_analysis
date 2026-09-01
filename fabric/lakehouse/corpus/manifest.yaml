@@ -1,0 +1,213 @@
+# Fraud document corpus manifest.
+# Validated against corpus.schema.json. AML is the single RAFT training domain; every
+# other domain is present only as a distractor (see raft.instructions.md). Near-duplicate,
+# easily-confused documents are intentional — do not deduplicate.
+version: 1
+corpus_id: fraud-doc-corpus
+training_domain: aml
+documents:
+  # --- AML (training domain) ---
+  - id: aml-structuring
+    title: "Structuring: threshold avoidance by a single actor"
+    path: aml/structuring.md
+    domain: aml
+    typology: structuring
+    role: training
+    language: en
+    confusable_with: [aml-smurfing, aml-layering]
+  - id: aml-smurfing
+    title: "Smurfing: sub-threshold amounts across many actors"
+    path: aml/smurfing.md
+    domain: aml
+    typology: smurfing
+    role: training
+    language: en
+    confusable_with: [aml-structuring, aml-layering]
+  - id: aml-layering
+    title: "Layering: obscuring origin through transfer chains"
+    path: aml/layering.md
+    domain: aml
+    typology: layering
+    role: training
+    language: en
+    confusable_with: [aml-structuring, aml-smurfing, aml-trade-based]
+  - id: aml-trade-based
+    title: "Trade-based money laundering"
+    path: aml/trade-based-laundering.md
+    domain: aml
+    typology: trade-based-laundering
+    role: training
+    language: en
+    confusable_with: [aml-layering]
+  - id: aml-stages
+    title: "Placement, layering and integration"
+    path: aml/placement-integration.md
+    domain: aml
+    typology: money-laundering-stages
+    role: training
+    language: en
+  - id: aml-sar-guidance
+    title: "SAR readiness assessment guidance"
+    path: aml/sar-filing-guidance.md
+    domain: aml
+    typology: sar-readiness
+    role: training
+    language: en
+  - id: aml-thresholds
+    title: "Transaction monitoring thresholds"
+    path: aml/transaction-monitoring-thresholds.md
+    domain: aml
+    typology: monitoring-thresholds
+    role: training
+    language: en
+  - id: aml-typology-overview
+    title: "AML typology overview"
+    path: aml/typology-overview.md
+    domain: aml
+    typology: typology-index
+    role: training
+    language: en
+  - id: aml-customer-risk
+    title: "Customer risk rating"
+    path: aml/customer-risk-rating.md
+    domain: aml
+    typology: customer-risk-rating
+    role: training
+    language: en
+  - id: aml-correspondent
+    title: "Correspondent banking risk"
+    path: aml/correspondent-banking.md
+    domain: aml
+    typology: correspondent-banking
+    role: training
+    language: en
+  - id: aml-cash-intensive
+    title: "Cash-intensive business commingling"
+    path: aml/cash-intensive-business.md
+    domain: aml
+    typology: cash-intensive-business
+    role: training
+    language: en
+    confusable_with: [aml-structuring]
+  - id: aml-pep
+    title: "PEP and adverse media screening"
+    path: aml/pep-screening.md
+    domain: aml
+    typology: pep-screening
+    role: training
+    language: en
+  # --- Card (distractor) ---
+  - id: card-cnp
+    title: "Card-not-present fraud"
+    path: card/card-not-present.md
+    domain: card
+    typology: card-not-present
+    role: distractor
+    language: en
+    confusable_with: [card-friendly-fraud, card-chargeback]
+  - id: card-chargeback
+    title: "Chargeback versus dispute"
+    path: card/chargeback-vs-dispute.md
+    domain: card
+    typology: chargeback-dispute
+    role: distractor
+    language: en
+    confusable_with: [card-friendly-fraud]
+  - id: card-friendly-fraud
+    title: "Friendly fraud"
+    path: card/friendly-fraud.md
+    domain: card
+    typology: friendly-fraud
+    role: distractor
+    language: en
+    confusable_with: [card-chargeback, card-cnp]
+  - id: card-cnp-thresholds
+    title: "CNP detection thresholds"
+    path: card/cnp-detection-thresholds.md
+    domain: card
+    typology: cnp-thresholds
+    role: distractor
+    language: en
+    confusable_with: [aml-thresholds]
+  # --- KYC (distractor) ---
+  - id: kyc-refresh
+    title: "KYC refresh"
+    path: kyc/kyc-refresh.md
+    domain: kyc
+    typology: kyc-refresh
+    role: distractor
+    language: en
+  - id: kyc-edd
+    title: "Enhanced due diligence triggers"
+    path: kyc/edd-triggers.md
+    domain: kyc
+    typology: edd-triggers
+    role: distractor
+    language: en
+  - id: kyc-ubo
+    title: "Beneficial ownership"
+    path: kyc/beneficial-ownership.md
+    domain: kyc
+    typology: beneficial-ownership
+    role: distractor
+    language: en
+  # --- Identity (distractor) ---
+  - id: identity-synthetic
+    title: "Synthetic identity fraud"
+    path: identity/synthetic-identity.md
+    domain: identity
+    typology: synthetic-identity
+    role: distractor
+    language: en
+    confusable_with: [aml-smurfing]
+  - id: identity-ato
+    title: "Account takeover"
+    path: identity/account-takeover.md
+    domain: identity
+    typology: account-takeover
+    role: distractor
+    language: en
+  # --- Claims (distractor) ---
+  - id: claims-image-reuse
+    title: "Claims image reuse"
+    path: claims/claims-image-reuse.md
+    domain: claims
+    typology: image-reuse
+    role: distractor
+    language: en
+  - id: claims-provider-collusion
+    title: "Provider collusion"
+    path: claims/provider-collusion.md
+    domain: claims
+    typology: provider-collusion
+    role: distractor
+    language: en
+  # --- Procedures (cross-domain) ---
+  - id: proc-case-escalation
+    title: "Case escalation procedure"
+    path: procedures/case-escalation.md
+    domain: procedures
+    typology: case-escalation
+    role: procedure
+    language: en
+  - id: proc-card-freeze
+    title: "Card freeze procedure"
+    path: procedures/card-freeze.md
+    domain: procedures
+    typology: card-freeze
+    role: procedure
+    language: en
+  - id: proc-sar-filing
+    title: "SAR filing procedure"
+    path: procedures/sar-filing-procedure.md
+    domain: procedures
+    typology: sar-filing
+    role: procedure
+    language: en
+  - id: proc-kyc-refresh
+    title: "KYC refresh procedure"
+    path: procedures/kyc-refresh-procedure.md
+    domain: procedures
+    typology: kyc-refresh
+    role: procedure
+    language: en

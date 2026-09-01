@@ -189,3 +189,149 @@ completes successfully.
 The public Fabric REST API supports Data Agent lifecycle and definition management,
 but does not expose a conversation endpoint. The application therefore retains its
 deterministic grounded fallback for in-app agent responses.
+
+## Extended integrations (Foundry Agent Service + O365)
+
+These are optional and off by default; the app stays mock-first until the flags are set.
+
+### A. Azure support infrastructure (Terraform)
+
+```powershell
+cd infra/terraform
+Copy-Item terraform.tfvars.example terraform.tfvars   # edit subscription_id / tenant_id
+terraform init
+terraform validate
+terraform plan -out tfplan
+terraform apply tfplan            # only with your confirmation
+```
+
+Provisions Foundry (AI Services + model deployments), Key Vault, Event Hub, Log Analytics,
+the Teams **Azure Bot**, the **Azure Function** (bot `/api/messages` endpoint) and the
+**delegated (OBO)** Graph app registration. See [infra/terraform/README.md](../infra/terraform/README.md).
+
+### B. Foundry agents (connected-agent topology)
+
+```powershell
+& foundry/agents/deploy_agents.ps1 `
+  -FoundryEndpoint (terraform -chdir=infra/terraform output -raw ai_foundry_endpoint) `
+  -FabricDataAgentUrl "<published-data-agent-url>"
+```
+
+Creates `conn-fabric-fraud-dataagent` and the `fraud-triage-agent` orchestrator delegating to
+`fraud-investigation-agent` / `fraud-aml-agent` / `fraud-claims-agent`, grounded on Fabric with OBO.
+
+### C. Backend
+
+Mount the handlers in [backend/](../backend/) on the Rayfin `functions` service (preferred), and
+deploy the Azure Function for the Teams bot endpoint. Point the SPA at it via `VITE_BACKEND_API_URL`.
+
+### D. Teams app
+
+Package and side-load [teams/](../teams/) (`manifest.json` uses the `bot_app_id` output).
+
+### E. Turn it on
+
+In `.env.local` (see [.env.example](../fabric-fraud-intelligence/.env.example)):
+
+```
+VITE_FABRIC_APP_MODE=fabric
+VITE_BACKEND_API_URL=<backend url>
+VITE_FOUNDRY_ENDPOINT=<tf ai_foundry_endpoint>
+VITE_GRAPH_OBO_CLIENT_ID=<tf graph_obo_client_id>
+VITE_FOUNDRY_ENABLED=true
+VITE_WORKIQ_ENABLED=true
+VITE_TEAMS_ENABLED=true
+```
+
+## RAFT — document reasoning (WS-1 → WS-10)
+
+Optional and off by default. Adds the fraud document corpus, an AI Search index, a Foundry IQ
+knowledge base, and the fine-tuned AML student model with its in-app A/B compare + Model Quality
+tab. The app stays mock-first until `VITE_RAFT_ENABLED=true` **and** a student deployment is wired.
+
+### F1. Corpus → OneLake (WS-1)
+
+```powershell
+& fabric/lakehouse/corpus/upload_corpus.ps1 `
+  -Ws "<workspace-id>" -Lh "<lakehouse-id>"
+```
+
+### F2. AI Search + OneLake indexer (WS-2)
+
+```powershell
+cd infra/terraform
+$a = "-var=enable_search=true"; terraform apply $a          # provisions srch-<suffix>
+& modules/search/create_indexer.ps1 `
+  -SearchEndpoint (terraform output -raw ai_search_endpoint) `
+  -WorkspaceId "<workspace-id>" -LakehouseId "<lakehouse-id>"
+cd ../..
+```
+
+### F3. Foundry IQ knowledge base (WS-3) and agent wiring
+
+```powershell
+& foundry/knowledge/deploy_knowledge.ps1 `
+  -FoundryEndpoint (terraform -chdir=infra/terraform output -raw ai_foundry_endpoint) `
+  -WorkspaceId "<workspace-id>" -LakehouseId "<lakehouse-id>" `
+  -SearchEndpoint (terraform -chdir=infra/terraform output -raw ai_search_endpoint)
+
+# Re-run the agent topology with the knowledge tool attached:
+& foundry/agents/deploy_agents.ps1 `
+  -FoundryEndpoint (terraform -chdir=infra/terraform output -raw ai_foundry_endpoint) `
+  -FabricDataAgentUrl "<published-data-agent-url>" `
+  -KnowledgeConnectionName "conn-onelake-fraud-corpus"
+```
+
+### F4. Generate the dataset (WS-4/WS-5) — local or Fabric
+
+```powershell
+# Local / papermill:
+cd foundry/raft; uv sync
+$env:AI_FOUNDRY_ENDPOINT = "<aoai-endpoint>"
+papermill 1_gen.ipynb out/1_gen.ipynb -f parameters/gpt-4.1-mini.yaml; cd ../..
+
+# Or in Fabric (OneLake-native, schedulable):
+& foundry/raft/fabric/deploy_pipeline.ps1 -Ws "<workspace-id>"
+```
+
+### F5. Fine-tune + deploy the student (WS-6) — Developer tier
+
+Run `foundry/raft/2_finetune.ipynb` then `3_deploy.ipynb` (or the 100 % portal path in
+[raft-finetune-foundry-ui.md](raft-finetune-foundry-ui.md)). Then surface it via Terraform:
+
+```powershell
+cd infra/terraform
+$m = "-var=raft_student_ft_model_id=gpt-4.1-mini.ft-<jobid>"; terraform apply $m
+cd ../..
+```
+
+> **Developer-tier deployments are auto-removed after 24 h.** Recreate on demo morning:
+> `& foundry/raft/redeploy_student.ps1`.
+
+### F6. Turn RAFT on in the app
+
+Add to `.env.local`, then rebuild:
+
+```
+VITE_RAFT_ENABLED=true
+VITE_RAFT_STUDENT_DEPLOYMENT=<student deployment name>
+```
+
+Backend env for the live A/B + eval routes (`raft/compare`, `raft/eval`): `AI_FOUNDRY_ENDPOINT`,
+`RAFT_STUDENT_DEPLOYMENT`, optionally `RAFT_BASELINE_DEPLOYMENT` (default `gpt-4.1`), and
+`ONELAKE_WORKSPACE` / `ONELAKE_LAKEHOUSE` for live eval results.
+
+## Demo modes & graceful degradation
+
+Every integration degrades to a deterministic mock when not configured, and the app **marks the
+state**: a discreet **mode badge** in the header (grey *Demo · mock* / amber *Partial* / green
+*Live*, with a per-integration tooltip) plus per-panel *Simulated* / *sample* labels on the AML A/B
+and Model Quality views. Check readiness before a session:
+
+```powershell
+& scripts/demo-readiness.ps1 -EnvFile fabric-fraud-intelligence/.env.local -BackendUrl "<backend>"
+```
+
+- **Full mock** (default): nothing wired — 100 % offline, deterministic. Safest for the room.
+- **Partial live**: e.g. Foundry agents live, RAFT still mock — the badge shows amber.
+- **Live**: all flags set + student deployed + backend routes reachable.

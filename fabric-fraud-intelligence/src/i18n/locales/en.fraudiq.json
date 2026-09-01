@@ -1,0 +1,235 @@
+{
+  "sampleQuestions": [
+    "Is CUST-014 part of a coordinated fraud ring?",
+    "Explain the AML risk on the Corporate customer and recommend an action.",
+    "Why was the card-fraud alert raised and what should we do?",
+    "Summarize the claims-fraud collusion network for the case review."
+  ],
+  "work": {
+    "aml": [
+      "Teams: analyst s.martin flagged these counterparties in the \"AML-EMEA\" channel 3 days ago.",
+      "SharePoint: SAR-template.docx and the EMEA wire-threshold policy are available to attach.",
+      "Calendar: a case-review meeting with the MLRO is scheduled today at 15:00."
+    ],
+    "card": [
+      "Teams: the merchant \"CryptoXchange\" was reported by two analysts last week.",
+      "Outlook: the chargeback confirmation email from the card scheme is in the case mailbox.",
+      "People: case owner a.dupont has resolved 6 similar card-fraud cases this quarter."
+    ],
+    "claim": [
+      "SharePoint: the prior investigation report on \"AutoRepair Pro\" from Q1 is on file.",
+      "Teams: the claims-fraud channel already discusses provider concentration.",
+      "People: k.okafor (claims SME) is the recommended reviewer."
+    ],
+    "takeover": [
+      "Teams: the security team posted an impossible-travel advisory for this region.",
+      "Outlook: the customer contact log shows no travel notification on file.",
+      "Calendar: the fraud-ops standup at 09:00 can pick up the escalation."
+    ],
+    "generic": [
+      "Teams: related discussions and mentions from the case team were surfaced.",
+      "SharePoint: relevant playbooks and templates were located.",
+      "People & calendar: the case owner and next review slot were identified."
+    ]
+  },
+  "foundry": {
+    "aml": [
+      "Knowledge: matched the AML \"layering\" typology and the €10k EU wire-reporting threshold.",
+      "Memory: a similar 2025 case was resolved by SAR filing + account hold.",
+      "Tool: sanctions/PEP screening returned a medium adverse-media hit."
+    ],
+    "card": [
+      "Knowledge: \"impossible travel + new device\" maps to the card-takeover pattern.",
+      "Memory: comparable cases had a 96% confirmed-fraud rate on block + reissue.",
+      "Tool: the real-time risk model v3.1 re-scored the event at 0.94."
+    ],
+    "claim": [
+      "Knowledge: image-hash reuse + provider concentration = organised claims fraud.",
+      "Memory: a prior ring was dismantled by freezing payouts to the shared provider.",
+      "Tool: graph community-detection confirmed the ring boundary."
+    ],
+    "takeover": [
+      "Knowledge: retrieved the account-takeover response playbook.",
+      "Memory: earlier ATO cases were resolved by payment freeze + verified reset.",
+      "Tool: a device-intelligence check flagged the new fingerprint as high-risk."
+    ],
+    "generic": [
+      "Knowledge: relevant fraud typologies and thresholds were retrieved.",
+      "Memory: outcomes of similar prior cases were recalled.",
+      "Tool: risk scoring and screening were executed with grounded context."
+    ]
+  },
+  "web": {
+    "aml": [
+      "Web IQ · EUR-Lex: EU obligations on suspicious-transaction detection and reporting, with source link.",
+      "Web IQ · ACPR: official guidance on layering typologies and reporting thresholds.",
+      "Web IQ · citations restricted to official domains; no case PII sent to the web."
+    ],
+    "card": [
+      "Web IQ · EUR-Lex: payment-services obligations on strong customer authentication, cited.",
+      "Web IQ · ACPR: official duties on card-fraud detection and customer protection.",
+      "Web IQ · only generic legal terms leave the platform; sources are verifiable."
+    ],
+    "claim": [
+      "Web IQ · Legifrance: insurance-fraud provisions applicable to organised claims rings.",
+      "Web IQ · official guidance on provider-collusion reporting duties, with links.",
+      "Web IQ · citations limited to official regulatory domains."
+    ],
+    "takeover": [
+      "Web IQ · EBA/ACPR: obligations on account-takeover prevention and incident handling.",
+      "Web IQ · official guidance on strong authentication and customer notification.",
+      "Web IQ · no personal data in the web query; official sources only."
+    ],
+    "generic": [
+      "Web IQ · current regulatory obligations retrieved from official sources, cited.",
+      "Web IQ · search and citations restricted to an official-domain allow-list.",
+      "Web IQ · only generic legal terms leave the platform; source links preserved."
+    ]
+  },
+  "synthesis": {
+    "aml": {
+      "verdict": "Probable money laundering — coordinated layering scheme",
+      "rationale": "Cross-referencing the three IQs, the evidence converges. Fabric IQ establishes, on the real data, a 48-hour layering chain across 4 linked accounts, with ~92% of inflows re-externalised and round amounts inconsistent with declared activity. Work IQ shows the team already flagged these counterparties and that a SAR template is ready. Foundry IQ ties the pattern to the \"layering\" typology, the EU reporting threshold and a prior SAR resolution. Together, structuring + velocity + rapid re-externalisation corroborate intent to obscure the origin of funds.",
+      "findings": [
+        "Fabric IQ · A→B→C→cash-out chain in <48h across 4 linked accounts",
+        "Fabric IQ · 92% of inflows externalised, atypical round amounts",
+        "Work IQ · counterparties already flagged by the AML-EMEA team",
+        "Foundry IQ · \"layering\" typology + EU reporting threshold reached"
+      ],
+      "actions": [
+        "Freeze outbound payments on the account",
+        "Open an investigation on the linked accounts",
+        "Prepare and file a SAR with the MLRO (human approval)"
+      ],
+      "businessImpact": [
+        "Faster SAR filing: from ~90 min of investigation to seconds.",
+        "Reduced regulatory and fine risk via early layering detection.",
+        "Fewer false positives → analyst time reallocated to real cases."
+      ]
+    },
+    "card": {
+      "verdict": "Card fraud highly likely — takeover / impossible travel",
+      "rationale": "Fabric IQ links, live, the e-commerce transaction to a card/IP location mismatch and a velocity spike 4× the baseline, on a device first seen minutes earlier. Work IQ shows the merchant was recently reported and that a chargeback is already logged. Foundry IQ re-scores the event at 0.94 and recalls a 96% confirmed-fraud rate on block + reissue for comparable cases. The geo + velocity + new-device convergence makes fraud the dominant scenario.",
+      "findings": [
+        "Fabric IQ · card/IP geo-mismatch + velocity 4× baseline",
+        "Fabric IQ · new device seen 12 min before the transaction",
+        "Work IQ · merchant recently reported, chargeback logged",
+        "Foundry IQ · 96% confirmed fraud on block + reissue (similar cases)"
+      ],
+      "actions": [
+        "Block the card and reverse the disputed authorization",
+        "Step up authentication on the account",
+        "Contact the customer for confirmation"
+      ],
+      "businessImpact": [
+        "Losses avoided: real-time block before the transaction cascade.",
+        "Customer experience preserved via targeted step-up instead of a blanket block.",
+        "Chargebacks and processing costs reduced."
+      ]
+    },
+    "claim": {
+      "verdict": "Documentary claims-fraud network",
+      "rationale": "Fabric IQ exposes a dense provider–policyholder subgraph (modularity 0.71) with damage-photo hash reuse across several claims. Work IQ surfaces a prior report on the provider and a recommended SIU examiner. Foundry IQ confirms the organised-fraud pattern and recalls that freezing payments to the shared provider dismantled a similar network. Provider concentration + reused evidence point to collusion rather than isolated cases.",
+      "findings": [
+        "Fabric IQ · dense subgraph (modularity 0.71) provider–policyholders",
+        "Fabric IQ · damage-photo hash reused across 3 claims",
+        "Work IQ · prior report on the provider available",
+        "Foundry IQ · precedent resolved by freezing payments to the provider"
+      ],
+      "actions": [
+        "Freeze payments to the shared provider",
+        "Escalate the network to the SIU",
+        "Reopen linked claims for review"
+      ],
+      "businessImpact": [
+        "Direct savings: fraudulent payouts stopped before payment.",
+        "Network dismantled in one pass — SIU ROI.",
+        "Well-documented, litigation-defensible files."
+      ]
+    },
+    "takeover": {
+      "verdict": "Account takeover (ATO) in progress",
+      "rationale": "Fabric IQ traces the reset→new-device→new-beneficiary→outbound-wire sequence, with impossible travel (two logins 900 km apart in 20 min). Work IQ has a regional advisory and no travel notification on file. Foundry IQ retrieves the ATO playbook and prior resolutions by freeze + verified reset. The rapid chaining of sensitive changes from a foreign IP signals a takeover.",
+      "findings": [
+        "Fabric IQ · reset → new device → new beneficiary → wire",
+        "Fabric IQ · impossible travel (900 km in 20 min)",
+        "Work IQ · regional ATO advisory, no travel notice on file",
+        "Foundry IQ · ATO playbook + freeze + verified-reset resolutions"
+      ],
+      "actions": [
+        "Freeze payments and revoke device/beneficiary",
+        "Force a verified credential reset",
+        "Contact the customer through a trusted channel"
+      ],
+      "businessImpact": [
+        "Customer funds protected by a freeze before externalisation.",
+        "Customer trust and retention strengthened.",
+        "Fewer recurring ATO incidents via the reused playbook."
+      ]
+    },
+    "generic": {
+      "verdict": "Signal to investigate — consolidated multi-IQ context",
+      "rationale": "Fabric IQ provides governed facts and relationships from the ontology and lakehouse; Work IQ adds human and organisational context (exchanges, documents, case owner); Foundry IQ contributes typologies, case memory and tools. Together they produce an explainable, decision-ready assessment with a recommended action.",
+      "findings": [
+        "Fabric IQ · entity resolved: customer, accounts, transactions, alerts",
+        "Fabric IQ · shared-entity links retrieved for context",
+        "Work IQ · relevant discussions and documents located",
+        "Foundry IQ · typologies and similar cases recalled"
+      ],
+      "actions": [
+        "Prioritise by centrality in the graph",
+        "Gather evidence and document the case",
+        "Decide (monitor / escalate) with human approval"
+      ],
+      "businessImpact": [
+        "A ~90-min investigation reduced to seconds.",
+        "Explained, auditable decisions → easier compliance.",
+        "Analyst productivity and time-to-decision greatly improved."
+      ]
+    }
+  },
+  "scenario": {
+    "prompt": "Analyze this fraud alert and recommend an action.",
+    "context": [
+      "Bank card used at 03:00",
+      "Payment at a hotel abroad",
+      "41 transactions in 4 hours",
+      "Unusual country for the customer",
+      "Mobile located in another country"
+    ],
+    "beforeSteps": [
+      "Check the anti-fraud rules engine",
+      "Review the risk scores",
+      "Query the data warehouse",
+      "Search in Teams",
+      "Read the emails",
+      "Look for similar incidents",
+      "Check the procedures",
+      "Call a colleague",
+      "Consolidate the information",
+      "Make a decision"
+    ],
+    "work": [
+      "A colleague (a.dupont) handled a nearly identical case 5 days ago.",
+      "Teams exchanges in the \"Fraud-EMEA\" channel mention the same hotel.",
+      "A similar investigation already exists and can be reused as a template.",
+      "The customer may have reported an issue via support earlier."
+    ],
+    "foundry": [
+      "Applies the fraud policy: geo-mismatch + abnormal velocity + atypical time = block.",
+      "Cross-references the \"card-present takeover / impossible travel\" typology from the knowledge base.",
+      "Memory: comparable cases had 96% confirmed fraud on block + reissue.",
+      "Generates explainable reasoning and an action recommendation."
+    ],
+    "web": [
+      "EUR-Lex: applicable EU obligations on suspicious-transaction reporting, cited.",
+      "ACPR: official guidance on card-fraud detection duties, with source link.",
+      "Citations limited to official domains; only generic legal terms leave the platform."
+    ],
+    "recommendationActions": [
+      "Card temporarily blocked",
+      "Customer contact recommended",
+      "Investigation case created automatically"
+    ]
+  }
+}

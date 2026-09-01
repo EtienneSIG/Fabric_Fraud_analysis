@@ -1,31 +1,45 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 
 import {
   askMicrosoftIq,
   cardFraudScenario,
+  flavor,
   IQS,
-  SAMPLE_QUESTIONS,
+  getSampleQuestions,
   type IqId,
   type IqResult,
 } from '@/backend/api/microsoftIq';
+import { isFoundryEnabled, isWorkIqEnabled, isWebIqEnabled } from '@/backend/config';
+import { workIq } from '@/backend/services/WorkIqGraphClient';
+import { webIq } from '@/backend/services/WebIqClient';
 
-const LIVE: Record<IqId, boolean> = { fabric: true, work: false, foundry: false };
-const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed' };
+const isLive = (id: IqId): boolean =>
+  id === 'fabric'
+    ? true
+    : id === 'work'
+      ? isWorkIqEnabled()
+      : id === 'web'
+        ? isWebIqEnabled()
+        : isFoundryEnabled();
+const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed', web: '#ea580c' };
 const IQ_BY_ID = Object.fromEntries(IQS.map((i) => [i.id, i])) as Record<IqId, (typeof IQS)[number]>;
 
 function Badge({ live }: { live: boolean }) {
+  const { t } = useTranslation();
   return (
     <span
       className={`text-[10px] font-semibold rounded-full px-2 py-0.5 ${
         live ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
       }`}
     >
-      {live ? 'Live' : 'Simulated'}
+      {live ? t('common.live') : t('common.simulated')}
     </span>
   );
 }
 
 function IqColumn({ id, items, revealed }: { id: IqId; items: string[]; revealed: boolean }) {
+  const { t } = useTranslation();
   const iq = IQ_BY_ID[id];
   return (
     <div className="rounded-xl border border-gray-100 p-3">
@@ -33,7 +47,7 @@ function IqColumn({ id, items, revealed }: { id: IqId; items: string[]; revealed
         <h4 className="text-sm font-semibold" style={{ color: COLOR[id] }}>
           {iq.name}
         </h4>
-        <Badge live={LIVE[id]} />
+        <Badge live={isLive(id)} />
       </div>
       <p className="text-[11px] text-gray-400">{iq.grounds}</p>
       {revealed ? (
@@ -48,7 +62,7 @@ function IqColumn({ id, items, revealed }: { id: IqId; items: string[]; revealed
       ) : (
         <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
           <span className="inline-block h-3 w-3 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
-          grounding…
+          {t('fraudIqPage.groundingCol')}
         </div>
       )}
     </div>
@@ -56,7 +70,10 @@ function IqColumn({ id, items, revealed }: { id: IqId; items: string[]; revealed
 }
 
 export function FraudIQ() {
-  const scenario = useMemo(() => cardFraudScenario(), []);
+  const { t, i18n } = useTranslation();
+  // Localized content: rebuild when the UI language changes (i18n is read inside).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const scenario = useMemo(() => cardFraudScenario(), [i18n.language]);
 
   // Flagship scenario run
   const [started, setStarted] = useState(false);
@@ -75,7 +92,9 @@ export function FraudIQ() {
   const done = phase >= 4;
 
   // Free-form multi-IQ ask
-  const [question, setQuestion] = useState(SAMPLE_QUESTIONS[0]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const samples = useMemo(() => getSampleQuestions(), [i18n.language]);
+  const [question, setQuestion] = useState(samples[0]);
   const [result, setResult] = useState<IqResult | null>(null);
   const [askPhase, setAskPhase] = useState(0);
   const askTimers = useRef<number[]>([]);
@@ -88,29 +107,39 @@ export function FraudIQ() {
     [400, 800, 1200, 1600].forEach((ms, i) =>
       askTimers.current.push(window.setTimeout(() => setAskPhase(i + 1), ms))
     );
+    // Real Work IQ (Microsoft Graph, OBO) replaces the static work column when enabled.
+    if (isWorkIqEnabled()) {
+      void workIq.getSignals(question, flavor(question), i18n.language).then((signals) => {
+        if (signals && signals.length) setResult((r) => (r ? { ...r, work: signals } : r));
+      });
+    }
+    // Real Web IQ (Microsoft Web IQ, backend proxy) replaces the static web column when enabled.
+    if (isWebIqEnabled()) {
+      void webIq.getCitations(question, i18n.language).then((cites) => {
+        if (cites && cites.length)
+          setResult((r) => (r ? { ...r, web: cites.map((c) => `${c.title} — ${c.url}`) } : r));
+      });
+    }
   };
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Fraud IQ</h2>
+        <h2 className="text-lg font-bold text-gray-900">{t('fraudIqPage.fraudIqTitle')}</h2>
         <p className="text-sm text-gray-400 max-w-3xl">
-          L’intelligence anti-fraude propulsée par <strong>Microsoft IQ</strong> :
-          <strong> Fabric IQ</strong> (données &amp; ontologie, en direct sur nos tables),
-          <strong> Work IQ</strong> (contexte de travail Microsoft 365) et
-          <strong> Foundry IQ</strong> (connaissance &amp; raisonnement des agents).
+          <Trans i18nKey="fraudIqPage.microsoftIqIntro" components={{ b: <strong /> }} />
         </p>
       </div>
 
       {/* The three IQs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {IQS.map((iq) => (
           <section key={iq.id} className="ffi-card p-4 border-t-4" style={{ borderTopColor: iq.color }}>
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold" style={{ color: iq.color }}>
                 {iq.name}
               </h3>
-              <Badge live={LIVE[iq.id]} />
+              <Badge live={isLive(iq.id)} />
             </div>
             <p className="text-xs font-medium text-gray-500">{iq.tagline}</p>
             <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{iq.description}</p>
@@ -122,10 +151,10 @@ export function FraudIQ() {
       <section className="ffi-card p-6">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-md bg-red-600 text-white text-[11px] font-semibold px-2 py-0.5">
-            Scénario
+            {t('fraudIqPage.scenarioBadge')}
           </span>
           <h3 className="text-sm font-bold text-gray-900">
-            Fraude carte bancaire en temps réel — de 90 minutes à 30 secondes
+            {t('fraudIqPage.scenarioTitle')}
           </h3>
         </div>
 
@@ -134,7 +163,7 @@ export function FraudIQ() {
           <div className="flex items-center gap-2">
             <span aria-hidden>🚨</span>
             <span className="text-sm font-semibold text-red-700">
-              Alerte {scenario.alertId} — {scenario.customerName} ({scenario.customerId})
+              {t('fraudIqPage.alertLine', { alertId: scenario.alertId, name: scenario.customerName, customerId: scenario.customerId })}
             </span>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -150,8 +179,8 @@ export function FraudIQ() {
           {/* Before */}
           <div className="rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-gray-700">Sans Fraud IQ</h4>
-              <span className="rounded-md bg-gray-900 text-white text-xs font-bold px-2 py-0.5">≈ 90 min</span>
+              <h4 className="text-sm font-semibold text-gray-700">{t('fraudIqPage.withoutIq')}</h4>
+              <span className="rounded-md bg-gray-900 text-white text-xs font-bold px-2 py-0.5">{t('fraudIqPage.approx90')}</span>
             </div>
             <ol className="mt-2 space-y-1">
               {scenario.beforeSteps.map((s, i) => (
@@ -161,15 +190,15 @@ export function FraudIQ() {
                 </li>
               ))}
             </ol>
-            <p className="mt-2 text-xs text-gray-400">10 étapes manuelles, plusieurs outils, un appel à un collègue.</p>
+            <p className="mt-2 text-xs text-gray-400">{t('fraudIqPage.manualSteps')}</p>
           </div>
 
           {/* After */}
           <div className="rounded-xl border-2 border-indigo-200 p-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-indigo-700">Avec Fraud IQ</h4>
+              <h4 className="text-sm font-semibold text-indigo-700">{t('fraudIqPage.withIq')}</h4>
               {done && (
-                <span className="rounded-md bg-green-600 text-white text-xs font-bold px-2 py-0.5">≈ 30 sec</span>
+                <span className="rounded-md bg-green-600 text-white text-xs font-bold px-2 py-0.5">{t('fraudIqPage.approx30')}</span>
               )}
             </div>
             <div className="mt-2 rounded-lg bg-gray-50 border border-gray-100 px-3 py-2 text-sm text-gray-700 italic">
@@ -180,14 +209,14 @@ export function FraudIQ() {
                 onClick={runScenario}
                 className="mt-3 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
               >
-                ▶ Lancer l’investigation agentique
+                {t('fraudIqPage.launch')}
               </button>
             ) : (
               <button
                 onClick={runScenario}
                 className="mt-3 w-full rounded-lg border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
               >
-                ↻ Relancer
+                {t('fraudIqPage.rerun')}
               </button>
             )}
           </div>
@@ -196,28 +225,29 @@ export function FraudIQ() {
         {/* Agentic reveal */}
         {started && (
           <>
-            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <IqColumn id="work" items={scenario.work} revealed={phase >= 1} />
               <IqColumn id="fabric" items={scenario.fabric} revealed={phase >= 2} />
               <IqColumn id="foundry" items={scenario.foundry} revealed={phase >= 3} />
+              <IqColumn id="web" items={scenario.web} revealed={phase >= 3} />
             </div>
 
             <div
-              className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 transition-opacity ${
+              className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 dark:bg-indigo-500/10 p-4 transition-opacity ${
                 done ? 'opacity-100' : 'opacity-40'
               }`}
             >
               <div className="flex items-center gap-1.5">
                 <span aria-hidden>🧠</span>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
-                  Recommandation Foundry IQ
+                  {t('fraudIqPage.foundryRecommendation')}
                 </h4>
-                <span className="ml-auto text-[10px] text-indigo-400">raisonnement ancré multi-IQ</span>
+                <span className="ml-auto text-[10px] text-indigo-400">{t('fraudIqPage.groundedMultiIq')}</span>
               </div>
               {done ? (
                 <div className="mt-2">
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600">Confiance fraude</span>
+                    <span className="text-sm text-gray-600">{t('fraudIqPage.fraudConfidence')}</span>
                     <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden max-w-xs">
                       <div
                         className="h-full bg-red-600"
@@ -235,12 +265,12 @@ export function FraudIQ() {
                       </span>
                     ))}
                     <span className="rounded-full bg-indigo-600 text-white text-xs px-3 py-1">
-                      Dossier {scenario.recommendation.caseId} créé
+                      {t('fraudIqPage.caseCreated', { caseId: scenario.recommendation.caseId })}
                     </span>
                   </div>
                 </div>
               ) : (
-                <p className="mt-1.5 text-xs text-gray-400">Raisonnement en cours…</p>
+                <p className="mt-1.5 text-xs text-gray-400">{t('fraudIqPage.reasoning')}</p>
               )}
             </div>
           </>
@@ -251,11 +281,11 @@ export function FraudIQ() {
       <section className="ffi-card p-6">
         <div className="flex items-center gap-2">
           <span aria-hidden>✨</span>
-          <h3 className="text-sm font-semibold text-gray-800">Investigation libre</h3>
-          <span className="text-xs text-gray-400">— posez une question sur un client, une alerte ou une typologie</span>
+          <h3 className="text-sm font-semibold text-gray-800">{t('fraudIqPage.investigationTitle')}</h3>
+          <span className="text-xs text-gray-400">{t('fraudIqPage.askHint')}</span>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {SAMPLE_QUESTIONS.map((q) => (
+          {samples.map((q) => (
             <button
               key={q}
               onClick={() => setQuestion(q)}
@@ -274,34 +304,35 @@ export function FraudIQ() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && runAsk()}
-            placeholder="Ex. CUST-014, AML, card fraud…"
+            placeholder={t('fraudIqPage.placeholder')}
             className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none"
           />
           <button
             onClick={runAsk}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
-            {result && askPhase < 4 ? 'Grounding…' : 'Run'}
+            {result && askPhase < 4 ? t('fraudIqPage.grounding') : t('fraudIqPage.run')}
           </button>
         </div>
         {result && (
           <>
-            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <IqColumn id="fabric" items={result.fabric} revealed={askPhase >= 1} />
               <IqColumn id="work" items={result.work} revealed={askPhase >= 2} />
               <IqColumn id="foundry" items={result.foundry} revealed={askPhase >= 3} />
+              <IqColumn id="web" items={result.web} revealed={askPhase >= 3} />
             </div>
             <div
-              className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 transition-opacity ${
+              className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 dark:bg-indigo-500/10 p-4 transition-opacity ${
                 askPhase >= 4 ? 'opacity-100' : 'opacity-40'
               }`}
             >
               <div className="flex items-center gap-1.5">
                 <span aria-hidden>🧠</span>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
-                  Synthèse Fraud IQ
+                  {t('fraudIqPage.synthesisTitle')}
                 </h4>
-                <span className="ml-auto text-[10px] text-indigo-400">grounded across Microsoft IQ</span>
+                <span className="ml-auto text-[10px] text-indigo-400">{t('fraudIqPage.groundedAcross')}</span>
               </div>
               {askPhase >= 4 ? (
                 <div className="mt-2 space-y-3">
@@ -310,7 +341,7 @@ export function FraudIQ() {
                       {result.synthesis.verdict}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Confiance</span>
+                      <span className="text-xs text-gray-500">{t('fraudIqPage.confidence')}</span>
                       <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-200">
                         <div
                           className="h-full bg-indigo-600"
@@ -324,7 +355,7 @@ export function FraudIQ() {
                   </div>
                   <div className="space-y-1.5 rounded-lg border border-gray-100 bg-white p-2.5">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                      Contribution par IQ
+                      {t('fraudIqPage.contributionByIq')}
                     </p>
                     {(['fabric', 'work', 'foundry'] as IqId[]).map((id) => {
                       const top = (id === 'fabric' ? result.fabric : id === 'work' ? result.work : result.foundry)[0];
@@ -345,7 +376,7 @@ export function FraudIQ() {
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                        Findings clés
+                        {t('fraudIqPage.keyFindings')}
                       </p>
                       <ul className="space-y-1">
                         {result.synthesis.findings.map((x, i) => (
@@ -358,7 +389,7 @@ export function FraudIQ() {
                     </div>
                     <div>
                       <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                        Actions recommandées
+                        {t('fraudIqPage.recommendedActions')}
                       </p>
                       <ul className="space-y-1">
                         {result.synthesis.actions.map((x, i) => (
@@ -372,7 +403,7 @@ export function FraudIQ() {
                   </div>
                   <div className="rounded-lg border-l-4 border-emerald-400 bg-emerald-50 p-3">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                      Apport business
+                      {t('fraudIqPage.businessImpact')}
                     </p>
                     <ul className="mt-1 space-y-1">
                       {result.synthesis.businessImpact.map((x, i) => (
@@ -384,11 +415,11 @@ export function FraudIQ() {
                     </ul>
                   </div>
                   <p className="border-t border-indigo-100 pt-2 text-[11px] text-gray-400">
-                    Advisory · approbation humaine requise avant action.
+                    {t('fraudIqPage.advisoryNote')}
                   </p>
                 </div>
               ) : (
-                <p className="mt-1.5 text-xs text-gray-400">Synthèse en cours…</p>
+                <p className="mt-1.5 text-xs text-gray-400">{t('fraudIqPage.synthesisInProgress')}</p>
               )}
             </div>
           </>

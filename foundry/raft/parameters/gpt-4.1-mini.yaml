@@ -1,0 +1,39 @@
+# Papermill parameter file — primary GPT pairing (see raft.instructions.md §Model targets).
+# Model names are resolved here, NEVER hard-coded in a notebook cell. Re-verify the catalogue
+# and regional quota before a run: the values below were current on 2026-08-31 and move monthly.
+# gpt-5.4 is unverified — if the teacher is unavailable in the region the notebook fails loudly;
+# fall back to gpt-4.1 as the teacher.
+
+# --- region / project ---
+region: swedencentral            # keeps the demo in Europe; gpt-4.1-mini SFT is GA here
+foundry_endpoint_env: AI_FOUNDRY_ENDPOINT   # notebooks read the endpoint from this env var
+
+# --- models ---
+teacher_model: gpt-5.4           # dataset generation only; batch. Fallback: gpt-4.1
+student_model: gpt-4.1-mini      # SFT/DPO GA, supports tool calling
+baseline_model: gpt-4.1          # same family as student, isolates the fine-tuning delta
+embedding_model: text-embedding-3-large
+
+# --- dataset generation (WS-4 / WS-5) ---
+seed_source: synthetic           # synthetic | traces  (traces reads data/seed_questions.jsonl)
+seed_questions_path: data/seed_questions.jsonl
+corpus_manifest: ../../fabric/lakehouse/corpus/manifest.yaml
+training_domain: aml             # train one domain; other domains are distractors only
+n_questions: 60
+n_distractors: 4                 # golden document + N distractors per RAFT example
+oracle_probability: 0.8          # fraction of examples that include the golden document
+train_path: data/raft_train.jsonl
+val_path: data/raft_val.jsonl
+val_fraction: 0.15
+
+# --- fine-tuning (WS-6) ---
+training_tier: Developer         # trainingType: Developer (iterate) | GlobalStandard (final run) | Standard (data residency)
+n_epochs: 2
+
+# --- deployment (WS-6) ---
+deployment_name: raft-student
+deployment_tier: Developer       # no hourly hosting fee; auto-removed after 24h — redeploy on demo morning
+
+# --- evaluation (WS-7) ---
+eval_questions_path: data/eval_questions.jsonl
+eval_results_dir: eval/results

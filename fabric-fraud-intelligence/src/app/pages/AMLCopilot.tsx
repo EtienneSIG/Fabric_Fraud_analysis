@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { RiskScoreBadge } from '@/app/components/RiskScoreBadge';
 import { useRole } from '@/app/RoleContext';
@@ -8,6 +9,7 @@ import { getAlerts } from '@/backend/api/alerts';
 import { getCase } from '@/backend/api/cases';
 import { SEVERITY_COLORS } from '@/backend/models';
 import { warehouse } from '@/backend/services/FabricWarehouseClient';
+import { raftModel, type RaftAnswer, type RaftComparison, type RaftScenario, RAFT_QUESTIONS, RAFT_SYSTEM_PROMPT } from '@/backend/services/RaftModelClient';
 import type { AgentResult } from '@/backend/agents/AgentOrchestrator';
 
 function parseNarrative(text: string) {
@@ -26,11 +28,14 @@ function parseNarrative(text: string) {
 }
 
 export function AMLCopilot() {
+  const { t } = useTranslation();
   const { user } = useRole();
   const alerts = useMemo(() => getAlerts({ type: 'AML' }), []);
   const [caseId, setCaseId] = useState(alerts[0]?.caseId ?? '');
   const [res, setRes] = useState<AgentResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ab, setAb] = useState<RaftComparison | null>(null);
+  const [abBusy, setAbBusy] = useState(false);
   const bundle = getCase(caseId);
   const txns = bundle?.account ? warehouse.getTransactionsForAccount(bundle.account.id) : [];
 
@@ -40,18 +45,33 @@ export function AMLCopilot() {
     setBusy(false);
   };
 
+  const [scenario, setScenario] = useState<RaftScenario>('layering');
+  const [modelView, setModelView] = useState<AbView>('baseline');
+  const compare = async (sc: RaftScenario) => {
+    setScenario(sc);
+    setAbBusy(true);
+    setAb(
+      await raftModel.compare({
+        prompt: RAFT_QUESTIONS[sc],
+        subject: bundle?.customer?.name ?? bundle?.account?.id ?? caseId,
+        context: { caseId, alertId: bundle?.alert?.id, role: user },
+        locale: 'en',
+        scenario: sc,
+      })
+    );
+    setAbBusy(false);
+  };
+
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">AML Copilot</h2>
-        <p className="text-sm text-gray-400">
-          Transaction-monitoring narrative &amp; SAR readiness, grounded on Fabric data.
-        </p>
+        <h2 className="text-lg font-bold text-gray-900">{t('pages.aml.title')}</h2>
+        <p className="text-sm text-gray-400">{t('pages.aml.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <section className="ffi-card p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">AML alerts</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('pages.aml.alerts')}</h3>
           <ul className="space-y-1.5">
             {alerts.map((a) => (
               <li
@@ -59,9 +79,10 @@ export function AMLCopilot() {
                 onClick={() => {
                   setCaseId(a.caseId);
                   setRes(null);
+                  setAb(null);
                 }}
                 className={`rounded-lg px-3 py-2 cursor-pointer ${
-                  a.caseId === caseId ? 'bg-indigo-50' : 'hover:bg-gray-50'
+                  a.caseId === caseId ? 'bg-indigo-50 dark:bg-indigo-500/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -85,21 +106,61 @@ export function AMLCopilot() {
                     {bundle.customer?.pepFlag ? ' · PEP' : ''}
                   </p>
                 </div>
-                <button
-                  disabled={busy}
-                  onClick={() => void generate()}
-                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={busy ? 'animate-spin' : ''}>
-                    {busy ? (
-                      <path d="M12 2a10 10 0 00-9.95 9h2.02A8 8 0 1112 20v2a10 10 0 000-20z" />
-                    ) : (
-                      <path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
-                    )}
-                  </svg>
-                  {busy ? 'Generating…' : 'Generate AML narrative'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={scenario}
+                    onChange={(e) => setScenario(e.target.value as RaftScenario)}
+                    disabled={abBusy}
+                    title={t('pages.aml.abScenario')}
+                    className="rounded-lg border border-gray-200 bg-white px-2 py-2 text-xs text-gray-700 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
+                  >
+                    <option value="structuring">{t('pages.aml.scStructuring')}</option>
+                    <option value="smurfing">{t('pages.aml.scSmurfing')}</option>
+                    <option value="layering">{t('pages.aml.scLayering')}</option>
+                    <option value="not-aml">{t('pages.aml.scNotAml')}</option>
+                  </select>
+                  <select
+                    value={modelView}
+                    onChange={(e) => setModelView(e.target.value as AbView)}
+                    title={t('pages.aml.abModel')}
+                    className="rounded-lg border border-gray-200 bg-white px-2 py-2 text-xs text-gray-700 focus:border-indigo-500 focus:outline-none"
+                  >
+                    <option value="baseline">{t('pages.aml.abModelBaseline')}</option>
+                    <option value="raft">{t('pages.aml.abModelRaft')}</option>
+                    <option value="both">{t('pages.aml.abModelBoth')}</option>
+                  </select>
+                  <button
+                    disabled={abBusy}
+                    onClick={() => void compare(scenario)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3.5 py-2 text-xs font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50 disabled:opacity-50"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={abBusy ? 'animate-spin' : ''}>
+                      {abBusy ? (
+                        <path d="M12 2a10 10 0 00-9.95 9h2.02A8 8 0 1112 20v2a10 10 0 000-20z" />
+                      ) : (
+                        <path d="M9 3H3v6h2V5h4zm12 0h-6v2h4v4h2zM5 15H3v6h6v-2H5zm16 0h-2v4h-4v2h6z" />
+                      )}
+                    </svg>
+                    {abBusy ? t('pages.aml.abComparing') : t('pages.aml.abCompare')}
+                  </button>
+                  <button
+                    disabled={busy}
+                    onClick={() => void generate()}
+                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={busy ? 'animate-spin' : ''}>
+                      {busy ? (
+                        <path d="M12 2a10 10 0 00-9.95 9h2.02A8 8 0 1112 20v2a10 10 0 000-20z" />
+                      ) : (
+                        <path d="M12 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
+                      )}
+                    </svg>
+                    {busy ? t('pages.aml.generating') : t('pages.aml.generate')}
+                  </button>
+                </div>
               </div>
+
+              {ab && <AbPanel ab={ab} live={ab.mode === 'foundry'} view={modelView} />}
 
               {res && (() => {
                 const p = parseNarrative(res.text);
@@ -116,12 +177,12 @@ export function AMLCopilot() {
                           <path d="M14 3v4h4M9.5 12l1.5 1.5L14 10" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <div>
-                          <p className="text-[11px] uppercase tracking-wider text-indigo-100">AI-generated AML narrative</p>
-                          <p className="text-sm font-semibold">Suspicious activity report · {bundle.alert?.id}</p>
+                          <p className="text-[11px] uppercase tracking-wider text-indigo-100">{t('pages.aml.aiNarrative')}</p>
+                          <p className="text-sm font-semibold">{t('pages.aml.sar')} · {bundle.alert?.id}</p>
                         </div>
                       </div>
                       <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium backdrop-blur">
-                        Advisory · human approval
+                        {t('pages.aml.advisory')}
                       </span>
                     </div>
 
@@ -130,25 +191,25 @@ export function AMLCopilot() {
                       <div className="flex items-center gap-4">
                         <RiskDonut score={bundle.risk.score} color={sevColor} severity={sev} />
                         <div className="min-w-0">
-                          <p className="text-[11px] uppercase tracking-wide text-gray-400">Subject</p>
+                          <p className="text-[11px] uppercase tracking-wide text-gray-400">{t('pages.aml.subject')}</p>
                           <p className="text-sm font-medium text-gray-800">{p.subject}</p>
                         </div>
                       </div>
 
                       <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Typology · layering</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{t('pages.aml.typologyLayering')}</p>
                         <div className="mt-1.5">
-                          <FlowPills steps={['Inbound funds', 'Linked accounts', 'Rapid externalisation']} />
+                          <FlowPills steps={[t('pages.aml.flowInbound'), t('pages.aml.flowLinked'), t('pages.aml.flowRapid')]} />
                         </div>
                         <p className="mt-2 text-sm leading-relaxed text-gray-700">{p.typology}</p>
                       </div>
 
-                      <Section label="Pattern">{p.pattern}</Section>
-                      <Section label="Assessment">{p.assessment}</Section>
+                      <Section label={t('pages.aml.pattern')}>{p.pattern}</Section>
+                      <Section label={t('pages.aml.assessment')}>{p.assessment}</Section>
 
                       <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 p-3">
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
-                          Recommendation
+                          {t('pages.aml.recommendation')}
                         </p>
                         <p className="mt-0.5 text-sm leading-relaxed text-gray-700">{p.recommendation}</p>
                       </div>
@@ -156,7 +217,7 @@ export function AMLCopilot() {
                       {grounds.length > 0 && (
                         <div className="border-t border-gray-100 pt-3">
                           <p className="mb-1.5 text-[11px] uppercase tracking-wide text-gray-400">
-                            Grounded on Fabric data
+                            {t('pages.aml.groundedOn')}
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             {grounds.map((g, i) => (
@@ -175,16 +236,16 @@ export function AMLCopilot() {
 
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                  Money movement (account {bundle.account?.id ?? '—'})
+                  {t('pages.aml.moneyMovement', { id: bundle.account?.id ?? '—' })}
                 </h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-xs uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                        <th className="py-1.5 pr-3">When</th>
-                        <th className="py-1.5 pr-3">Amount</th>
-                        <th className="py-1.5 pr-3">Channel</th>
-                        <th className="py-1.5">Counterparty</th>
+                        <th className="py-1.5 pr-3">{t('pages.aml.when')}</th>
+                        <th className="py-1.5 pr-3">{t('pages.aml.amount')}</th>
+                        <th className="py-1.5 pr-3">{t('pages.aml.channel')}</th>
+                        <th className="py-1.5">{t('pages.aml.counterparty')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -207,7 +268,7 @@ export function AMLCopilot() {
                       {txns.length === 0 && (
                         <tr>
                           <td colSpan={4} className="py-4 text-center text-gray-400 text-xs">
-                            No linked account transactions.
+                            {t('pages.aml.noLinkedTxns')}
                           </td>
                         </tr>
                       )}
@@ -215,19 +276,18 @@ export function AMLCopilot() {
                   </table>
                 </div>
                 <p className="mt-2 text-[11px] text-gray-400">
-                  Estimated exposure {eur(txns.reduce((s, t) => s + t.amount, 0))} across {txns.length} movements.
+                  {t('pages.aml.exposure', { amount: eur(txns.reduce((s, tx) => s + tx.amount, 0)), count: txns.length })}
                 </p>
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-400">Select an AML alert.</p>
+            <p className="text-sm text-gray-400">{t('pages.aml.selectAlert')}</p>
           )}
         </section>
       </div>
     </div>
   );
 }
-
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
@@ -259,7 +319,7 @@ function RiskDonut({ score, color, severity }: { score: number; color: string; s
   return (
     <div className="relative h-20 w-20 shrink-0">
       <svg viewBox="0 0 64 64" className="h-20 w-20 -rotate-90">
-        <circle cx="32" cy="32" r={r} fill="none" stroke="#f1f5f9" strokeWidth="8" />
+        <circle cx="32" cy="32" r={r} fill="none" className="stroke-slate-100" strokeWidth="8" />
         <circle
           cx="32"
           cy="32"
@@ -279,6 +339,58 @@ function RiskDonut({ score, color, severity }: { score: number; color: string; s
         <span className="mt-0.5 text-[9px] font-semibold uppercase" style={{ color }}>
           {severity}
         </span>
+      </div>
+    </div>
+  );
+}
+
+type AbView = 'baseline' | 'raft' | 'both';
+
+function AbPanel({ ab, live, view }: { ab: RaftComparison; live: boolean; view: AbView }) {
+  const { t } = useTranslation();
+  const showBase = view !== 'raft';
+  const showRaft = view !== 'baseline';
+  return (
+    <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-semibold text-gray-800">{t('pages.aml.abTitle')}</p>
+        <span
+          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+            live ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+          }`}
+        >
+          {live ? t('pages.aml.abLive') : t('pages.aml.abSimulated')}
+        </span>
+      </div>
+      {ab.question && <p className="mb-2 -mt-1 text-xs italic text-gray-500">{ab.question}</p>}
+      <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-2.5">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+          {t('pages.aml.abSystemPrompt')}
+        </p>
+        <p className="text-[11px] leading-relaxed text-gray-500">{RAFT_SYSTEM_PROMPT}</p>
+      </div>
+      <div className={`grid grid-cols-1 gap-3 ${view === 'both' ? 'md:grid-cols-2' : ''}`}>
+        {showBase && <AbColumn label={t('pages.aml.abBaseline')} answer={ab.baseline} accent="gray" />}
+        {showRaft && <AbColumn label={t('pages.aml.abRaft')} answer={ab.raft} accent="violet" />}
+      </div>
+      <p className="mt-3 text-[11px] text-gray-400">{t('pages.aml.abNote')}</p>
+    </div>
+  );
+}
+
+function AbColumn({ label, answer, accent }: { label: string; answer: RaftAnswer; accent: 'gray' | 'violet' }) {
+  const { t } = useTranslation();
+  const head = accent === 'violet' ? 'text-violet-700' : 'text-gray-600';
+  return (
+    <div className="rounded-xl border border-gray-100 bg-white p-3">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className={`text-xs font-semibold uppercase tracking-wide ${head}`}>{label}</span>
+        <span className="text-[10px] text-gray-400">{answer.model}</span>
+      </div>
+      <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700">{answer.text}</p>
+      <div className="mt-2 flex flex-wrap gap-3 border-t border-gray-50 pt-2 text-[11px] text-gray-400">
+        <span>{t('pages.aml.abTokens', { count: answer.tokens })}</span>
+        <span>{t('pages.aml.abLatency', { ms: answer.latencyMs })}</span>
       </div>
     </div>
   );

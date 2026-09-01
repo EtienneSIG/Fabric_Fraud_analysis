@@ -1,0 +1,27 @@
+[project]
+name = "fraud-raft"
+version = "0.1.0"
+description = "RAFT fine-tuning notebooks for Fabric Fraud Intelligence (AML student model)."
+requires-python = ">=3.11,<3.13"
+
+# Fine-tuning SDK surface (verified 2026-08-31): OpenAI Python SDK against Azure OpenAI
+# (api-version 2025-04-01-preview so the trainingType tier applies; hyperparameters under `method`),
+# plus the Cognitive Services management SDK for deployment (Stage 3).
+dependencies = [
+    "openai>=1.60",
+    "azure-identity>=1.19",
+    "azure-mgmt-cognitiveservices>=13.6.0",
+    "papermill>=2.6",          # non-interactive runs with a parameter file
+    "pyyaml>=6.0.2",           # 1_gen reads the corpus manifest + parameters
+    "matplotlib>=3.9",         # 4_eval chart
+    "ipykernel>=6.29",         # run the notebooks
+]
+
+[project.optional-dependencies]
+# Only if you switch to the Foundry SDK client path (AIProjectClient.get_openai_client()).
+foundry-sdk = ["azure-ai-projects>=1.0.0b7"]
+
+[tool.uv]
+# Exact pins live in the committed requirements.txt (uv export). uv.lock is NOT committed on a
+# managed workstation — it embeds internal feed URLs (see ../../.gitignore and the repo README).
+package = false

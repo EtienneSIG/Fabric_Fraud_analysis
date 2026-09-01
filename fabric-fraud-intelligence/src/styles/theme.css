@@ -9,7 +9,24 @@
   --ffi-sidebar: #0b1220;
   --ffi-sidebar-ink: #cbd5e1;
   --ffi-border: #e5e7eb;
+  --ffi-canvas: #f8fafc;
+  --ffi-map: #eff6ff;
   --ffi-radius: 14px;
+}
+
+/* Dark theme token overrides (paired with the ramp inversion in main.css). */
+.dark {
+  --ffi-bg: #0b1220;
+  --ffi-surface: #111827;
+  --ffi-ink: #e5e7eb;
+  --ffi-muted: #94a3b8;
+  --ffi-brand: #6366f1;
+  --ffi-brand-600: #4f46e5;
+  --ffi-sidebar: #060a14;
+  --ffi-sidebar-ink: #cbd5e1;
+  --ffi-border: #1f2937;
+  --ffi-canvas: #0b1220;
+  --ffi-map: #0b1220;
 }
 
 .ffi-card {
@@ -45,4 +62,7 @@
 .ffi-scroll::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 8px;
+}
+.dark .ffi-scroll::-webkit-scrollbar-thumb {
+  background: #334155;
 }

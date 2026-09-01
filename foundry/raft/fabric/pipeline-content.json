@@ -1,0 +1,24 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "GenerateRaftDataset",
+        "type": "TridentNotebook",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.02:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30
+        },
+        "typeProperties": {
+          "notebookId": "{{NOTEBOOK_ID}}",
+          "workspaceId": "{{WORKSPACE_ID}}",
+          "parameters": {
+            "seed_source": { "value": "synthetic", "type": "string" },
+            "push_to_foundry": { "value": "False", "type": "bool" }
+          }
+        }
+      }
+    ]
+  }
+}

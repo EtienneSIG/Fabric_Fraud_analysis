@@ -12,6 +12,15 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          'vendor-query': ['@tanstack/react-query'],
+        },
+      },
+    },
   },
   esbuild: {
     target: 'es2022',

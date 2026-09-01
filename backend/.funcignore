@@ -1,0 +1,14 @@
+# Files excluded from the Azure Functions deployment package (deliver only what runs).
+src/
+tsconfig.json
+*.map
+*.ts
+!dist/**
+.gitignore
+.funcignore
+package-lock.json
+README.md
+.vscode/
+local.settings.json
+test/
+**/*.test.js

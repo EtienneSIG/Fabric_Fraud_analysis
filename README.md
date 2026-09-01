@@ -18,6 +18,14 @@ an Eventhouse with a KQL database, and Power BI semantic model and report items.
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the deployed item inventory,
 repeatable deployment commands, validation steps, and current limitations.
 
+An **extended integration layer** (mock-first, gated by config) adds **Azure AI Foundry
+Agent Service** (connected agents grounded on Fabric via OBO), **Microsoft 365** (Teams
+approval cards, Outlook, SharePoint, Work IQ signals over Microsoft Graph delegated/OBO),
+a **closed remediation loop** (alert → case → OneLake writeback → retraining), and
+**Terraform** for the Azure support layer. The UI is localized in **English, French and
+Spanish**. See [docs/innovations-and-roadmap.md](docs/innovations-and-roadmap.md) for the
+innovation highlights and the roadmap of evolutions still to build.
+
 ## Demo video
 
 
@@ -40,7 +48,15 @@ https://github.com/user-attachments/assets/ccec2599-2d85-422a-b76b-db16fc66f93f
 | `fabric/realtime/` | **Streaming** | Eventhouse/KQL specs and deploy scripts. |
 | `fabric/powerbi/` | **Reporting** | Semantic model (`model.bim`) + report deploy scripts. |
 | `design/` | **Architecture blueprint** | Canonical contracts, fraud patterns, risk-scoring spec, screen UX contracts, remediation loop, environment config. |
-| `docs/` | **Docs** | Executive demo narrative and supporting documentation. |
+| `infra/terraform/` | **Infrastructure (IaC)** | Terraform for the Azure support layer — AI Foundry + model deployments, Key Vault, Event Hub, Log Analytics/App Insights, Azure Bot, Function App, delegated Graph app registration. |
+| `backend/` | **App-adjacent backend** | Host-agnostic handlers (Foundry proxy, Graph OBO, Teams bot, OneLake writeback) + an Azure Functions wrapper for the Teams bot endpoint. |
+| `foundry/agents/` | **Agent Service** | Deploys the Foundry connected-agent topology (triage → investigation / AML / claims) grounded on Fabric via a connection with OBO. |
+| `foundry/raft/` | **RAFT (model iteration)** | Retrieval-Augmented Fine-Tuning notebooks (generate · fine-tune · deploy · eval), the versioned dataset and the evaluation harness that trains an AML student model and proves the gain. |
+| `foundry/knowledge/` | **Foundry IQ** | Deploys the OneLake knowledge base over the fraud document corpus and wires it into the triage agents. |
+| `fabric/lakehouse/corpus/` | **Document corpus** | The unstructured AML document corpus (training domain + distractors) RAFT reasons over, with manifest and idempotent upload. |
+| `teams/` | **Teams app** | Side-loadable Teams app manifest for approval Adaptive Cards. |
+| `.github/` | **Conventions** | Repo-wide + path-scoped Copilot instructions (architecture, i18n, naming, Terraform, Foundry agents). |
+| `docs/` | **Docs** | Executive demo narrative, deployment guide, and the innovations & roadmap. |
 
 ## The Rayfin application
 
@@ -62,36 +78,106 @@ provider/collusion network fraud.**
 
 ```mermaid
 flowchart LR
-  subgraph App["Rayfin Fabric App (React + TS)"]
-    UI["Investigator UI<br/>Dashboard · Alerts · Graph · IQ"]
-    AG["Grounded AI agents<br/>(mock or Fabric Data Agent)"]
+  classDef app fill:#4f46e5,color:#ffffff,stroke:#312e81,stroke-width:1px
+  classDef fabric fill:#0d9488,color:#ffffff,stroke:#134e4a,stroke-width:1px
+  classDef foundry fill:#7c3aed,color:#ffffff,stroke:#4c1d95,stroke-width:1px
+  classDef o365 fill:#0f6cbd,color:#ffffff,stroke:#083b6f,stroke-width:1px
+  classDef infra fill:#64748b,color:#ffffff,stroke:#334155,stroke-width:1px
+
+  subgraph App["Rayfin Fabric App · React 19 + Vite 7 · EN/FR/ES"]
+    UI["Investigator UI<br/>Dashboard · Alerts · Graph · Fraud IQ"]:::app
+    GOV["Role provider<br/>RBAC · PII masking"]:::app
+    SVC["Service clients<br/>mock + real, gated by isMock()"]:::app
   end
+
+  subgraph Back["App-adjacent backend<br/>Rayfin functions / Azure Function"]
+    API["Handlers<br/>agents · workiq · teams · decision · reports"]:::infra
+  end
+
   subgraph Fabric["Microsoft Fabric"]
-    SQL["Fabric SQL Database<br/>(@entity ontology)"]
-    LH["fraud_lakehouse<br/>Delta tables"]
-    ONT["fraud_ontology<br/>Fabric IQ semantic layer"]
-    DA["Fraud Intelligence Data Agent<br/>11-table grounding"]
-    RT["Eventhouse + fraud_rti<br/>KQL scoring features"]
-    BI["Power BI semantic model<br/>Rayfin Fraud Cockpit"]
+    SQL["Fabric SQL DB<br/>@entity ontology"]:::fabric
+    LH["fraud_lakehouse<br/>Delta tables"]:::fabric
+    ONT["fraud_ontology<br/>Fabric IQ"]:::fabric
+    DA["Fabric Data Agent<br/>NL2SQL grounding"]:::fabric
+    EH["Eventhouse / KQL<br/>real-time scoring"]:::fabric
+    BI["Power BI<br/>Rayfin Fraud Cockpit"]:::fabric
   end
-  subgraph Foundry["Microsoft Foundry"]
-    ORCH["Fraud investigation orchestrator"]
-    REG["Regulatory research agent<br/>web grounding + citations"]
+  subgraph Foundry["Azure AI Foundry Agent Service"]
+    TRI["fraud-triage-agent<br/>orchestrator"]:::foundry
+    SUB["connected agents<br/>investigation · AML · claims"]:::foundry
+    REG["regulatory research agent<br/>web grounding + citations"]:::foundry
   end
+
   WEB["Official regulatory websites"]
-  UI --> AG
-  AG -->|NL2SQL / grounding| SQL
-  ORCH -->|case facts| DA
-  ORCH -->|regulatory question| REG
+
+  subgraph O365["Microsoft 365 · Graph (delegated/OBO)"]
+    TEAMS["Teams<br/>approval cards"]:::o365
+    MAIL["Outlook · SharePoint<br/>reports · evidence"]:::o365
+  end
+
+  subgraph Az["Azure support · Terraform"]
+    KV["Key Vault"]:::infra
+    EHNS["Event Hub"]:::infra
+    OBS["Log Analytics<br/>App Insights"]:::infra
+  end
+
+  UI --> GOV --> SVC
+  SVC -->|mock path| SQL
+  SVC -->|real path| API
+  API --> TRI --> SUB
+  TRI -->|Fabric tool + connection · OBO| DA
+  TRI -->|regulatory question| REG
   REG -->|grounded search| WEB
-  ORCH -->|evidence + cited obligations| AG
-  SQL --- LH
-  LH --> ONT
-  LH --> DA
-  RT --> BI
+  DA --- SQL --- LH --> ONT
   LH --> BI
-  UI -->|SSO · RBAC · PII masking| Fabric
+  EH -.->|risk threshold| API
+  API --> TEAMS
+  API --> MAIL
+  API -->|writeback| LH
+  Az -.-> Back
+  Az -.-> Foundry
+  UI -->|SSO · RBAC · PII| Fabric
 ```
+
+### End-to-end flows
+
+**Grounded multi-agent investigation** — the orchestrator is the only agent that replies;
+sub-agents ground on Fabric with the analyst's identity so RLS and PII masking hold.
+
+```mermaid
+flowchart LR
+  classDef a fill:#4f46e5,color:#fff,stroke:#312e81
+  classDef f fill:#7c3aed,color:#fff,stroke:#4c1d95
+  classDef d fill:#0d9488,color:#fff,stroke:#134e4a
+  Q["Analyst question"]:::a --> T["Triage orchestrator"]:::f
+  T -->|delegate| I["Investigation"]:::f
+  T -->|delegate| M["AML"]:::f
+  T -->|delegate| C["Claims"]:::f
+  I & M & C -->|Fabric tool · OBO| G["Data Agent → Lakehouse/Ontology"]:::d
+  G --> T
+  T --> R["Single explainable answer<br/>advisory · human approval"]:::a
+```
+
+**Closed remediation loop** — a crossed risk threshold drives a human-in-the-loop decision
+back into OneLake and the retraining backlog.
+
+```mermaid
+flowchart LR
+  classDef e fill:#0d9488,color:#fff,stroke:#134e4a
+  classDef o fill:#0f6cbd,color:#fff,stroke:#083b6f
+  classDef l fill:#64748b,color:#fff,stroke:#334155
+  TH["Risk threshold<br/>(Eventhouse/Activator)"]:::e --> AL["Alert → Case"]:::e
+  AL --> CARD["Teams Adaptive Card<br/>approve · escalate · dismiss"]:::o
+  CARD --> DEC["Analyst decision"]:::o
+  DEC -->|OneLake writeback| WB["decision · feedback tables"]:::l
+  WB --> RT["Retraining backlog"]:::l
+  RT -->|model iteration · RAFT| TH
+```
+
+> The `model iteration` edge is now **solid**: RAFT (`foundry/raft/`) implements it — the
+> retraining backlog seeds a fine-tuned AML student whose gain is measured against the baseline
+> (`foundry/raft/eval/`) and surfaced live in the app. See
+> [docs/raft-adaptation-brief.md](docs/raft-adaptation-brief.md).
 
 - **`rayfin/data/*.ts`** — `@entity` models (Customer, Account, Transaction,
   FraudAlert, FraudCase, Claim, Policy, Evidence, EntityRelationship, AgentRun,
@@ -193,11 +279,15 @@ environment configuration (app mode, workspace, Data Agent, tenant), and the
 ```powershell
 cd fabric-fraud-intelligence
 npm install
-npm run dev
+npm run dev:demo   # UI only, fully offline (no backend, no Docker)
+# or
+npm run dev        # full stack: starts the Rayfin dev backend (needs Docker) + UI
 ```
 
-> Local dev uses a mock auth service and deterministic seed data, so no Fabric
-> connection is required to explore the UI.
+> `dev:demo` runs Vite alone with a public demo auth service and deterministic seed
+> data — the fastest way to explore the UI. `dev` also runs `rayfin up`, which starts
+> the local Rayfin backend (SQL on `localhost:5168`) and requires Docker; if it isn't
+> running, sign-in fails and the app stays on the login screen.
 
 ### Deploy to Fabric
 

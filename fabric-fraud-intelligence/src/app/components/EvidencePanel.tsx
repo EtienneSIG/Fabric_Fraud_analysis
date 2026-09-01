@@ -1,6 +1,9 @@
+import { useTranslation } from 'react-i18next';
+
 import type { Evidence } from '@/backend/models';
 
 export function EvidencePanel({ evidence }: { evidence: Evidence[] }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       {evidence.map((e) => (
@@ -13,13 +16,13 @@ export function EvidencePanel({ evidence }: { evidence: Evidence[] }) {
           </div>
           <p className="mt-1 text-sm text-gray-600">{e.content}</p>
           <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">
-            <span>Source: {e.sourceSystem}</span>
-            <span>confidence {e.confidence}</span>
+            <span>{t('components.evidence.source', { system: e.sourceSystem })}</span>
+            <span>{t('components.evidence.confidence', { value: e.confidence })}</span>
           </div>
         </div>
       ))}
       {evidence.length === 0 && (
-        <p className="text-sm text-gray-400">No evidence attached.</p>
+        <p className="text-sm text-gray-400">{t('components.evidence.none')}</p>
       )}
     </div>
   );

@@ -1,0 +1,4 @@
+# uv: lockfile is NOT committed on managed workstations — it embeds internal feed URLs.
+# Relock only off-station. The committed, index-agnostic pin set is requirements.txt (uv export).
+uv.lock
+.venv/

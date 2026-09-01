@@ -8,8 +8,24 @@ interface FabricConfig {
   tenantId: string;
 }
 
+interface IntegrationConfig {
+  backendApiUrl: string;
+  foundryEndpoint: string;
+  graphOboClientId: string;
+  foundryEnabled: boolean;
+  workIqEnabled: boolean;
+  webIqEnabled: boolean;
+  teamsEnabled: boolean;
+  raftEnabled: boolean;
+  raftStudentDeployment: string;
+}
+
 function env(key: string): string {
   return (import.meta.env[key as keyof ImportMetaEnv] as string | undefined) ?? '';
+}
+
+function flag(key: string): boolean {
+  return env(key).toLowerCase() === 'true';
 }
 
 export const fabricConfig: FabricConfig = {
@@ -19,4 +35,52 @@ export const fabricConfig: FabricConfig = {
   tenantId: env('VITE_FABRIC_TENANT_ID'),
 };
 
+export const integrationConfig: IntegrationConfig = {
+  backendApiUrl: env('VITE_BACKEND_API_URL'),
+  foundryEndpoint: env('VITE_FOUNDRY_ENDPOINT'),
+  graphOboClientId: env('VITE_GRAPH_OBO_CLIENT_ID'),
+  foundryEnabled: flag('VITE_FOUNDRY_ENABLED'),
+  workIqEnabled: flag('VITE_WORKIQ_ENABLED'),
+  webIqEnabled: flag('VITE_WEBIQ_ENABLED'),
+  teamsEnabled: flag('VITE_TEAMS_ENABLED'),
+  raftEnabled: flag('VITE_RAFT_ENABLED'),
+  raftStudentDeployment: env('VITE_RAFT_STUDENT_DEPLOYMENT'),
+};
+
 export const isMock = (): boolean => fabricConfig.mode !== 'fabric' || !fabricConfig.dataAgentId;
+
+// A real integration also needs a reachable backend endpoint; otherwise fall back to mock.
+const backendReady = (): boolean => !isMock() && !!integrationConfig.backendApiUrl;
+
+export const isFoundryEnabled = (): boolean => backendReady() && integrationConfig.foundryEnabled;
+export const isWorkIqEnabled = (): boolean => backendReady() && integrationConfig.workIqEnabled;
+export const isWebIqEnabled = (): boolean => backendReady() && integrationConfig.webIqEnabled;
+export const isTeamsEnabled = (): boolean => backendReady() && integrationConfig.teamsEnabled;
+
+// The RAFT student A/B path is live only when a fine-tuned deployment is wired; otherwise the
+// app shows the deterministic mock A/B so the demo peak still works offline.
+export const isRaftEnabled = (): boolean =>
+  backendReady() && integrationConfig.raftEnabled && !!integrationConfig.raftStudentDeployment;
+
+export type FeatureKey = 'fabric' | 'foundry' | 'raft' | 'workiq' | 'webiq' | 'teams';
+
+export interface IntegrationStatus {
+  overall: 'mock' | 'partial' | 'live';
+  features: Record<FeatureKey, boolean>;
+}
+
+// Snapshot of which integrations are live vs mock, for the discreet header mode badge. A feature is
+// "live" only when fully wired; anything not configured degrades gracefully to the mock path.
+export function integrationStatus(): IntegrationStatus {
+  const features: Record<FeatureKey, boolean> = {
+    fabric: !isMock(),
+    foundry: isFoundryEnabled(),
+    raft: isRaftEnabled(),
+    workiq: isWorkIqEnabled(),
+    webiq: isWebIqEnabled(),
+    teams: isTeamsEnabled(),
+  };
+  const live = Object.values(features).filter(Boolean).length;
+  const overall = live === 0 ? 'mock' : live === Object.keys(features).length ? 'live' : 'partial';
+  return { overall, features };
+}

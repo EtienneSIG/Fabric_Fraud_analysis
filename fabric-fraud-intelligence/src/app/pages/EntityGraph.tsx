@@ -1,16 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { EntityNetwork, KIND_COLORS, type GraphMetric } from '@/app/components/EntityNetwork';
 import { getEntityGraph } from '@/backend/api/entity-graph';
 import { entityNarrative } from '@/backend/api/narrative';
 
-const METRICS: { id: GraphMetric; label: string }[] = [
-  { id: 'degree', label: 'Degree' },
-  { id: 'closeness', label: 'Closeness' },
-  { id: 'betweenness', label: 'Betweenness' },
+const METRICS: { id: GraphMetric; labelKey: string }[] = [
+  { id: 'degree', labelKey: 'pages.entityGraph.degree' },
+  { id: 'closeness', labelKey: 'pages.entityGraph.closeness' },
+  { id: 'betweenness', labelKey: 'pages.entityGraph.betweenness' },
 ];
 
 export function EntityGraph() {
+  const { t } = useTranslation();
   const { nodes, edges } = useMemo(() => getEntityGraph(), []);
   const [selected, setSelected] = useState<string | null>(null);
   const [metric, setMetric] = useState<GraphMetric>('degree');
@@ -21,13 +23,16 @@ export function EntityGraph() {
     [nodes]
   );
   const [selTypes, setSelTypes] = useState<Set<string>>(new Set());
+  const [, startTransition] = useTransition();
   const toggleType = (id: string) =>
-    setSelTypes((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    startTransition(() =>
+      setSelTypes((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      })
+    );
 
   const shown = useMemo(() => {
     if (selTypes.size === 0) return { nodes, edges };
@@ -75,11 +80,8 @@ export function EntityGraph() {
   return (
     <div className="flex flex-col h-[calc(100vh-6.5rem)] gap-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Entity Graph</h2>
-        <p className="text-sm text-gray-400">
-          Built from the Customer 360 event table — red hubs are fraud types,
-          the other nodes are customers whose journey ended in that fraud.
-        </p>
+        <h2 className="text-lg font-bold text-gray-900">{t('pages.entityGraph.title')}</h2>
+        <p className="text-sm text-gray-400">{t('pages.entityGraph.subtitle')}</p>
       </div>
 
       <section className="ffi-card p-6 flex-1 flex flex-col min-h-0">
@@ -87,19 +89,19 @@ export function EntityGraph() {
           {(['fraud', 'customer'] as const).map((k) => (
             <span key={k} className="flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: KIND_COLORS[k] }} />
-              <span className="text-xs text-gray-500 capitalize">{k}</span>
+              <span className="text-xs text-gray-500 capitalize">{t(`pages.entityGraph.${k}`)}</span>
             </span>
           ))}
           <label className="flex items-center gap-2 text-xs text-gray-500 ml-auto">
-            Size by
+            {t('pages.entityGraph.sizeBy')}
             <select
               value={metric}
-              onChange={(e) => setMetric(e.target.value as GraphMetric)}
+              onChange={(e) => startTransition(() => setMetric(e.target.value as GraphMetric))}
               className="rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none"
             >
               {METRICS.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.label}
+                  {t(m.labelKey)}
                 </option>
               ))}
             </select>
@@ -108,16 +110,16 @@ export function EntityGraph() {
 
         {/* Fraud-type filter */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="text-xs font-medium text-gray-500">Filter fraud:</span>
+          <span className="text-xs font-medium text-gray-500">{t('pages.entityGraph.filterFraud')}</span>
           <button
-            onClick={() => setSelTypes(new Set())}
+            onClick={() => startTransition(() => setSelTypes(new Set()))}
             className={`rounded-full px-3 py-1 text-xs font-medium border ${
               selTypes.size === 0
                 ? 'bg-gray-900 text-white border-gray-900'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            All
+            {t('pages.entityGraph.all')}
           </button>
           {fraudTypes.map((f) => {
             const on = selTypes.has(f.id);
@@ -136,7 +138,7 @@ export function EntityGraph() {
             );
           })}
           <span className="text-xs text-gray-400 ml-auto">
-            {shown.nodes.length} nodes · size = {metric}
+            {t('pages.entityGraph.nodesInfo', { count: shown.nodes.length, metric: t(`pages.entityGraph.${metric}`) })}
           </span>
         </div>
 
@@ -159,18 +161,18 @@ export function EntityGraph() {
                   <h3 className="text-sm font-semibold text-gray-800">{node.label}</h3>
                 </div>
                 <p className="text-xs text-gray-400 mt-1 capitalize">
-                  {node.kind} · risk {node.risk.toFixed(2)}
+                  {t(`pages.entityGraph.${node.kind}`)} · {t('pages.entityGraph.risk')} {node.risk.toFixed(2)}
                 </p>
                 <div className="mt-2 grid grid-cols-3 gap-2">
-                  <Metric k="Degree" v={node.degree} active={metric === 'degree'} />
-                  <Metric k="Closeness" v={node.closeness} active={metric === 'closeness'} />
-                  <Metric k="Betweenness" v={node.betweenness} active={metric === 'betweenness'} />
+                  <Metric k={t('pages.entityGraph.degree')} v={node.degree} active={metric === 'degree'} />
+                  <Metric k={t('pages.entityGraph.closeness')} v={node.closeness} active={metric === 'closeness'} />
+                  <Metric k={t('pages.entityGraph.betweenness')} v={node.betweenness} active={metric === 'betweenness'} />
                 </div>
                 <div className="mt-4 overflow-hidden rounded-xl border border-indigo-100">
                   <div className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-2 text-white">
                     <span aria-hidden>✨</span>
-                    <h4 className="text-xs font-semibold uppercase tracking-wide">AI narrative</h4>
-                    <span className="ml-auto text-[10px] text-indigo-100">Fabric Data Agent</span>
+                    <h4 className="text-xs font-semibold uppercase tracking-wide">{t('pages.entityGraph.aiNarrative')}</h4>
+                    <span className="ml-auto text-[10px] text-indigo-100">{t('pages.entityGraph.fabricDataAgent')}</span>
                   </div>
                   {narrative && (
                     <div className="space-y-2.5 bg-white p-3">
@@ -191,7 +193,7 @@ export function EntityGraph() {
                       </div>
                       <p className="text-xs leading-relaxed text-gray-700">{narrative.summary}</p>
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Key signals</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{t('pages.entityGraph.keySignals')}</p>
                         <ul className="mt-1 space-y-1">
                           {narrative.signals.map((s, i) => (
                             <li key={i} className="flex gap-1.5 text-[11px] leading-relaxed text-gray-600">
@@ -202,18 +204,18 @@ export function EntityGraph() {
                         </ul>
                       </div>
                       <div className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-[11px] text-gray-600">
-                        <span className="font-semibold text-gray-500">Network · </span>
+                        <span className="font-semibold text-gray-500">{t('pages.entityGraph.network')} · </span>
                         {narrative.network}
                       </div>
                       <div className="rounded-lg border-l-2 border-green-400 bg-green-50 px-2.5 py-1.5 text-[11px] text-gray-700">
-                        <span className="font-semibold text-green-700">Recommended · </span>
+                        <span className="font-semibold text-green-700">{t('pages.entityGraph.recommended')} · </span>
                         {narrative.action}
                       </div>
                     </div>
                   )}
                 </div>
                 <h4 className="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  Relationships ({links.length})
+                  {t('pages.entityGraph.relationships', { count: links.length })}
                 </h4>
                 <ul className="mt-2 space-y-1.5">
                   {links.map((l, i) => (
@@ -232,7 +234,7 @@ export function EntityGraph() {
               </div>
             ) : (
               <p className="text-center text-gray-400 text-sm py-16">
-                Click an entity to inspect its network.
+                {t('pages.entityGraph.clickEntity')}
               </p>
             )}
           </div>
@@ -244,9 +246,9 @@ export function EntityGraph() {
 
 function Metric({ k, v, active }: { k: string; v: number; active: boolean }) {
   return (
-    <div className={`rounded-lg px-2 py-1.5 text-center ${active ? 'bg-indigo-50' : 'bg-gray-50'}`}>
+    <div className={`rounded-lg px-2 py-1.5 text-center ${active ? 'bg-indigo-50 dark:bg-indigo-500/20' : 'bg-gray-50'}`}>
       <p className="text-[10px] uppercase tracking-wide text-gray-400">{k}</p>
-      <p className={`text-sm font-semibold ${active ? 'text-indigo-700' : 'text-gray-700'}`}>{v}</p>
+      <p className={`text-sm font-semibold ${active ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-700'}`}>{v}</p>
     </div>
   );
 }
