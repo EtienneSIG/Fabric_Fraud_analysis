@@ -4,13 +4,39 @@ import {
   type AccountInfo,
 } from '@azure/msal-browser';
 
-const TENANT_ID = import.meta.env.VITE_FOUNDRY_TENANT_ID || 'b7b9a0c6-fe36-41b6-a38d-582c6573e2ff';
-const CLIENT_ID = import.meta.env.VITE_FOUNDRY_CLIENT_ID || 'd5828f3b-2fc2-4ee5-89d6-e4200da4d1a8';
+import i18n from '@/i18n/i18n';
+
+// Deploy-specific: everything is read from env so the app is tenant / resource-group / project
+// agnostic and never authenticates against a foreign tenant. When the tenant, client or agent
+// endpoint is missing, the direct Foundry path stays off and the deterministic mock runs — no MSAL
+// popup, no cross-tenant sign-in.
+const TENANT_ID = import.meta.env.VITE_FOUNDRY_TENANT_ID || '';
+const CLIENT_ID = import.meta.env.VITE_FOUNDRY_CLIENT_ID || '';
+
+// The agent endpoint is either given whole (VITE_FOUNDRY_AGENT_ENDPOINT) or composed from the
+// account + project + agent name, so a new tenant/RG only needs those parts, not a full URL.
+const FOUNDRY_ACCOUNT = import.meta.env.VITE_FOUNDRY_ACCOUNT || '';
+const FOUNDRY_PROJECT = import.meta.env.VITE_FOUNDRY_PROJECT || '';
+const FOUNDRY_AGENT_NAME = import.meta.env.VITE_FOUNDRY_AGENT_NAME || 'fraud-iq-orchestrator';
 const AGENT_ENDPOINT =
   import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT ||
-  'https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ/agents/fraud-iq-orchestrator/endpoint/protocols/openai/responses';
+  (FOUNDRY_ACCOUNT && FOUNDRY_PROJECT
+    ? `https://${FOUNDRY_ACCOUNT}.services.ai.azure.com/api/projects/${FOUNDRY_PROJECT}` +
+      `/agents/${FOUNDRY_AGENT_NAME}/endpoint/protocols/openai/responses`
+    : '');
+
 const SCOPES = ['https://ai.azure.com/.default'];
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
+
+/** True only when this deployment wired its OWN Foundry agent (tenant + client + endpoint). */
+export const foundryDirectConfigured = (): boolean =>
+  Boolean(CLIENT_ID && TENANT_ID && AGENT_ENDPOINT);
+
+/** Deterministic, localized grounding used when no direct Foundry agent is configured. */
+function mockFoundryAnswer(): FoundryAgentResult {
+  const t = i18n.getFixedT(null, 'fraudIq');
+  return { answer: t('synthesis.generic.rationale'), citations: [] };
+}
 
 interface FoundryAnnotation {
   type?: string;
@@ -126,6 +152,7 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
 }
 
 export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
+  if (!foundryDirectConfigured()) return mockFoundryAnswer();
   const client = getApplication();
   const accessToken = await getAccessToken(client);
   const response = await fetch(AGENT_ENDPOINT, {
