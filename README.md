@@ -193,11 +193,11 @@ flowchart LR
   Fabric Data Agent** over REST. Every agent run and decision is written to the
   **AgentRun** entity and the **audit trail**, and all AI output is advisory —
   **human approval is always required.**
-- **Foundry orchestration** — a companion agent built in **Microsoft Foundry** combines
-  two server-side tools: Fabric IQ retrieves governed case facts from the Data Agent,
-  while Web Search retrieves current guidance from official regulatory websites. The
-  orchestrator reconciles both outputs and keeps
-  source links in the answer so an investigator can verify the applicable obligation.
+- **Foundry orchestration** — a companion agent built in **Microsoft Foundry** uses Web
+  Search to retrieve current guidance from official regulatory websites. It treats case
+  facts supplied in the prompt as unverified context and keeps source links in the answer
+  so an investigator can verify the applicable obligation. The Fabric Data Agent remains
+  separate and is not attached to this orchestrator.
   This Foundry flow is configured in the authenticated [FraudIQ Foundry project](https://ai.azure.com/nextgen/r/FyQciQyGSOm9599wsQw5qg,esig_demo,,esigfoundry,FraudIQ/home?tid=b7b9a0c6-fe36-41b6-a38d-582c6573e2ff)
   and is reproducible from `foundry/`; the public Rayfin demo currently represents
   its output with deterministic responses.
@@ -308,18 +308,17 @@ East US and is reproducible from the source files under `foundry/`.
 
 | Component | Deployed value | Purpose |
 | --- | --- | --- |
-| Prompt agent | `fraud-iq-orchestrator` | Reconciles internal evidence with regulatory obligations |
+| Prompt agent | `fraud-iq-orchestrator` | Grounds regulatory guidance on official web sources |
 | Model deployment | `gpt-5.6-terra` | Runs the agent reasoning and tool orchestration |
-| Fabric IQ tool | `fraud-fabric-data-agent` | Calls the published Fabric Data Agent through delegated user identity |
 | Web Search tool | France / Paris location | Retrieves current regulatory guidance with URL citations |
 | Validation | Official-domain allow-list | Rejects missing citations and citations outside approved domains |
 
 The agent follows this request flow:
 
-1. Fabric IQ queries the governed Lakehouse through the published Data Agent.
-2. Web Search looks up generic legal concepts, rules, dates, and thresholds.
-3. The model separates case facts, interpretation, applicable obligations, and actions.
-4. The answer preserves Fabric record identifiers and regulatory URL citations.
+1. Web Search looks up generic legal concepts, rules, dates, and thresholds.
+2. The model treats case facts in the prompt as unverified context.
+3. The model separates supplied facts, interpretation, applicable obligations, and actions.
+4. The answer preserves regulatory URL citations.
 5. Any filing, blocking, fraud, or customer decision remains subject to human approval.
 
 Approved regulatory sources include the ACPR, AMF, Banque de France, CNIL, EBA,
@@ -340,13 +339,13 @@ az login --tenant "<tenant-id>"
 
 The deployment is idempotent. It provisions the account and project when needed,
 reconciles the five model deployments declared in `foundry/models.json`, creates the
-delegated Fabric MCP connection, publishes a new immutable agent version, and validates
-the regulatory grounding. Use `-SkipInfrastructure` to retain the account and project,
-or `-SkipModels` to leave existing model deployments untouched.
+delegated Fabric MCP connection for separate consumers, publishes a new immutable web-only
+agent version, and validates the regulatory grounding. Use `-SkipInfrastructure` to retain
+the account and project, or `-SkipModels` to leave existing model deployments untouched.
 
-The first combined Fabric + Foundry request can require interactive delegated consent.
-Each operator must have access to the Fabric workspace, Data Agent, and Lakehouse. Web-only
-regulatory validation is independent of Fabric consent and is run with:
+Consumers that separately attach the Fabric connection can require interactive delegated
+consent and access to the Fabric workspace, Data Agent, and Lakehouse. The orchestrator's
+web-only regulatory validation is independent of Fabric consent and is run with:
 
 ```powershell
 & foundry/.venv/Scripts/python.exe foundry/validate_foundry.py `
@@ -390,13 +389,14 @@ Pour le client associé à l'alerte la plus risquée, reconstitue la chronologie
 transactions et événements disponibles. Signale explicitement toute donnée manquante.
 ```
 
-Use the **`fraud-iq-orchestrator` agent in Microsoft Foundry** when the answer must
-combine governed Fabric facts with current regulatory guidance from official sources:
+Use the **`fraud-iq-orchestrator` agent in Microsoft Foundry** for current regulatory
+guidance from official sources. Include any relevant case facts in the prompt and treat
+them as unverified until an analyst checks them against Fabric:
 
 ```text
-Pour le dossier AML ouvert le plus risqué, distingue les faits disponibles dans
-Fabric, les obligations réglementaires européennes applicables et les actions à
-soumettre à validation humaine. Cite les textes officiels et conserve les identifiants.
+À partir des faits AML fournis dans la demande, distingue le contexte non vérifié,
+les obligations réglementaires européennes applicables et les actions à soumettre
+à validation humaine. Cite les textes officiels.
 
 Analyse les signaux d'une possible fraude au paiement dans le dossier sélectionné.
 Rapproche-les des exigences réglementaires en vigueur, cite uniquement des sources

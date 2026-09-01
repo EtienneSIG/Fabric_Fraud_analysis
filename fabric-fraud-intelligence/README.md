@@ -79,9 +79,9 @@ devices). Five "hero" alerts drive the demo scenarios below.
   grounded responses from the seeded data plus a generated NL2SQL query. Set
   `FABRIC_APP_MODE=fabric` to route to a real Fabric Data Agent over REST.
 - A companion **Microsoft Foundry orchestrator**, deployed from the repository's
-  `foundry/` folder, links the Fabric Data Agent to regulatory web grounding on official
-  websites. The Fraud IQ screen calls `fraud-iq-orchestrator` live using interactive
-  Microsoft Entra authentication and displays its cited response.
+  `foundry/` folder, provides regulatory web grounding on official websites. The Fraud IQ
+  screen calls `fraud-iq-orchestrator` live using interactive Microsoft Entra authentication
+  and displays its cited response. The Fabric Data Agent is not attached to this orchestrator.
 - Every interaction is persisted to **AgentRun** and the **audit trail**.
 - All recommendations are **advisory and require human approval**.
 

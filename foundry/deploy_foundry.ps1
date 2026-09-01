@@ -79,7 +79,6 @@ if (-not (Test-Path $pythonPath)) {
 $agentArgs = @(
   (Join-Path $scriptRoot "deploy_agents.py"),
   "--endpoint", $projectEndpoint,
-  "--fabric-connection-id", $connectionId,
   "--config", $configPath
 )
 if ($ReplaceAgent) { $agentArgs += "--replace" }

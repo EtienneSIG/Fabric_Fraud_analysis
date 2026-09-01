@@ -4,7 +4,6 @@ from pathlib import Path
 
 from azure.ai.projects import AIProjectClient
 from azure.ai.projects.models import (
-    FabricIQPreviewTool,
     PromptAgentDefinition,
     WebSearchApproximateLocation,
     WebSearchTool,
@@ -15,7 +14,6 @@ from azure.identity import AzureCliCredential
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Deploy the Fraud IQ Foundry agent.")
     parser.add_argument("--endpoint", required=True)
-    parser.add_argument("--fabric-connection-id", required=True)
     parser.add_argument("--config", type=Path, default=Path(__file__).with_name("config.json"))
     parser.add_argument("--replace", action="store_true")
     return parser.parse_args()
@@ -23,14 +21,14 @@ def parse_args() -> argparse.Namespace:
 
 def build_instructions(domains: list[str]) -> str:
     domain_list = ", ".join(domains)
-    return f"""You are Fraud IQ, an advisory fraud and AML investigation agent.
+    return f"""You are Fraud IQ, an advisory fraud and AML regulatory agent.
 
 For every case-specific request:
-1. Use Fabric IQ to retrieve governed facts from the published Fraud Intelligence Data Agent. Never invent a fact that is absent from Fabric.
-2. Use web search to retrieve current regulatory obligations. Accept and cite sources only from these official domains: {domain_list}.
-3. Reconcile internal evidence and regulatory requirements. Clearly separate facts, interpretation, applicable obligations, and recommended actions.
-4. Include record identifiers returned by Fabric and preserve the URL citations returned by web search.
-5. If either tool lacks evidence, state the gap. Never substitute a non-official source.
+1. Use web search to retrieve current regulatory obligations. Accept and cite sources only from these official domains: {domain_list}.
+2. Treat case facts supplied by the user as unverified context. Do not claim access to Fabric or other internal data.
+3. Clearly separate user-provided facts, interpretation, applicable obligations, and recommended actions.
+4. Preserve the URL citations returned by web search.
+5. If evidence is missing, state the gap. Never invent internal facts or substitute a non-official source.
 6. Do not make a final fraud, filing, blocking, or customer decision. Require human review and approval.
 
 Answer in the user's language. Do not send personal data, account numbers, transaction details, or other case evidence in a web-search query. Search only for generic legal concepts, rules, guidance, dates, and thresholds."""
@@ -51,10 +49,6 @@ def main() -> None:
         model=config["modelDeploymentName"],
         instructions=build_instructions(config["regulatoryDomains"]),
         tools=[
-            FabricIQPreviewTool(
-                project_connection_id=args.fabric_connection_id,
-                require_approval="never",
-            ),
             WebSearchTool(
                 user_location=WebSearchApproximateLocation(
                     country="FR",
