@@ -59,6 +59,33 @@
       "Herramienta: se ejecutaron la puntuación de riesgo y el cribado con contexto fundamentado."
     ]
   },
+  "web": {
+    "aml": [
+      "Web IQ · EUR-Lex: obligaciones de la UE sobre detección y notificación de operaciones sospechosas, con enlace a la fuente.",
+      "Web IQ · ACPR: orientación oficial sobre tipologías de layering y umbrales de notificación.",
+      "Web IQ · citas restringidas a dominios oficiales; no se envía PII del caso a la web."
+    ],
+    "card": [
+      "Web IQ · EUR-Lex: obligaciones de servicios de pago sobre autenticación reforzada del cliente, citadas.",
+      "Web IQ · ACPR: deberes oficiales de detección del fraude con tarjeta y protección del cliente.",
+      "Web IQ · solo términos legales genéricos salen de la plataforma; fuentes verificables."
+    ],
+    "claim": [
+      "Web IQ · Legifrance: disposiciones sobre fraude al seguro aplicables a redes organizadas.",
+      "Web IQ · orientación oficial sobre los deberes de notificación de colusión de proveedores, con enlaces.",
+      "Web IQ · citas limitadas a dominios regulatorios oficiales."
+    ],
+    "takeover": [
+      "Web IQ · EBA/ACPR: obligaciones de prevención de la apropiación de cuentas y gestión de incidentes.",
+      "Web IQ · orientación oficial sobre autenticación reforzada y notificación al cliente.",
+      "Web IQ · sin datos personales en la consulta web; solo fuentes oficiales."
+    ],
+    "generic": [
+      "Web IQ · obligaciones regulatorias vigentes recuperadas de fuentes oficiales, citadas.",
+      "Web IQ · búsqueda y citas restringidas a una lista blanca de dominios oficiales.",
+      "Web IQ · solo términos legales genéricos salen de la plataforma; se conservan los enlaces."
+    ]
+  },
   "synthesis": {
     "aml": {
       "verdict": "Blanqueo probable — esquema de layering coordinado",
@@ -193,6 +220,11 @@
       "Cruza la tipología «toma de control de tarjeta presente / viaje imposible» de la base de conocimiento.",
       "Memoria: los casos comparables tuvieron 96 % de fraude confirmado con bloqueo + reemisión.",
       "Genera un razonamiento explicable y una recomendación de acción."
+    ],
+    "web": [
+      "EUR-Lex: obligaciones de la UE aplicables a la notificación de operaciones sospechosas, citadas.",
+      "ACPR: orientación oficial sobre los deberes de detección del fraude con tarjeta, con enlace a la fuente.",
+      "Citas limitadas a dominios oficiales; solo términos legales genéricos salen de la plataforma."
     ],
     "recommendationActions": [
       "Tarjeta bloqueada temporalmente",

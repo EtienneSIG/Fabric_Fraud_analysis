@@ -1,18 +1,19 @@
 // Simulated "Microsoft IQ" grounding layer for the fraud platform.
 // Microsoft IQ (Ignite 2025) is the shared intelligence layer that grounds AI
-// agents across three domains:
+// agents across four domains:
 //   • Fabric IQ  — enterprise DATA & semantics (OneLake, ontology, digital twins)
 //   • Work IQ    — the WORK graph in Microsoft 365 (people, docs, chats, calendar)
 //   • Foundry IQ — unified KNOWLEDGE & tools for agents in Microsoft Foundry
+//   • Web IQ     — the live WEB (official regulatory sources) via Microsoft Web IQ
 // This module simulates how each IQ contributes grounding to a fraud investigation.
 // NOTE: Fabric IQ grounding is REAL — computed live from the same data that is
-// materialized in fraud_lakehouse and bound to the fraud_ontology. Only Work IQ
-// and Foundry IQ are simulated.
+// materialized in fraud_lakehouse and bound to the fraud_ontology. Web IQ is real when
+// enabled (backend proxy over Microsoft Web IQ); Work IQ and Foundry IQ are simulated.
 
 import { DATASET } from '@/data/seed';
 import i18n from '@/i18n/i18n';
 
-export type IqId = 'fabric' | 'work' | 'foundry';
+export type IqId = 'fabric' | 'work' | 'foundry' | 'web';
 
 export interface IqInfo {
   id: IqId;
@@ -67,6 +68,20 @@ export const IQS: IqInfo[] = [
       'Orchestrates tools (risk scoring, sanctions screening) with grounded context',
     ],
   },
+  {
+    id: 'web',
+    name: 'Web IQ',
+    tagline: 'Intelligence of the live web',
+    color: '#ea580c',
+    grounds: 'Official regulatory sources',
+    description:
+      'Real-time web grounding via Microsoft Web IQ — restricted to official regulatory domains, returning cited obligations with source links.',
+    fraudUse: [
+      'Retrieves current AML/fraud obligations from official sources (ACPR, AMF, EUR-Lex…)',
+      'Restricts search and citations to an official-domain allow-list, no case PII in the query',
+      'Preserves verifiable source links so an investigator can confirm each obligation',
+    ],
+  },
 ];
 
 export interface Synthesis {
@@ -82,6 +97,7 @@ export interface IqResult {
   fabric: string[];
   work: string[];
   foundry: string[];
+  web: string[];
   synthesis: Synthesis;
 }
 
@@ -191,6 +207,7 @@ export function askMicrosoftIq(question: string): IqResult {
     fabric: fabricIqLive(question),
     work: t(`work.${f}`, { returnObjects: true }) as string[],
     foundry: t(`foundry.${f}`, { returnObjects: true }) as string[],
+    web: t(`web.${f}`, { returnObjects: true }) as string[],
     synthesis,
   };
 }
@@ -216,6 +233,7 @@ export interface CardFraudScenario {
   work: string[];
   fabric: string[]; // LIVE from ontology + lakehouse
   foundry: string[];
+  web: string[];
   recommendation: Recommendation;
   seconds: number;
 }
@@ -250,6 +268,7 @@ export function cardFraudScenario(): CardFraudScenario {
     work: t('scenario.work', { returnObjects: true }) as string[],
     fabric,
     foundry: t('scenario.foundry', { returnObjects: true }) as string[],
+    web: t('scenario.web', { returnObjects: true }) as string[],
     recommendation: {
       confidence: 0.92,
       actions: t('scenario.recommendationActions', { returnObjects: true }) as string[],

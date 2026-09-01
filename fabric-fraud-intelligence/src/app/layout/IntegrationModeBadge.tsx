@@ -12,7 +12,7 @@ const PILL: Record<'mock' | 'partial' | 'live', string> = {
   partial: 'text-amber-700 border-amber-200 bg-amber-50',
   live: 'text-emerald-700 border-emerald-200 bg-emerald-50',
 };
-const FEATURES: FeatureKey[] = ['fabric', 'foundry', 'raft', 'workiq', 'teams'];
+const FEATURES: FeatureKey[] = ['fabric', 'foundry', 'raft', 'workiq', 'webiq', 'teams'];
 
 // Discreet header pill: overall integration mode (mock / partial / live). Hovering lists each
 // integration's live-vs-mock state so a degraded demo is honestly, quietly signalled.

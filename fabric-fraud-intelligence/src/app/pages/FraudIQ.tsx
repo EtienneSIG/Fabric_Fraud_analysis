@@ -10,12 +10,19 @@ import {
   type IqId,
   type IqResult,
 } from '@/backend/api/microsoftIq';
-import { isFoundryEnabled, isWorkIqEnabled } from '@/backend/config';
+import { isFoundryEnabled, isWorkIqEnabled, isWebIqEnabled } from '@/backend/config';
 import { workIq } from '@/backend/services/WorkIqGraphClient';
+import { webIq } from '@/backend/services/WebIqClient';
 
 const isLive = (id: IqId): boolean =>
-  id === 'fabric' ? true : id === 'work' ? isWorkIqEnabled() : isFoundryEnabled();
-const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed' };
+  id === 'fabric'
+    ? true
+    : id === 'work'
+      ? isWorkIqEnabled()
+      : id === 'web'
+        ? isWebIqEnabled()
+        : isFoundryEnabled();
+const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed', web: '#ea580c' };
 const IQ_BY_ID = Object.fromEntries(IQS.map((i) => [i.id, i])) as Record<IqId, (typeof IQS)[number]>;
 
 function Badge({ live }: { live: boolean }) {
@@ -106,6 +113,13 @@ export function FraudIQ() {
         if (signals && signals.length) setResult((r) => (r ? { ...r, work: signals } : r));
       });
     }
+    // Real Web IQ (Microsoft Web IQ, backend proxy) replaces the static web column when enabled.
+    if (isWebIqEnabled()) {
+      void webIq.getCitations(question, i18n.language).then((cites) => {
+        if (cites && cites.length)
+          setResult((r) => (r ? { ...r, web: cites.map((c) => `${c.title} — ${c.url}`) } : r));
+      });
+    }
   };
 
   return (
@@ -118,7 +132,7 @@ export function FraudIQ() {
       </div>
 
       {/* The three IQs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {IQS.map((iq) => (
           <section key={iq.id} className="ffi-card p-4 border-t-4" style={{ borderTopColor: iq.color }}>
             <div className="flex items-center justify-between">
@@ -211,10 +225,11 @@ export function FraudIQ() {
         {/* Agentic reveal */}
         {started && (
           <>
-            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <IqColumn id="work" items={scenario.work} revealed={phase >= 1} />
               <IqColumn id="fabric" items={scenario.fabric} revealed={phase >= 2} />
               <IqColumn id="foundry" items={scenario.foundry} revealed={phase >= 3} />
+              <IqColumn id="web" items={scenario.web} revealed={phase >= 3} />
             </div>
 
             <div
@@ -301,10 +316,11 @@ export function FraudIQ() {
         </div>
         {result && (
           <>
-            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <IqColumn id="fabric" items={result.fabric} revealed={askPhase >= 1} />
               <IqColumn id="work" items={result.work} revealed={askPhase >= 2} />
               <IqColumn id="foundry" items={result.foundry} revealed={askPhase >= 3} />
+              <IqColumn id="web" items={result.web} revealed={askPhase >= 3} />
             </div>
             <div
               className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 dark:bg-indigo-500/10 p-4 transition-opacity ${

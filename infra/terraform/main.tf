@@ -202,6 +202,10 @@ resource "azurerm_function_app_flex_consumption" "bot" {
     EVENTHUB_NAME                         = azurerm_eventhub.transactions.name
     GRAPH_OBO_CLIENT_ID                   = azuread_application.graph_obo.client_id
     GRAPH_OBO_CLIENT_SECRET_NAME          = azurerm_key_vault_secret.graph_obo.name
+    WEBIQ_CLIENT_ID                       = var.webiq_client_id
+    WEBIQ_TENANT_ID                       = coalesce(var.webiq_tenant_id, var.tenant_id)
+    WEBIQ_CLIENT_SECRET_NAME              = var.webiq_client_secret_name
+    WEBIQ_OFFICIAL_DOMAINS                = join(",", var.webiq_official_domains)
     APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.this.connection_string
   }
 

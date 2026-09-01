@@ -46,6 +46,11 @@ output "graph_obo_client_id" {
   value       = azuread_application.graph_obo.client_id
 }
 
+output "webiq_client_secret_name" {
+  description = "Place the Web IQ app client secret in Key Vault under this name (not managed by Terraform)."
+  value       = var.webiq_client_secret_name
+}
+
 output "tenant_id" {
   value = var.tenant_id
 }

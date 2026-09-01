@@ -68,3 +68,10 @@ export const raftCompareSchema = z.object({
     .default({}),
   locale: z.string().default('en'),
 });
+
+// Web IQ regulatory web search: only generic legal terms reach the web; no case PII in the query.
+export const regulatoryWebSearchSchema = z.object({
+  query: z.string().min(1),
+  caseId: z.string().optional(),
+  locale: z.string().default('en'),
+});

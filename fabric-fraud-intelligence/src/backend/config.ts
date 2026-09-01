@@ -14,6 +14,7 @@ interface IntegrationConfig {
   graphOboClientId: string;
   foundryEnabled: boolean;
   workIqEnabled: boolean;
+  webIqEnabled: boolean;
   teamsEnabled: boolean;
   raftEnabled: boolean;
   raftStudentDeployment: string;
@@ -40,6 +41,7 @@ export const integrationConfig: IntegrationConfig = {
   graphOboClientId: env('VITE_GRAPH_OBO_CLIENT_ID'),
   foundryEnabled: flag('VITE_FOUNDRY_ENABLED'),
   workIqEnabled: flag('VITE_WORKIQ_ENABLED'),
+  webIqEnabled: flag('VITE_WEBIQ_ENABLED'),
   teamsEnabled: flag('VITE_TEAMS_ENABLED'),
   raftEnabled: flag('VITE_RAFT_ENABLED'),
   raftStudentDeployment: env('VITE_RAFT_STUDENT_DEPLOYMENT'),
@@ -52,6 +54,7 @@ const backendReady = (): boolean => !isMock() && !!integrationConfig.backendApiU
 
 export const isFoundryEnabled = (): boolean => backendReady() && integrationConfig.foundryEnabled;
 export const isWorkIqEnabled = (): boolean => backendReady() && integrationConfig.workIqEnabled;
+export const isWebIqEnabled = (): boolean => backendReady() && integrationConfig.webIqEnabled;
 export const isTeamsEnabled = (): boolean => backendReady() && integrationConfig.teamsEnabled;
 
 // The RAFT student A/B path is live only when a fine-tuned deployment is wired; otherwise the
@@ -59,7 +62,7 @@ export const isTeamsEnabled = (): boolean => backendReady() && integrationConfig
 export const isRaftEnabled = (): boolean =>
   backendReady() && integrationConfig.raftEnabled && !!integrationConfig.raftStudentDeployment;
 
-export type FeatureKey = 'fabric' | 'foundry' | 'raft' | 'workiq' | 'teams';
+export type FeatureKey = 'fabric' | 'foundry' | 'raft' | 'workiq' | 'webiq' | 'teams';
 
 export interface IntegrationStatus {
   overall: 'mock' | 'partial' | 'live';
@@ -74,6 +77,7 @@ export function integrationStatus(): IntegrationStatus {
     foundry: isFoundryEnabled(),
     raft: isRaftEnabled(),
     workiq: isWorkIqEnabled(),
+    webiq: isWebIqEnabled(),
     teams: isTeamsEnabled(),
   };
   const live = Object.values(features).filter(Boolean).length;

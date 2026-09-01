@@ -59,6 +59,33 @@
       "Outil : scoring de risque et criblage exécutés avec un contexte ancré."
     ]
   },
+  "web": {
+    "aml": [
+      "Web IQ · EUR-Lex : obligations européennes de détection et de déclaration des opérations suspectes, avec lien source.",
+      "Web IQ · ACPR : orientations officielles sur les typologies de layering et les seuils de déclaration.",
+      "Web IQ · citations limitées aux domaines officiels ; aucune donnée PII du dossier envoyée sur le web."
+    ],
+    "card": [
+      "Web IQ · EUR-Lex : obligations des services de paiement sur l'authentification forte du client, citées.",
+      "Web IQ · ACPR : devoirs officiels de détection de la fraude à la carte et de protection du client.",
+      "Web IQ · seuls des termes juridiques génériques quittent la plateforme ; sources vérifiables."
+    ],
+    "claim": [
+      "Web IQ · Legifrance : dispositions sur la fraude à l'assurance applicables aux réseaux organisés.",
+      "Web IQ · orientations officielles sur les obligations de signalement des collusions de réparateurs, avec liens.",
+      "Web IQ · citations limitées aux domaines réglementaires officiels."
+    ],
+    "takeover": [
+      "Web IQ · EBA/ACPR : obligations de prévention des prises de contrôle de compte et de gestion des incidents.",
+      "Web IQ · orientations officielles sur l'authentification forte et la notification du client.",
+      "Web IQ · aucune donnée personnelle dans la requête web ; sources officielles uniquement."
+    ],
+    "generic": [
+      "Web IQ · obligations réglementaires en vigueur récupérées auprès de sources officielles, citées.",
+      "Web IQ · recherche et citations restreintes à une liste blanche de domaines officiels.",
+      "Web IQ · seuls des termes juridiques génériques quittent la plateforme ; liens sources conservés."
+    ]
+  },
   "synthesis": {
     "aml": {
       "verdict": "Blanchiment probable — schéma de layering coordonné",
@@ -193,6 +220,11 @@
       "Croise la typologie « card-present takeover / impossible travel » de la base de connaissances.",
       "Mémoire : les cas comparables ont eu 96 % de fraude confirmée sur blocage + réémission.",
       "Génère un raisonnement explicable et une recommandation d'action."
+    ],
+    "web": [
+      "EUR-Lex : obligations européennes applicables à la déclaration des opérations suspectes, citées.",
+      "ACPR : orientations officielles sur les devoirs de détection de la fraude à la carte, avec lien source.",
+      "Citations limitées aux domaines officiels ; seuls des termes juridiques génériques quittent la plateforme."
     ],
     "recommendationActions": [
       "Carte temporairement bloquée",

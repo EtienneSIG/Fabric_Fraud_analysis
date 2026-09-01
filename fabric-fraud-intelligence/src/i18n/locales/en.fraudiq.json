@@ -59,6 +59,33 @@
       "Tool: risk scoring and screening were executed with grounded context."
     ]
   },
+  "web": {
+    "aml": [
+      "Web IQ · EUR-Lex: EU obligations on suspicious-transaction detection and reporting, with source link.",
+      "Web IQ · ACPR: official guidance on layering typologies and reporting thresholds.",
+      "Web IQ · citations restricted to official domains; no case PII sent to the web."
+    ],
+    "card": [
+      "Web IQ · EUR-Lex: payment-services obligations on strong customer authentication, cited.",
+      "Web IQ · ACPR: official duties on card-fraud detection and customer protection.",
+      "Web IQ · only generic legal terms leave the platform; sources are verifiable."
+    ],
+    "claim": [
+      "Web IQ · Legifrance: insurance-fraud provisions applicable to organised claims rings.",
+      "Web IQ · official guidance on provider-collusion reporting duties, with links.",
+      "Web IQ · citations limited to official regulatory domains."
+    ],
+    "takeover": [
+      "Web IQ · EBA/ACPR: obligations on account-takeover prevention and incident handling.",
+      "Web IQ · official guidance on strong authentication and customer notification.",
+      "Web IQ · no personal data in the web query; official sources only."
+    ],
+    "generic": [
+      "Web IQ · current regulatory obligations retrieved from official sources, cited.",
+      "Web IQ · search and citations restricted to an official-domain allow-list.",
+      "Web IQ · only generic legal terms leave the platform; source links preserved."
+    ]
+  },
   "synthesis": {
     "aml": {
       "verdict": "Probable money laundering — coordinated layering scheme",
@@ -193,6 +220,11 @@
       "Cross-references the \"card-present takeover / impossible travel\" typology from the knowledge base.",
       "Memory: comparable cases had 96% confirmed fraud on block + reissue.",
       "Generates explainable reasoning and an action recommendation."
+    ],
+    "web": [
+      "EUR-Lex: applicable EU obligations on suspicious-transaction reporting, cited.",
+      "ACPR: official guidance on card-fraud detection duties, with source link.",
+      "Citations limited to official domains; only generic legal terms leave the platform."
     ],
     "recommendationActions": [
       "Card temporarily blocked",
