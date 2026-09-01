@@ -11,6 +11,7 @@ const AGENT_ENDPOINT =
   'https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ/agents/fraud-iq-orchestrator/endpoint/protocols/openai/responses';
 const SCOPES = ['https://ai.azure.com/.default'];
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
+const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
 
 interface FoundryAnnotation {
   type?: string;
@@ -57,6 +58,7 @@ function getApplication(): PublicClientApplication {
         clientId: CLIENT_ID,
         authority: `https://login.microsoftonline.com/${TENANT_ID}`,
         redirectUri: AUTH_REDIRECT_URI,
+        popupRelayUri: POPUP_RELAY_URI,
       },
       cache: { cacheLocation: 'localStorage' },
       system: {
