@@ -11,7 +11,6 @@ if (title) title.textContent = i18n.t('authRelay.title');
 if (!button) throw new Error('Authentication relay button is missing.');
 
 button.textContent = i18n.t('authRelay.continue');
-button.hidden = false;
 button.addEventListener('click', () => {
 	button.disabled = true;
 	button.textContent = i18n.t('authRelay.signingIn');

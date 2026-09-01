@@ -91,7 +91,29 @@
     "synthesisInProgress": "Síntesis en curso…",
     "fraudIqTitle": "Fraud IQ",
     "groundingCol": "fundamentando…",
-    "microsoftIqIntro": "Inteligencia antifraude impulsada por <b>Microsoft IQ</b>: <b>Fabric IQ</b> (datos y ontología, en vivo sobre nuestras tablas), <b>Work IQ</b> (contexto de trabajo de Microsoft 365) y <b>Foundry IQ</b> (conocimiento y razonamiento de los agentes)."
+    "microsoftIqIntro": "Inteligencia antifraude impulsada por <b>Microsoft IQ</b>: <b>Fabric IQ</b> (datos y ontología, en vivo sobre nuestras tablas), <b>Work IQ</b> (contexto de trabajo de Microsoft 365) y <b>Foundry IQ</b> (conocimiento y razonamiento de los agentes).",
+    "iq": {
+      "fabric": {
+        "tagline": "Inteligencia de tus datos",
+        "grounds": "Datos y semántica empresariales",
+        "description": "La capa semántica sobre OneLake — ontología, conceptos de negocio y relaciones — que permite a los agentes razonar sobre datos empresariales gobernados, no sobre tablas sin procesar."
+      },
+      "work": {
+        "tagline": "Inteligencia de tu trabajo",
+        "grounds": "Grafo de trabajo de Microsoft 365",
+        "description": "La capa de inteligencia sobre el trabajo en Microsoft 365 — personas, documentos, reuniones y comunicaciones — que proporciona contexto organizativo a los agentes."
+      },
+      "foundry": {
+        "tagline": "Inteligencia para tus agentes",
+        "grounds": "Conocimiento y herramientas de los agentes",
+        "description": "Conocimiento, recuperación y memoria unificados para agentes en Microsoft Foundry — fundamentando el razonamiento en políticas, normativas y resultados de herramientas."
+      },
+      "web": {
+        "tagline": "Inteligencia de la web en tiempo real",
+        "grounds": "Fuentes regulatorias oficiales",
+        "description": "Fundamentación web en tiempo real mediante Microsoft Web IQ — restringida a dominios regulatorios oficiales, con obligaciones citadas y enlaces a sus fuentes."
+      }
+    }
   },
   "pages": {
     "dashboard": {

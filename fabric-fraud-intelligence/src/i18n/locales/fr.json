@@ -91,7 +91,29 @@
     "synthesisInProgress": "Synthèse en cours…",
     "fraudIqTitle": "Fraud IQ",
     "groundingCol": "ancrage…",
-    "microsoftIqIntro": "L’intelligence anti-fraude propulsée par <b>Microsoft IQ</b> : <b>Fabric IQ</b> (données & ontologie, en direct sur nos tables), <b>Work IQ</b> (contexte de travail Microsoft 365) et <b>Foundry IQ</b> (connaissance & raisonnement des agents)."
+    "microsoftIqIntro": "L’intelligence anti-fraude propulsée par <b>Microsoft IQ</b> : <b>Fabric IQ</b> (données & ontologie, en direct sur nos tables), <b>Work IQ</b> (contexte de travail Microsoft 365) et <b>Foundry IQ</b> (connaissance & raisonnement des agents).",
+    "iq": {
+      "fabric": {
+        "tagline": "L’intelligence de vos données",
+        "grounds": "Données et sémantique d’entreprise",
+        "description": "La couche sémantique de OneLake — ontologie, concepts métier et relations — qui permet aux agents de raisonner sur des données d’entreprise gouvernées plutôt que sur des tables brutes."
+      },
+      "work": {
+        "tagline": "L’intelligence de votre travail",
+        "grounds": "Graphe de travail Microsoft 365",
+        "description": "La couche d’intelligence du travail dans Microsoft 365 — personnes, documents, réunions et communications — qui fournit aux agents le contexte de l’organisation."
+      },
+      "foundry": {
+        "tagline": "L’intelligence pour vos agents",
+        "grounds": "Connaissances et outils des agents",
+        "description": "Connaissances, recherche et mémoire unifiées pour les agents dans Microsoft Foundry — pour ancrer le raisonnement dans les politiques, les réglementations et les résultats des outils."
+      },
+      "web": {
+        "tagline": "L’intelligence du web en direct",
+        "grounds": "Sources réglementaires officielles",
+        "description": "Ancrage web en temps réel via Microsoft Web IQ — limité aux domaines réglementaires officiels, avec des obligations citées et des liens vers leurs sources."
+      }
+    }
   },
   "pages": {
     "dashboard": {

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import {
   askMicrosoftIq,
@@ -39,42 +41,139 @@ function Badge({ live }: { live: boolean }) {
   );
 }
 
-function IqColumn({ id, items, revealed }: { id: IqId; items: string[]; revealed: boolean }) {
+function MarkdownContent({ children }: { children: string }) {
+  return (
+    <div className="min-w-0 space-y-3 text-sm leading-6 text-gray-700 [overflow-wrap:anywhere]">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          h1: ({ children: heading }) => <h5 className="text-base font-bold text-gray-900">{heading}</h5>,
+          h2: ({ children: heading }) => <h5 className="text-sm font-bold text-gray-900">{heading}</h5>,
+          h3: ({ children: heading }) => <h6 className="text-sm font-semibold text-gray-800">{heading}</h6>,
+          p: ({ children: paragraph }) => <p>{paragraph}</p>,
+          ul: ({ children: list }) => <ul className="ml-5 list-disc space-y-1.5">{list}</ul>,
+          ol: ({ children: list }) => <ol className="ml-5 list-decimal space-y-1.5">{list}</ol>,
+          li: ({ children: item }) => <li className="pl-1">{item}</li>,
+          strong: ({ children: strong }) => <strong className="font-semibold text-gray-900">{strong}</strong>,
+          blockquote: ({ children: quote }) => (
+            <blockquote className="border-l-2 border-violet-300 bg-violet-50 px-3 py-2 text-gray-600">
+              {quote}
+            </blockquote>
+          ),
+          a: ({ children: link, ...props }) => (
+            <a {...props} className="text-indigo-600 underline underline-offset-2" target="_blank" rel="noreferrer">
+              {link}
+            </a>
+          ),
+        }}
+      >
+        {children}
+      </ReactMarkdown>
+    </div>
+  );
+}
+
+function compactMarkdown(value: string): string {
+  const text = value
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[*_`>~-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > 180 ? `${text.slice(0, 177)}...` : text;
+}
+
+function IqColumn({
+  id,
+  items,
+  revealed,
+  embedded = false,
+}: {
+  id: IqId;
+  items: string[];
+  revealed: boolean;
+  embedded?: boolean;
+}) {
   const { t } = useTranslation();
   const iq = IQ_BY_ID[id];
   return (
-    <div className="rounded-xl border border-gray-100 p-3">
+    <div className={`min-w-0 p-4 ${embedded ? '' : 'rounded-xl border border-gray-100'}`}>
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold" style={{ color: COLOR[id] }}>
           {iq.name}
         </h4>
         <Badge live={isLive(id)} />
       </div>
-      <p className="text-[11px] text-gray-400">{iq.grounds}</p>
+      <p className="text-[11px] text-gray-400">{t(`fraudIqPage.iq.${id}.grounds`)}</p>
       {revealed ? (
-        <ul className="mt-2 space-y-1.5">
+        id === 'foundry' && items.length ? (
+          <div className="mt-3 min-w-0">
+            <MarkdownContent>{items[0]}</MarkdownContent>
+            {items.length > 1 && (
+              <ul className="mt-4 space-y-2 border-t border-gray-100 pt-3">
+                {items.slice(1).map((item, index) => {
+                  const url = item.match(/https:\/\/\S+$/)?.[0];
+                  return (
+                    <li key={index} className="flex min-w-0 gap-2 text-xs leading-relaxed text-gray-600">
+                      <span className="shrink-0" style={{ color: COLOR[id] }}>•</span>
+                      {url ? (
+                        <a className="min-w-0 break-all text-indigo-600 underline" href={url} target="_blank" rel="noreferrer">
+                          {item.slice(0, -url.length).trim()}
+                        </a>
+                      ) : (
+                        <span className="min-w-0 break-words">{item}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        ) : (
+        <ul className="mt-2 min-w-0 space-y-1.5">
           {items.map((it, i) => {
             const url = it.match(/https:\/\/\S+$/)?.[0];
             return (
-            <li key={i} className="flex gap-1.5 text-xs text-gray-600 leading-relaxed">
-              <span style={{ color: COLOR[id] }}>•</span>
+            <li key={i} className="flex min-w-0 gap-1.5 text-xs text-gray-600 leading-relaxed">
+              <span className="shrink-0" style={{ color: COLOR[id] }}>•</span>
               {url ? (
-                <a className="break-all text-indigo-600 underline" href={url} target="_blank" rel="noreferrer">
+                <a className="min-w-0 break-all text-indigo-600 underline" href={url} target="_blank" rel="noreferrer">
                   {it.slice(0, -url.length).trim()}
                 </a>
               ) : (
-                <span className="whitespace-pre-wrap">{it}</span>
+                <span className="min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere]">{it}</span>
               )}
             </li>
             );
           })}
         </ul>
+        )
       ) : (
         <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
           <span className="inline-block h-3 w-3 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
           {t('fraudIqPage.groundingCol')}
         </div>
       )}
+    </div>
+  );
+}
+
+function FoundryWebColumn({
+  foundry,
+  web,
+  revealed,
+}: {
+  foundry: string[];
+  web: string[];
+  revealed: boolean;
+}) {
+  return (
+    <div className="min-w-0 overflow-hidden rounded-xl border border-gray-100 sm:col-span-2 lg:col-span-3">
+      <div className="grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="min-w-0 border-b border-gray-100 lg:border-b-0 lg:border-r">
+          <IqColumn id="foundry" items={foundry} revealed={revealed} embedded />
+        </div>
+        <IqColumn id="web" items={web} revealed={revealed} embedded />
+      </div>
     </div>
   );
 }
@@ -174,9 +273,9 @@ export function FraudIQ() {
         </p>
       </div>
 
-      {/* The three IQs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {IQS.map((iq) => (
+      {/* The three IQ surfaces */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {IQS.filter((iq) => iq.id === 'fabric' || iq.id === 'work').map((iq) => (
           <section key={iq.id} className="ffi-card p-4 border-t-4" style={{ borderTopColor: iq.color }}>
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold" style={{ color: iq.color }}>
@@ -184,10 +283,31 @@ export function FraudIQ() {
               </h3>
               <Badge live={isLive(iq.id)} />
             </div>
-            <p className="text-xs font-medium text-gray-500">{iq.tagline}</p>
-            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{iq.description}</p>
+            <p className="text-xs font-medium text-gray-500">{t(`fraudIqPage.iq.${iq.id}.tagline`)}</p>
+            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+              {t(`fraudIqPage.iq.${iq.id}.description`)}
+            </p>
           </section>
         ))}
+        <section className="ffi-card overflow-hidden border-t-4 p-0" style={{ borderTopColor: COLOR.foundry }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            {(['foundry', 'web'] as const).map((id, index) => {
+              const iq = IQ_BY_ID[id];
+              return (
+                <div key={id} className={`min-w-0 p-4 ${index ? 'border-t border-gray-100 sm:border-l sm:border-t-0 lg:border-l-0 lg:border-t xl:border-l xl:border-t-0' : ''}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-bold" style={{ color: iq.color }}>{iq.name}</h3>
+                    <Badge live={isLive(id)} />
+                  </div>
+                  <p className="text-xs font-medium text-gray-500">{t(`fraudIqPage.iq.${id}.tagline`)}</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
+                    {t(`fraudIqPage.iq.${id}.description`)}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       </div>
 
       {/* Flagship scenario */}
@@ -270,11 +390,10 @@ export function FraudIQ() {
         {/* Agentic reveal */}
         {started && (
           <>
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <IqColumn id="work" items={scenario.work} revealed={phase >= 1} />
               <IqColumn id="fabric" items={scenario.fabric} revealed={phase >= 2} />
-              <IqColumn id="foundry" items={scenarioFoundry} revealed={phase >= 3} />
-              <IqColumn id="web" items={scenario.web} revealed={phase >= 3} />
+              <FoundryWebColumn foundry={scenarioFoundry} web={scenario.web} revealed={phase >= 3} />
             </div>
 
             {scenarioError && (
@@ -373,11 +492,10 @@ export function FraudIQ() {
         )}
         {result && (
           <>
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <IqColumn id="fabric" items={result.fabric} revealed={askPhase >= 1} />
               <IqColumn id="work" items={result.work} revealed={askPhase >= 2} />
-              <IqColumn id="foundry" items={result.foundry} revealed={askPhase >= 3} />
-              <IqColumn id="web" items={result.web} revealed={askPhase >= 3} />
+              <FoundryWebColumn foundry={result.foundry} web={result.web} revealed={askPhase >= 3} />
             </div>
             <div
               className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 dark:bg-indigo-500/10 p-4 transition-opacity ${
@@ -415,7 +533,9 @@ export function FraudIQ() {
                       {t('fraudIqPage.contributionByIq')}
                     </p>
                     {(['fabric', 'work', 'foundry'] as IqId[]).map((id) => {
-                      const top = (id === 'fabric' ? result.fabric : id === 'work' ? result.work : result.foundry)[0];
+                      const top = compactMarkdown(
+                        (id === 'fabric' ? result.fabric : id === 'work' ? result.work : result.foundry)[0]
+                      );
                       return (
                         <div key={id} className="flex gap-2 text-[11px]">
                           <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: COLOR[id] }} />
@@ -429,7 +549,7 @@ export function FraudIQ() {
                       );
                     })}
                   </div>
-                  <p className="text-sm leading-relaxed text-gray-700">{result.synthesis.rationale}</p>
+                  <MarkdownContent>{result.synthesis.rationale}</MarkdownContent>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
