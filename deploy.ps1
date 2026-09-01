@@ -9,7 +9,11 @@
 .PARAMETER Backend    Deploy the Azure Function backend (Teams bot endpoint).
 .PARAMETER Infra      Deploy the Azure support layer (Terraform).
 .PARAMETER FoundryAgents  Deploy the Foundry connected-agent topology.
+.PARAMETER Fabric     Deploy the Fabric fixtures (lakehouse data, ontology, data agent, Power BI, realtime KQL).
 .PARAMETER Verify     Discovery + managed-identity/RBAC check only (no deploy).
+.PARAMETER FoundryTenantId / FoundryClientId / FoundryAccount / FoundryProject / FoundryAgentName / FoundryAgentEndpoint
+  Optional. Written to the SPA .env.public.local before `rayfin up` to wire the direct Foundry IQ
+  agent (tenant/RG-agnostic). Absent -> the app keeps its safe mock path (no cross-tenant login).
 .PARAMETER ExistingFoundryProjectEndpoint  Reuse an existing Foundry project and its deployed models.
 .PARAMETER NameSuffix  Override the unique name suffix ('' reproduces legacy un-suffixed names for an existing env).
 .PARAMETER EnableFabricWorkspace  Create a BILLED Fabric capacity (F SKU) + workspace to host the app.
@@ -28,6 +32,7 @@ param(
   [switch]$Backend,
   [switch]$Infra,
   [switch]$FoundryAgents,
+  [switch]$Fabric,
   [switch]$Verify,
 
   [string]$WorkspaceId,
@@ -43,6 +48,21 @@ param(
   [switch]$EnableFabricWorkspace,
   [string]$FabricAdminMember,
 
+  # Foundry IQ direct-agent wiring for the SPA build (all optional; tenant/RG-agnostic).
+  [string]$FoundryTenantId,
+  [string]$FoundryClientId,
+  [string]$FoundryAccount,
+  [string]$FoundryProject,
+  [string]$FoundryAgentName,
+  [string]$FoundryAgentEndpoint,
+
+  # Fabric fixtures (-Fabric): the item ids/endpoints the fixture scripts need.
+  [string]$LakehouseId,
+  [string]$SqlEndpoint,
+  [string]$PowerBiModelId,
+  [string]$KqlCluster,
+  [string]$LakehouseDataDir,
+
   [switch]$WhatIf,
   [switch]$Force,
   [switch]$SkipVerify
@@ -55,8 +75,8 @@ $spa = Join-Path $root 'fabric-fraud-intelligence'
 $be = Join-Path $root 'backend'
 $tf = Join-Path $root 'infra/terraform'
 
-if (-not ($App -or $Backend -or $Infra -or $FoundryAgents -or $Verify)) {
-  Write-Host 'Nothing selected. Choose one or more targets: -App -Backend -Infra -FoundryAgents -Verify' -ForegroundColor Yellow
+if (-not ($App -or $Backend -or $Infra -or $FoundryAgents -or $Fabric -or $Verify)) {
+  Write-Host 'Nothing selected. Choose one or more targets: -App -Backend -Infra -FoundryAgents -Fabric -Verify' -ForegroundColor Yellow
   exit 1
 }
 
@@ -90,6 +110,31 @@ function Invoke-Native {
   param([string]$What, [scriptblock]$Body)
   & $Body
   if ($LASTEXITCODE -ne 0) { throw "$What failed (exit $LASTEXITCODE)." }
+}
+
+# Writes the provided VITE_FOUNDRY_* values to the SPA's .env.public.local so `rayfin up`'s
+# `vite build --mode public` wires the direct Foundry IQ agent. Only keys passed on the command line
+# are written; absent keys leave the app on its safe mock path (no cross-tenant login). This file is
+# mode-scoped, so it takes precedence over the .env.local that rayfin refreshes.
+function Set-PublicEnv {
+  $pairs = [ordered]@{
+    VITE_FOUNDRY_TENANT_ID      = $FoundryTenantId
+    VITE_FOUNDRY_CLIENT_ID      = $FoundryClientId
+    VITE_FOUNDRY_ACCOUNT        = $FoundryAccount
+    VITE_FOUNDRY_PROJECT        = $FoundryProject
+    VITE_FOUNDRY_AGENT_NAME     = $FoundryAgentName
+    VITE_FOUNDRY_AGENT_ENDPOINT = $FoundryAgentEndpoint
+  }
+  $provided = @($pairs.GetEnumerator() | Where-Object { $_.Value })
+  if ($provided.Count -eq 0) { return }
+  $envFile = Join-Path $spa '.env.public.local'
+  $lines = @(if (Test-Path $envFile) { Get-Content $envFile })
+  foreach ($p in $provided) {
+    $lines = @($lines | Where-Object { $_ -notmatch "^\s*$($p.Key)=" })
+    $lines += "$($p.Key)=$($p.Value)"
+  }
+  Set-Content -Path $envFile -Value $lines -Encoding UTF8
+  Write-Host ("  Wrote {0} Foundry var(s) to .env.public.local" -f $provided.Count) -ForegroundColor DarkGray
 }
 
 # Expected resource names (mirror infra/terraform/locals.tf naming convention).
@@ -178,7 +223,7 @@ Measure-Step 'Prerequisite check' {
   Assert-Tool npm
   if ($Infra -or $Verify) { Assert-Tool terraform }
   if ($Backend) { Assert-Tool func }
-  if ($Infra -or $FoundryAgents -or $Verify) { Assert-Tool az }
+  if ($Infra -or $FoundryAgents -or $Fabric -or $Verify) { Assert-Tool az }
 
   $nodeMajor = [int]((node -v).TrimStart('v').Split('.')[0])
   if ($nodeMajor -lt 20) { throw "Node >= 20 required (found $nodeMajor)." }
@@ -308,6 +353,7 @@ if ($App -and -not $WhatIf) {
     $WorkspaceId = (terraform "-chdir=$tf" output -raw fabric_workspace_id 2>$null)
   }
   if (-not $WorkspaceId) { throw '-App requires -WorkspaceId (or run -Infra -EnableFabricWorkspace first).' }
+  Set-PublicEnv
   if (Confirm-Step 'Deploy the Rayfin app (rayfin up)?') {
     Measure-Step 'Deploy SPA (rayfin up)' {
       Push-Location $spa
@@ -327,6 +373,67 @@ if ($FoundryAgents -and -not $WhatIf) {
         -FoundryEndpoint $FoundryEndpoint -FabricDataAgentUrl $FabricDataAgentUrl
     }
   }
+}
+
+# --- 7. Fabric fixtures (data + ontology + data agent + Power BI + realtime) ---
+# Terraform only creates the capacity + empty workspace; the item content lives in fabric/ and is
+# pushed here with the signed-in user's identity (preserves RLS/OBO). Each sub-step runs only when
+# the id/endpoint it needs is supplied, and is individually confirmed.
+if ($Fabric -and -not $WhatIf) {
+  if (-not $WorkspaceId -and (Test-Path (Join-Path $tf '.terraform'))) {
+    $WorkspaceId = (terraform "-chdir=$tf" output -raw fabric_workspace_id 2>$null)
+  }
+  if (-not $WorkspaceId) { throw '-Fabric requires -WorkspaceId (the Fabric workspace hosting the items).' }
+  $fab = Join-Path $root 'fabric'
+  $dataDir = if ($LakehouseDataDir) { $LakehouseDataDir } else { Join-Path $root 'artifacts/lakehouse_data' }
+
+  if ($LakehouseId) {
+    if (Confirm-Step 'Load lakehouse fixtures (upload JSONL + run notebook)?') {
+      Measure-Step 'Fabric: lakehouse data' {
+        & (Join-Path $fab 'lakehouse/upload_lakehouse_data.ps1') -Ws $WorkspaceId -Lh $LakehouseId -Dir $dataDir
+        & (Join-Path $fab 'lakehouse/run_load.ps1') -Ws $WorkspaceId -Lh $LakehouseId
+      }
+    }
+  } else { Write-Host '  Skip lakehouse fixtures: pass -LakehouseId to enable.' -ForegroundColor DarkYellow }
+
+  if ($TenantId) {
+    if (Confirm-Step 'Deploy the Fabric ontology (Fabric IQ)?') {
+      Measure-Step 'Fabric: ontology' {
+        & (Join-Path $fab 'ontology/post_ontology.ps1') -Ws $WorkspaceId -TenantId $TenantId
+      }
+    }
+  } else { Write-Host '  Skip ontology: pass -TenantId to enable.' -ForegroundColor DarkYellow }
+
+  if ($LakehouseId) {
+    if (Confirm-Step 'Deploy the Fabric Data Agent?') {
+      Measure-Step 'Fabric: data agent' {
+        & (Join-Path $fab 'data-agent/deploy_data_agent.ps1') -WorkspaceId $WorkspaceId -LakehouseId $LakehouseId
+      }
+    }
+  }
+
+  if ($SqlEndpoint) {
+    if (Confirm-Step 'Deploy the Power BI semantic model?') {
+      Measure-Step 'Fabric: Power BI model' {
+        & (Join-Path $fab 'powerbi/deploy_model.ps1') -Workspace $WorkspaceId -Server $SqlEndpoint
+      }
+    }
+    if ($PowerBiModelId -and (Confirm-Step 'Deploy the Power BI report?')) {
+      Measure-Step 'Fabric: Power BI report' {
+        & (Join-Path $fab 'powerbi/deploy_report.ps1') -Workspace $WorkspaceId -ModelId $PowerBiModelId
+      }
+    } elseif (-not $PowerBiModelId) {
+      Write-Host '  Skip Power BI report: pass -PowerBiModelId (from the model step) to enable.' -ForegroundColor DarkYellow
+    }
+  } else { Write-Host '  Skip Power BI: pass -SqlEndpoint (lakehouse SQL endpoint) to enable.' -ForegroundColor DarkYellow }
+
+  if ($KqlCluster) {
+    if (Confirm-Step 'Deploy the realtime KQL schema?') {
+      Measure-Step 'Fabric: realtime KQL' {
+        & (Join-Path $fab 'realtime/deploy_kql.ps1') -Cluster $KqlCluster
+      }
+    }
+  } else { Write-Host '  Skip realtime KQL: pass -KqlCluster (Eventhouse query URI) to enable.' -ForegroundColor DarkYellow }
 }
 
 # --- summary ---------------------------------------------------------------
