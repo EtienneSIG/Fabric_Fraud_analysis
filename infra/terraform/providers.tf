@@ -14,6 +14,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
+    fabric = {
+      source  = "microsoft/fabric"
+      version = "~> 1.13"
+    }
   }
 }
 
@@ -25,3 +29,6 @@ provider "azurerm" {
 }
 
 provider "azuread" {}
+
+# Fabric-plane provider (workspace creation). Uses the same Azure CLI login.
+provider "fabric" {}

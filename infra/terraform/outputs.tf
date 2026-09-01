@@ -2,6 +2,16 @@ output "resource_group_name" {
   value = local.resource_group_name
 }
 
+output "fabric_workspace_id" {
+  description = "Fabric workspace GUID for `rayfin up --workspace-id` (empty unless enable_fabric_workspace)."
+  value       = var.enable_fabric_workspace ? fabric_workspace.this[0].id : ""
+}
+
+output "fabric_capacity_name" {
+  description = "Fabric capacity name (empty unless enable_fabric_workspace)."
+  value       = var.enable_fabric_workspace ? azurerm_fabric_capacity.this[0].name : ""
+}
+
 output "ai_foundry_endpoint" {
   description = "Microsoft Foundry (AI Services) endpoint — VITE_FOUNDRY_ENDPOINT."
   value       = local.foundry_endpoint

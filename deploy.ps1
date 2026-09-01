@@ -11,6 +11,8 @@
 .PARAMETER FoundryAgents  Deploy the Foundry connected-agent topology.
 .PARAMETER Verify     Discovery + managed-identity/RBAC check only (no deploy).
 .PARAMETER ExistingFoundryProjectEndpoint  Reuse an existing Foundry project and its deployed models.
+.PARAMETER NameSuffix  Override the unique name suffix ('' reproduces legacy un-suffixed names for an existing env).
+.PARAMETER EnableFabricWorkspace  Create a BILLED Fabric capacity (F SKU) + workspace to host the app.
 .PARAMETER WhatIf     Verify + terraform plan only; no apply/publish/rayfin up.
 .PARAMETER Force      Skip confirmation prompts before real deployments.
 .PARAMETER SkipVerify Skip the build/test/validate gate (not recommended).
@@ -37,6 +39,9 @@ param(
   [string]$FunctionAppName,
   [string]$FoundryEndpoint,
   [string]$FabricDataAgentUrl,
+  [string]$NameSuffix,
+  [switch]$EnableFabricWorkspace,
+  [string]$FabricAdminMember,
 
   [switch]$WhatIf,
   [switch]$Force,
@@ -235,6 +240,15 @@ if ($Infra) {
       if ($ExistingFoundryProjectEndpoint) {
         $tfVars += "-var=existing_foundry_project_endpoint=$ExistingFoundryProjectEndpoint"
       }
+      # Reproduce legacy un-suffixed names (pass -NameSuffix '') to keep an existing env non-destructive.
+      if ($PSBoundParameters.ContainsKey('NameSuffix')) {
+        $tfVars += "-var=name_suffix=$NameSuffix"
+      }
+      if ($EnableFabricWorkspace) {
+        $tfVars += '-var=enable_fabric_workspace=true'
+        $admin = if ($FabricAdminMember) { $FabricAdminMember } else { az account show --query user.name -o tsv }
+        if ($admin) { $tfVars += "-var=fabric_admin_member=$admin" }
+      }
       # -detailed-exitcode: 0 = no delta, 1 = error, 2 = changes pending.
       terraform plan -input=false -detailed-exitcode -out tfplan @tfVars | Tee-Object -Variable planLog
       $planCode = $LASTEXITCODE
@@ -290,7 +304,10 @@ if ($Backend -and -not $WhatIf) {
 
 # --- 5. SPA (Rayfin static hosting, dist only) -----------------------------
 if ($App -and -not $WhatIf) {
-  if (-not $WorkspaceId) { throw '-App requires -WorkspaceId.' }
+  if (-not $WorkspaceId -and (Test-Path (Join-Path $tf '.terraform'))) {
+    $WorkspaceId = (terraform "-chdir=$tf" output -raw fabric_workspace_id 2>$null)
+  }
+  if (-not $WorkspaceId) { throw '-App requires -WorkspaceId (or run -Infra -EnableFabricWorkspace first).' }
   if (Confirm-Step 'Deploy the Rayfin app (rayfin up)?') {
     Measure-Step 'Deploy SPA (rayfin up)' {
       Push-Location $spa

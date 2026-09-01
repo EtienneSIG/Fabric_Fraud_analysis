@@ -14,6 +14,36 @@ variable "environment" {
   }
 }
 
+variable "name_suffix" {
+  type        = string
+  description = "Overrides the computed unique name suffix. Set to \"\" to reproduce legacy un-suffixed names for an env deployed before the suffix existed. Leave null for the default md5-derived suffix."
+  default     = null
+}
+
+variable "enable_fabric_workspace" {
+  type        = bool
+  description = "Create a BILLED Fabric capacity (F SKU) + workspace to host the Rayfin app. Off by default — the capacity is billed hourly; pause it when idle."
+  default     = false
+}
+
+variable "fabric_capacity_sku" {
+  type        = string
+  description = "Fabric capacity SKU. F2 is the smallest/cheapest."
+  default     = "F2"
+}
+
+variable "fabric_admin_member" {
+  type        = string
+  description = "Fabric capacity admin. Entra USER -> UPN; service principal -> object id. Empty falls back to the deployer object id."
+  default     = ""
+}
+
+variable "fabric_workspace_name" {
+  type        = string
+  description = "Display name of the Fabric workspace created for the app."
+  default     = "Fraud Intelligence"
+}
+
 variable "existing_resource_group_name" {
   type        = string
   description = "Existing resource group to deploy into. Leave empty to create rg-fraudintel-<environment>."
