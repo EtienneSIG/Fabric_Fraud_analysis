@@ -81,7 +81,6 @@ async function getAccount(client: PublicClientApplication): Promise<AccountInfo>
   }
   const login = await client.loginPopup({
     scopes: SCOPES,
-    prompt: 'select_account',
     redirectUri: AUTH_REDIRECT_URI,
   });
   if (!login.account) throw new Error('Microsoft Entra sign-in returned no account.');
