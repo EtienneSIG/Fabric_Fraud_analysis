@@ -15,7 +15,7 @@ import {
 import { isWorkIqEnabled, isWebIqEnabled } from '@/backend/config';
 import { workIq } from '@/backend/services/WorkIqGraphClient';
 import { webIq } from '@/backend/services/WebIqClient';
-import { askFoundryAgent } from '@/services/FoundryAgentClient';
+import { askFoundryAgent, foundryDirectConfigured } from '@/services/FoundryAgentClient';
 
 const isLive = (id: IqId): boolean =>
   id === 'fabric'
@@ -24,7 +24,7 @@ const isLive = (id: IqId): boolean =>
       ? isWorkIqEnabled()
       : id === 'web'
         ? isWebIqEnabled()
-        : true;
+        : foundryDirectConfigured();
 const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed', web: '#ea580c' };
 const IQ_BY_ID = Object.fromEntries(IQS.map((i) => [i.id, i])) as Record<IqId, (typeof IQS)[number]>;
 

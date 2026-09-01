@@ -36,7 +36,7 @@ export class WebIqClient {
 
   /** On-demand connectivity probe: pings the backend and reports the real service mode + detail. */
   async probe(locale = 'en'): Promise<ProbeResult> {
-    if (!isWebIqEnabled()) return { state: 'off', detail: 'Web IQ not configured (mock mode)' };
+    if (!isWebIqEnabled()) return { state: 'off', detail: 'Web IQ not configured (demo mode)' };
     const started = Date.now();
     try {
       const key = getWebIqKey();

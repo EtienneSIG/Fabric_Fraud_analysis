@@ -57,7 +57,7 @@ export class FoundryAgentClient {
 
   /** On-demand connectivity probe: runs a minimal agent call and reports the real service mode + detail. */
   async probe(): Promise<ProbeResult> {
-    if (!isFoundryEnabled()) return { state: 'off', detail: 'Foundry not enabled (mock mode)' };
+    if (!isFoundryEnabled()) return { state: 'off', detail: 'Foundry not enabled (demo mode)' };
     const started = Date.now();
     try {
       const agent = getFoundryAgent();

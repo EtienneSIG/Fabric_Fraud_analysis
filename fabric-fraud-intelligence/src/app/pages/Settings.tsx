@@ -13,8 +13,16 @@ import {
   KNOWN_FOUNDRY_AGENTS,
   getFoundryAgent,
   setFoundryAgent,
+  getFoundryTenantId,
+  setFoundryTenantId,
+  getFoundryClientId,
+  setFoundryClientId,
+  getFoundryProjectEndpoint,
+  setFoundryProjectEndpoint,
+  getForceDemo,
+  setForceDemo,
 } from '@/backend/services/foundrySettings';
-import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
+import { foundryDirectConfigured } from '@/services/FoundryAgentClient';import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
 import { ROLES, ROLE_PERMISSIONS } from '@/backend/models';
 
 type SettingsTab = 'governance' | 'agents' | 'quality';
@@ -95,15 +103,20 @@ export function Settings() {
         <dl className="grid grid-cols-2 gap-y-2 text-sm max-w-lg">
           <dt className="text-gray-400">{t('pages.settings.appMode')}</dt>
           <dd className="text-gray-800 font-medium">
-            {fabricConfig.mode}
-            {fabricConfig.mode === 'mock' && t('pages.settings.mockSuffix')}
+            {fabricConfig.mode === 'mock' ? t('pages.settings.demoLabel') : fabricConfig.mode}
           </dd>
           <dt className="text-gray-400">{t('pages.settings.workspaceId')}</dt>
           <dd className="text-gray-800 font-medium">{fabricConfig.workspaceId || '—'}</dd>
           <dt className="text-gray-400">{t('pages.settings.dataAgentId')}</dt>
           <dd className="text-gray-800 font-medium">{fabricConfig.dataAgentId || t('pages.settings.notConfigured')}</dd>
+          <dt className="text-gray-400">{t('pages.settings.foundryEndpoint')}</dt>
+          <dd className="truncate text-gray-800 font-medium">
+            {getFoundryProjectEndpoint() || integrationConfig.foundryEndpoint || t('pages.settings.notConfigured')}
+          </dd>
+          <dt className="text-gray-400">{t('pages.settings.foundryAgent')}</dt>
+          <dd className="text-gray-800 font-medium">{getFoundryAgent() || 'fraud-iq-orchestrator'}</dd>
           <dt className="text-gray-400">{t('pages.settings.tenantId')}</dt>
-          <dd className="text-gray-800 font-medium">{fabricConfig.tenantId || '—'}</dd>
+          <dd className="text-gray-800 font-medium">{getFoundryTenantId() || fabricConfig.tenantId || '—'}</dd>
           <dt className="text-gray-400">{t('pages.settings.deployedAt')}</dt>
           <dd className="text-gray-800 font-medium">{new Date(__BUILD_TIME__).toLocaleString()}</dd>
           <dt className="text-gray-400">{t('pages.settings.commit')}</dt>
@@ -232,14 +245,21 @@ function FoundryAgentCard() {
   const { t } = useTranslation();
   const { role } = useRole();
   const [value, setValue] = useState(getFoundryAgent());
+  const [tenant, setTenant] = useState(getFoundryTenantId());
+  const [client, setClient] = useState(getFoundryClientId());
+  const [endpointIn, setEndpointIn] = useState(getFoundryProjectEndpoint());
+  const [demo, setDemo] = useState(getForceDemo());
   const [, bump] = useState(0);
 
-  const endpoint = integrationConfig.foundryEndpoint;
-  const live = isFoundryEnabled();
+  const direct = foundryDirectConfigured();
+  const live = isFoundryEnabled() || direct;
   const custom = getFoundryAgent().length > 0;
+  const hasConnection =
+    getFoundryTenantId().length > 0 || getFoundryClientId().length > 0 || getFoundryProjectEndpoint().length > 0;
   const effective = value.trim() || DEFAULT_FOUNDRY_AGENT;
+  const projectBase = getFoundryProjectEndpoint() || integrationConfig.foundryEndpoint;
   // The project name is encoded in the endpoint (…/projects/<name>) — surfaced read-only.
-  const projectMatch = endpoint.match(/\/projects\/([^/?#]+)/i);
+  const projectMatch = projectBase.match(/\/projects\/([^/?#]+)/i);
   const projectName = projectMatch ? decodeURIComponent(projectMatch[1]) : '';
 
   const save = () => {
@@ -252,6 +272,33 @@ function FoundryAgentCard() {
     setFoundryAgent('');
     setValue('');
     audit.logConfigChange(role, 'Foundry agent', t('pages.settings.foundry.auditReset'));
+    bump((n) => n + 1);
+  };
+  const saveConnection = () => {
+    setFoundryTenantId(tenant);
+    setFoundryClientId(client);
+    setFoundryProjectEndpoint(endpointIn);
+    audit.logConfigChange(role, 'Foundry connection', t('pages.settings.foundry.auditConnection'));
+    bump((n) => n + 1);
+  };
+  const clearConnection = () => {
+    setFoundryTenantId('');
+    setFoundryClientId('');
+    setFoundryProjectEndpoint('');
+    setTenant('');
+    setClient('');
+    setEndpointIn('');
+    audit.logConfigChange(role, 'Foundry connection', t('pages.settings.foundry.auditConnectionClear'));
+    bump((n) => n + 1);
+  };
+  const toggleDemo = (next: boolean) => {
+    setForceDemo(next);
+    setDemo(next);
+    audit.logConfigChange(
+      role,
+      'Foundry demo',
+      next ? t('pages.settings.foundry.auditDemoOn') : t('pages.settings.foundry.auditDemoOff')
+    );
     bump((n) => n + 1);
   };
 
@@ -271,7 +318,7 @@ function FoundryAgentCard() {
       <p className="mb-3 max-w-lg text-xs text-gray-400">{t('pages.settings.foundry.desc')}</p>
       <dl className="mb-4 grid max-w-lg grid-cols-[8rem_1fr] gap-y-1 text-sm">
         <dt className="text-gray-400">{t('pages.settings.foundry.project')}</dt>
-        <dd className="truncate font-medium text-gray-800">{endpoint || t('pages.settings.notConfigured')}</dd>
+        <dd className="truncate font-medium text-gray-800">{projectBase || t('pages.settings.notConfigured')}</dd>
         {projectName && (
           <>
             <dt className="text-gray-400">{t('pages.settings.foundry.projectName')}</dt>
@@ -281,6 +328,65 @@ function FoundryAgentCard() {
         <dt className="text-gray-400">{t('pages.settings.foundry.active')}</dt>
         <dd className="font-medium text-gray-800">{effective}</dd>
       </dl>
+
+      <p className="mb-2 text-xs font-medium text-gray-500">{t('pages.settings.foundry.connectionTitle')}</p>
+      <div className="mb-2 grid max-w-lg gap-2">
+        <input
+          autoComplete="off"
+          spellCheck={false}
+          value={endpointIn}
+          onChange={(e) => setEndpointIn(e.target.value)}
+          placeholder={t('pages.settings.foundry.endpointPlaceholder')}
+          aria-label={t('pages.settings.foundry.endpointLabel')}
+          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            autoComplete="off"
+            spellCheck={false}
+            value={tenant}
+            onChange={(e) => setTenant(e.target.value)}
+            placeholder={t('pages.settings.foundry.tenantLabel')}
+            aria-label={t('pages.settings.foundry.tenantLabel')}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          />
+          <input
+            autoComplete="off"
+            spellCheck={false}
+            value={client}
+            onChange={(e) => setClient(e.target.value)}
+            placeholder={t('pages.settings.foundry.clientLabel')}
+            aria-label={t('pages.settings.foundry.clientLabel')}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          />
+        </div>
+      </div>
+      <div className="mb-3 flex max-w-lg gap-2">
+        <button
+          onClick={saveConnection}
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          {t('pages.settings.foundry.saveConnection')}
+        </button>
+        <button
+          onClick={clearConnection}
+          disabled={!hasConnection}
+          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
+        >
+          {t('pages.settings.foundry.reset')}
+        </button>
+      </div>
+
+      <label className="mb-3 flex max-w-lg items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+        <input
+          type="checkbox"
+          checked={demo}
+          onChange={(e) => toggleDemo(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        />
+        {t('pages.settings.foundry.forceDemoLabel')}
+      </label>
+
       <label className="mb-1 block text-xs font-medium text-gray-500">{t('pages.settings.foundry.agentLabel')}</label>
       <div className="flex max-w-lg gap-2">
         <input
@@ -313,6 +419,7 @@ function FoundryAgentCard() {
         </button>
       </div>
       {custom && <p className="mt-2 text-xs text-amber-600">{t('pages.settings.foundry.overrideNote')}</p>}
+      <p className="mt-2 text-xs text-gray-400">{t('pages.settings.foundry.connectionNote')}</p>
       <ConnectionProbe run={() => foundryAgent.probe()} />
     </section>
   );

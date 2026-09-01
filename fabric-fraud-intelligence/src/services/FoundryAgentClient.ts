@@ -5,33 +5,50 @@ import {
 } from '@azure/msal-browser';
 
 import i18n from '@/i18n/i18n';
+import {
+  getForceDemo,
+  getFoundryAgent,
+  getFoundryClientId,
+  getFoundryProjectEndpoint,
+  getFoundryTenantId,
+} from '@/backend/services/foundrySettings';
 
-// Deploy-specific: everything is read from env so the app is tenant / resource-group / project
-// agnostic and never authenticates against a foreign tenant. When the tenant, client or agent
-// endpoint is missing, the direct Foundry path stays off and the deterministic mock runs — no MSAL
-// popup, no cross-tenant sign-in.
-const TENANT_ID = import.meta.env.VITE_FOUNDRY_TENANT_ID || '';
-const CLIENT_ID = import.meta.env.VITE_FOUNDRY_CLIENT_ID || '';
-
-// The agent endpoint is either given whole (VITE_FOUNDRY_AGENT_ENDPOINT) or composed from the
-// account + project + agent name, so a new tenant/RG only needs those parts, not a full URL.
-const FOUNDRY_ACCOUNT = import.meta.env.VITE_FOUNDRY_ACCOUNT || '';
-const FOUNDRY_PROJECT = import.meta.env.VITE_FOUNDRY_PROJECT || '';
-const FOUNDRY_AGENT_NAME = import.meta.env.VITE_FOUNDRY_AGENT_NAME || 'fraud-iq-orchestrator';
-const AGENT_ENDPOINT =
-  import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT ||
-  (FOUNDRY_ACCOUNT && FOUNDRY_PROJECT
-    ? `https://${FOUNDRY_ACCOUNT}.services.ai.azure.com/api/projects/${FOUNDRY_PROJECT}` +
-      `/agents/${FOUNDRY_AGENT_NAME}/endpoint/protocols/openai/responses`
-    : '');
+// Build-time defaults (VITE_FOUNDRY_*). At call time they are overridden by the analyst's own
+// values entered in Settings (localStorage), so the direct Foundry IQ path can be pointed at any
+// tenant / project / agent without a rebuild. When tenant + client + endpoint are all missing the
+// path stays off and the deterministic mock runs — no MSAL popup, no cross-tenant sign-in.
+const ENV_TENANT_ID = import.meta.env.VITE_FOUNDRY_TENANT_ID || '';
+const ENV_CLIENT_ID = import.meta.env.VITE_FOUNDRY_CLIENT_ID || '';
+const ENV_FOUNDRY_ACCOUNT = import.meta.env.VITE_FOUNDRY_ACCOUNT || '';
+const ENV_FOUNDRY_PROJECT = import.meta.env.VITE_FOUNDRY_PROJECT || '';
+const ENV_AGENT_NAME = import.meta.env.VITE_FOUNDRY_AGENT_NAME || 'fraud-iq-orchestrator';
+const ENV_AGENT_ENDPOINT = import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT || '';
 const AGENT_API_VERSION = '2025-11-15-preview';
 const SCOPES = ['https://ai.azure.com/.default'];
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
 
-/** True only when this deployment wired its OWN Foundry agent (tenant + client + endpoint). */
+// Effective values: browser override (Settings) first, then build-time env.
+const effectiveTenantId = (): string => getFoundryTenantId() || ENV_TENANT_ID;
+const effectiveClientId = (): string => getFoundryClientId() || ENV_CLIENT_ID;
+const effectiveAgentName = (): string => getFoundryAgent() || ENV_AGENT_NAME;
+
+/** Composed agent responses endpoint (runtime project endpoint + agent, else the env fallbacks). */
+export function effectiveAgentEndpoint(): string {
+  const base =
+    getFoundryProjectEndpoint() ||
+    (ENV_FOUNDRY_ACCOUNT && ENV_FOUNDRY_PROJECT
+      ? `https://${ENV_FOUNDRY_ACCOUNT}.services.ai.azure.com/api/projects/${ENV_FOUNDRY_PROJECT}`
+      : '');
+  if (base) {
+    return `${base.replace(/\/+$/, '')}/agents/${effectiveAgentName()}/endpoint/protocols/openai/responses`;
+  }
+  return ENV_AGENT_ENDPOINT;
+}
+
+/** True only when the direct Foundry agent is fully wired (tenant + SPA client + endpoint). */
 export const foundryDirectConfigured = (): boolean =>
-  Boolean(CLIENT_ID && TENANT_ID && AGENT_ENDPOINT);
+  !getForceDemo() && Boolean(effectiveClientId() && effectiveTenantId() && effectiveAgentEndpoint());
 
 /** Deterministic, localized grounding used when no direct Foundry agent is configured. */
 function mockFoundryAnswer(): FoundryAgentResult {
@@ -79,16 +96,20 @@ export function getVersionedAgentEndpoint(endpoint: string): string {
 
 let application: PublicClientApplication | undefined;
 let initialization: Promise<void> | undefined;
+let appSignature = '';
 
 function getApplication(): PublicClientApplication {
-  if (!CLIENT_ID) {
-    throw new Error('Foundry IQ is not configured. Set VITE_FOUNDRY_CLIENT_ID.');
+  const clientId = effectiveClientId();
+  const tenantId = effectiveTenantId();
+  if (!clientId) {
+    throw new Error('Foundry IQ is not configured. Set the SPA client id in Settings.');
   }
-  if (!application) {
+  const signature = `${clientId}|${tenantId}`;
+  if (!application || appSignature !== signature) {
     application = new PublicClientApplication({
       auth: {
-        clientId: CLIENT_ID,
-        authority: `https://login.microsoftonline.com/${TENANT_ID}`,
+        clientId,
+        authority: `https://login.microsoftonline.com/${tenantId}`,
         redirectUri: AUTH_REDIRECT_URI,
         popupRelayUri: POPUP_RELAY_URI,
       },
@@ -100,6 +121,7 @@ function getApplication(): PublicClientApplication {
       },
     });
     initialization = application.initialize();
+    appSignature = signature;
   }
   return application;
 }
@@ -167,7 +189,7 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
   if (!foundryDirectConfigured()) return mockFoundryAnswer();
   const client = getApplication();
   const accessToken = await getAccessToken(client);
-  const response = await fetch(getVersionedAgentEndpoint(AGENT_ENDPOINT), {
+  const response = await fetch(getVersionedAgentEndpoint(effectiveAgentEndpoint()), {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
