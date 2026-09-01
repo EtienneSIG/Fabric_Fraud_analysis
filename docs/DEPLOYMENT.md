@@ -19,6 +19,7 @@ not grant access; authentication and workspace permissions are still required.
 | KQL database | fraud_rti | `2993fbea-f2b2-405a-94eb-7e38fc281665` |
 | Semantic model | Rayfin_FraudModel | `c7f098a6-ed7f-4300-960c-b3bd07a6d020` |
 | Report | Rayfin_FraudCockpit | `cbcafc47-60f6-4e1a-ab84-a4eb41aee703` |
+| Microsoft Foundry project | [FraudIQ](https://ai.azure.com/nextgen/r/FyQciQyGSOm9599wsQw5qg,esig_demo,,esigfoundry,FraudIQ/home?tid=b7b9a0c6-fe36-41b6-a38d-582c6573e2ff) | Tenant authentication required |
 
 Live application: https://tangy-cove-9493188f6d-centralus.webapp.fabricapps.net
 
@@ -26,10 +27,18 @@ The Lakehouse contains 11 Delta tables and 12,826 source rows. The Ontology bind
 those tables to 11 entity types and 11 relationship types. The Data Agent is
 published against all 11 tables with evidence-based, human-in-the-loop guidance.
 
+A companion orchestration in **Microsoft Foundry**, defined under `foundry/`, connects
+that Fabric Data Agent to regulatory web grounding. It accepts evidence only from the
+official domains versioned in `foundry/config.json` and returns source links alongside
+the relevant obligations. The orchestrator combines those cited regulations with the
+governed case facts; its output remains advisory and subject to human approval.
+
 ## Prerequisites
 
 - PowerShell 7, Node.js, npm, Python, and Azure CLI.
 - Contributor access to the target Fabric workspace.
+- Contributor access to the Azure resource group used for Foundry provisioning.
+- Foundry User access to create and execute project agents.
 - An Azure CLI or Rayfin session authenticated in the target Microsoft Entra tenant.
 - The `fabric-fraud-intelligence` npm dependencies installed.
 
@@ -84,6 +93,30 @@ its `ONTOLOGY_ID` and portal URL rather than failing on HTTP 409.
 
 The script creates the agent or updates the definition of an existing agent with
 the same display name.
+
+### 4b. Microsoft Foundry orchestration
+
+The Foundry resources are defined in `foundry/` and can be recreated with:
+
+```powershell
+& foundry/deploy_foundry.ps1 `
+  -SubscriptionId "<subscription-id>" `
+  -ResourceGroup "esig_demo" `
+  -Location "eastus"
+```
+
+Open the authenticated [FraudIQ Foundry project](https://ai.azure.com/nextgen/r/FyQciQyGSOm9599wsQw5qg,esig_demo,,esigfoundry,FraudIQ/home?tid=b7b9a0c6-fe36-41b6-a38d-582c6573e2ff)
+to inspect the deployed agent and traces. The deployed flow contains:
+
+1. An orchestrator agent for fraud and AML investigations.
+2. A connection to the published `Fraud Intelligence Data Agent` for governed case facts.
+3. A regulatory research agent with web grounding limited to official regulatory domains.
+4. A synthesis step that preserves citations and requires investigator approval before action.
+
+The deployment runs an end-to-end regulatory question and fails if the answer has no
+citations or cites a domain outside `foundry/config.json`. Fabric uses delegated user
+identity; if the first run returns `CONSENT_REQUIRED`, complete the provided OAuth URL and
+rerun with `-SkipInfrastructure`. See `foundry/README.md` for prerequisites and controls.
 
 ### 5. Eventhouse and KQL objects
 

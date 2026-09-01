@@ -78,6 +78,10 @@ devices). Five "hero" alerts drive the demo scenarios below.
   (default, or when `FABRIC_DATA_AGENT_ID` is unset) it returns deterministic,
   grounded responses from the seeded data plus a generated NL2SQL query. Set
   `FABRIC_APP_MODE=fabric` to route to a real Fabric Data Agent over REST.
+- A companion **Microsoft Foundry orchestrator**, deployed from the repository's
+  `foundry/` folder, links the Fabric Data Agent to regulatory web grounding on official
+  websites. It combines governed case facts with cited obligations. The current public
+  UI represents this Foundry output with deterministic responses.
 - Every interaction is persisted to **AgentRun** and the **audit trail**.
 - All recommendations are **advisory and require human approval**.
 

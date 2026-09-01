@@ -1,0 +1,19 @@
+{
+  "agentName": "fraud-iq-orchestrator",
+  "fabricConnectionName": "fraud-fabric-data-agent",
+  "modelDeploymentName": "gpt-5.6-terra",
+  "regulatoryDomains": [
+    "acpr.banque-france.fr",
+    "amf-france.org",
+    "banque-france.fr",
+    "cnil.fr",
+    "eba.europa.eu",
+    "ec.europa.eu",
+    "economie.gouv.fr",
+    "eur-lex.europa.eu",
+    "fatf-gafi.org",
+    "justice.gouv.fr",
+    "legifrance.gouv.fr"
+  ],
+  "validationQuestion": "Quelles sont les obligations réglementaires européennes actuellement applicables en matière de détection et de déclaration des opérations suspectes ? Cite uniquement des sources officielles."
+}

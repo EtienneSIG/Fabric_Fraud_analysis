@@ -39,6 +39,13 @@ et l'IA est *ancrée* dans le réel via Microsoft IQ (pas d'hallucination).**
 > aux agents le bon contexte — vos **données** (Fabric IQ), votre **travail** (Work IQ) et la
 > **connaissance** de vos agents (Foundry IQ). Notre plateforme anti-fraude combine les trois.
 
+**Ce qui a été construit dans Microsoft Foundry :** un agent orchestrateur relie le
+**Fabric Data Agent**, qui interroge les faits gouvernés du dossier, à un agent de recherche
+réglementaire doté de **web grounding** sur des sites officiels. La réponse finale rapproche
+les preuves internes des obligations applicables et conserve les liens vers les sources afin
+que l'analyste puisse les vérifier. Cette orchestration est déployée et gérée hors de ce dépôt ;
+l'écran Fraud IQ en présente actuellement une restitution déterministe pour la démo publique.
+
 ---
 
 ## 3. Le parcours de démo
@@ -101,16 +108,16 @@ révèlent en cascade :
   échanges Teams mentionnent le même hôtel ; une enquête similaire existe déjà.
 - **Fabric IQ** *(en direct sur l'ontologie + le lakehouse)* — première transaction hors
   pays depuis 12 mois, vélocité ~4× la baseline, achat à 03:00, alerte reliée.
-- **Foundry IQ** *(simulé)* — applique la politique fraude, croise la typologie, mobilise
-  la mémoire des cas passés, et **raisonne**.
+- **Foundry IQ** *(réel dans Foundry, restitué de façon simulée dans cette app)* — orchestre
+  le Fabric Data Agent et l'agent réglementaire avec web grounding, rapproche les faits du
+  dossier des textes officiels et fournit des **citations vérifiables**.
 
 **La recommandation** : **confiance fraude 92 %**, **carte temporairement bloquée**,
 **contact client recommandé**, **dossier d'investigation créé automatiquement** → **≈ 30 s**.
 
-- **Talking point :** *« Le même agent raisonne à la fois sur nos données (Fabric IQ, déjà
-  réel), notre façon de travailler (Work IQ) et la connaissance réglementaire (Foundry IQ).
-  On passe de 90 minutes d'orchestration manuelle à 30 secondes de décision expliquée et
-  auditable. »*
+- **Talking point :** *« L'orchestrateur Foundry relie les faits gouvernés du Fabric Data
+  Agent aux textes retrouvés par l'agent réglementaire sur les sites officiels. La décision
+  est expliquée, sourcée et auditable ; l'analyste garde la validation finale. »*
 
 > **Variantes à évoquer** selon l'audience : fraude documentaire KYC (OCR + vision + RAG +
 > agents), lutte anti-blanchiment (AML), agent d'investigation autonome de bout en bout.

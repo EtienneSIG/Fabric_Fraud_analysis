@@ -37,6 +37,13 @@ and the AI is *grounded* in reality through Microsoft IQ (no hallucination).**
 > agents the right context — your **data** (Fabric IQ), your **work** (Work IQ) and
 > your agents' **knowledge** (Foundry IQ). Our anti-fraud platform combines all three.
 
+**What was built in Microsoft Foundry:** an orchestrator agent connects the **Fabric Data
+Agent**, which queries governed case facts, to a regulatory research agent with **web
+grounding** on official websites. The final answer reconciles internal evidence with the
+applicable obligations and retains source links for investigator verification. This
+orchestration is deployed and managed outside this repository; the Fraud IQ screen currently
+provides a deterministic representation of it in the public demo.
+
 ---
 
 ## 3. The demo walkthrough
@@ -100,17 +107,17 @@ themselves in a cascade:
   threads mention the same hotel; a similar investigation already exists.
 - **Fabric IQ** *(live on the ontology + the lakehouse)* — first out-of-country
   transaction in 12 months, velocity ~4× the baseline, purchase at 03:00, linked alert.
-- **Foundry IQ** *(simulated)* — applies the fraud policy, cross-checks the typology,
-  draws on the memory of past cases, and **reasons**.
+- **Foundry IQ** *(live in Foundry, represented by a simulation in this app)* — orchestrates
+  the Fabric Data Agent and the web-grounded regulatory agent, reconciles case facts with
+  official texts, and returns **verifiable citations**.
 
 **The recommendation**: **fraud confidence 92%**, **card temporarily blocked**,
 **customer contact recommended**, **investigation case created automatically** →
 **≈ 30 s**.
 
-- **Talking point:** *"The same agent reasons across our data (Fabric IQ, already
-  real), the way we work (Work IQ) and regulatory knowledge (Foundry IQ). We move
-  from 90 minutes of manual orchestration to 30 seconds of an explained, auditable
-  decision."*
+- **Talking point:** *"The Foundry orchestrator connects governed facts from the Fabric
+  Data Agent with official texts retrieved by the regulatory agent. The decision is
+  explained, cited and auditable, while the investigator retains final approval."*
 
 > **Variants to mention** depending on the audience: KYC document fraud (OCR + vision
 > + RAG + agents), anti-money-laundering (AML), an autonomous end-to-end investigation

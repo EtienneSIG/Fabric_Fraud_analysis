@@ -6,6 +6,7 @@ combining a **Rayfin Fabric App** (React frontend + Fabric SQL backend), a gover
 
 **Public demo:** https://tangy-cove-9493188f6d-centralus.webapp.fabricapps.net
 **Workspace:** `Fraud Intelligence` (`c57a379b-7e6d-481a-9c9b-662bb0bae77d`)
+**Microsoft Foundry project:** [FraudIQ](https://ai.azure.com/nextgen/r/FyQciQyGSOm9599wsQw5qg,esig_demo,,esigfoundry,FraudIQ/home?tid=b7b9a0c6-fe36-41b6-a38d-582c6573e2ff) *(tenant authentication required)*
 
 The public deployment runs exclusively on synthetic seed data and deterministic
 agent responses. It does not grant anonymous access to the Fabric SQL database,
@@ -34,6 +35,7 @@ https://github.com/user-attachments/assets/ccec2599-2d85-422a-b76b-db16fc66f93f
 | `fabric-fraud-intelligence/` | **Application** | Rayfin Fabric App — React/TS frontend, entity models, mock agent services. Deploy with `npx rayfin up`. |
 | `fabric/ontology/` | **Semantic layer** | Fabric IQ Ontology builder (`build_ontology.py`), REST deployer (`post_ontology.ps1`), generated `create_body.json` + `parts/`, and `fraud_ontology.yaml` (deployed model doc). |
 | `fabric/data-agent/` | **AI grounding** | Idempotent Fabric Data Agent deployment grounded on the 11 `fraud_lakehouse` tables with fraud-specific instructions and few-shot SQL. |
+| `foundry/` | **Agent orchestration** | Reproducible Foundry account, project, model, Fabric Data Agent connection, grounded agent and citation validation. |
 | `fabric/lakehouse/` | **Data** | Loads the app dataset into `fraud_lakehouse` Delta tables (`load_app_data.py`, `run_load.ps1`, `upload_lakehouse_data.ps1`, `post_notebook.ps1`) + historical SQL. |
 | `fabric/realtime/` | **Streaming** | Eventhouse/KQL specs and deploy scripts. |
 | `fabric/powerbi/` | **Reporting** | Semantic model (`model.bim`) + report deploy scripts. |
@@ -72,8 +74,17 @@ flowchart LR
     RT["Eventhouse + fraud_rti<br/>KQL scoring features"]
     BI["Power BI semantic model<br/>Rayfin Fraud Cockpit"]
   end
+  subgraph Foundry["Microsoft Foundry"]
+    ORCH["Fraud investigation orchestrator"]
+    REG["Regulatory research agent<br/>web grounding + citations"]
+  end
+  WEB["Official regulatory websites"]
   UI --> AG
   AG -->|NL2SQL / grounding| SQL
+  ORCH -->|case facts| DA
+  ORCH -->|regulatory question| REG
+  REG -->|grounded search| WEB
+  ORCH -->|evidence + cited obligations| AG
   SQL --- LH
   LH --> ONT
   LH --> DA
@@ -96,6 +107,14 @@ flowchart LR
   Fabric Data Agent** over REST. Every agent run and decision is written to the
   **AgentRun** entity and the **audit trail**, and all AI output is advisory —
   **human approval is always required.**
+- **Foundry orchestration** — a companion agent built in **Microsoft Foundry** links
+  two grounded specialists: the Fabric Data Agent retrieves governed case facts
+  from the lakehouse, while a regulatory research agent uses web grounding against
+  official regulatory websites. The orchestrator reconciles both outputs and keeps
+  source links in the answer so an investigator can verify the applicable obligation.
+  This Foundry flow is configured in the authenticated [FraudIQ Foundry project](https://ai.azure.com/nextgen/r/FyQciQyGSOm9599wsQw5qg,esig_demo,,esigfoundry,FraudIQ/home?tid=b7b9a0c6-fe36-41b6-a38d-582c6573e2ff)
+  and is reproducible from `foundry/`; the public Rayfin demo currently represents
+  its output with deterministic responses.
 
 ### Screens
 
@@ -139,7 +158,8 @@ and key risk signals.
 #### Fraud IQ — the fraud application of Microsoft IQ
 A flagship **"90 min → 30 sec"** real-time card-fraud scenario plus free-form
 investigation, combining the three IQs: **Fabric IQ** (live, from the deployed
-ontology + lakehouse), **Work IQ** and **Foundry IQ** (simulated). It contrasts the
+ontology + lakehouse), **Work IQ** (simulated) and **Foundry IQ** (implemented in
+Foundry and represented by deterministic responses in this app). It contrasts the
 manual, 10-step investigation with a single agentic prompt that grounds across
 enterprise data, work context and agent knowledge, then returns an explainable,
 human-approvable recommendation.
