@@ -302,6 +302,7 @@
         "title": "Foundry Agent Service",
         "desc": "Elija el agente orquestador que se ejecutará para el proyecto de Foundry configurado. La selección se almacena solo en este navegador y se envía al backend en cada ejecución, anulando el valor predeterminado desplegado.",
         "project": "Proyecto",
+        "projectName": "Nombre del proyecto",
         "active": "Agente activo",
         "agentLabel": "Nombre del agente orquestador",
         "save": "Guardar agente",

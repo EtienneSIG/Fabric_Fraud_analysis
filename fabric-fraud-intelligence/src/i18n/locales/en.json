@@ -302,6 +302,7 @@
         "title": "Foundry Agent Service",
         "desc": "Choose the orchestrator agent to run for the wired Foundry project. The selection is stored only in this browser and sent to the backend on each run, overriding the deployed default.",
         "project": "Project",
+        "projectName": "Project name",
         "active": "Active agent",
         "agentLabel": "Orchestrator agent name",
         "save": "Save agent",

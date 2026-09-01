@@ -302,6 +302,7 @@
         "title": "Foundry Agent Service",
         "desc": "為已連接的 Foundry 專案選擇要執行的協調代理。此選擇只會儲存在此瀏覽器，並在每次執行時傳送至後端，覆寫已部署的預設值。",
         "project": "專案",
+        "projectName": "專案名稱",
         "active": "使用中的代理",
         "agentLabel": "協調代理名稱",
         "save": "儲存代理",

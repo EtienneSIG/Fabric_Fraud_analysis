@@ -302,6 +302,7 @@
         "title": "Foundry Agent Service",
         "desc": "Choisissez l'agent orchestrateur à exécuter pour le projet Foundry câblé. La sélection est stockée uniquement dans ce navigateur et envoyée au backend à chaque exécution, en surcharge du défaut déployé.",
         "project": "Projet",
+        "projectName": "Nom du projet",
         "active": "Agent actif",
         "agentLabel": "Nom de l'agent orchestrateur",
         "save": "Enregistrer l'agent",

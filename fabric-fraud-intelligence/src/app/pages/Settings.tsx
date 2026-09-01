@@ -238,6 +238,9 @@ function FoundryAgentCard() {
   const live = isFoundryEnabled();
   const custom = getFoundryAgent().length > 0;
   const effective = value.trim() || DEFAULT_FOUNDRY_AGENT;
+  // The project name is encoded in the endpoint (…/projects/<name>) — surfaced read-only.
+  const projectMatch = endpoint.match(/\/projects\/([^/?#]+)/i);
+  const projectName = projectMatch ? decodeURIComponent(projectMatch[1]) : '';
 
   const save = () => {
     if (!value.trim()) return;
@@ -269,6 +272,12 @@ function FoundryAgentCard() {
       <dl className="mb-4 grid max-w-lg grid-cols-[8rem_1fr] gap-y-1 text-sm">
         <dt className="text-gray-400">{t('pages.settings.foundry.project')}</dt>
         <dd className="truncate font-medium text-gray-800">{endpoint || t('pages.settings.notConfigured')}</dd>
+        {projectName && (
+          <>
+            <dt className="text-gray-400">{t('pages.settings.foundry.projectName')}</dt>
+            <dd className="font-medium text-gray-800">{projectName}</dd>
+          </>
+        )}
         <dt className="text-gray-400">{t('pages.settings.foundry.active')}</dt>
         <dd className="font-medium text-gray-800">{effective}</dd>
       </dl>
