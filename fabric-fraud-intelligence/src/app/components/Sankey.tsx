@@ -74,7 +74,7 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
     const outOff = new Map<string, number>();
     const inOff = new Map<string, number>();
     const sorted = [...links].sort((a, b) => (laid.get(a.source)?.y0 ?? 0) - (laid.get(b.source)?.y0 ?? 0));
-    const out: { key: string; d: string; color: string; value: number; sLabel: string; tLabel: string }[] = [];
+    const out: { id: string; key: string; d: string; color: string; value: number; sLabel: string; tLabel: string }[] = [];
     for (const lk of sorted) {
       const s = laid.get(lk.source);
       const t = laid.get(lk.target);
@@ -90,7 +90,7 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
       const sy = s.y0 + so;
       const ty = t.y0 + to;
       const d = `M${x0},${sy} C${xm},${sy} ${xm},${ty} ${x1},${ty} L${x1},${ty + thick} C${xm},${ty + thick} ${xm},${sy + thick} ${x0},${sy + thick} Z`;
-      out.push({ key: lk.key, d, color: lk.color, value: lk.value, sLabel: s.node.label, tLabel: t.node.label });
+      out.push({ id: `${lk.key}:${lk.source}>${lk.target}`, key: lk.key, d, color: lk.color, value: lk.value, sLabel: s.node.label, tLabel: t.node.label });
     }
     return out;
   }, [links, laid]);
@@ -122,14 +122,19 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
       ))}
       {ribbonGeo.map((rb) => {
         const on = activeKeys ? activeKeys.has(rb.key) : null;
-        const opacity = on === null ? 0.36 : on ? 0.82 : 0.08;
+        const opacity = on === true ? 0.2 : 0;
+        const strokeOpacity = on === false ? 0.08 : on === true ? 0.7 : 0.32;
         return (
           <path
-            key={rb.key}
+            key={rb.id}
             d={rb.d}
             fill={rb.color}
             fillOpacity={opacity}
-            style={{ cursor: 'pointer', transition: 'fill-opacity 120ms' }}
+            stroke={rb.color}
+            strokeOpacity={strokeOpacity}
+            strokeWidth={1.25}
+            vectorEffect="non-scaling-stroke"
+            style={{ cursor: 'pointer', transition: 'fill-opacity 120ms, stroke-opacity 120ms' }}
             onMouseEnter={() => {
               setHoverKey(rb.key);
               setTip(`${rb.sLabel} → ${rb.tLabel} · ${tr('components.sankey.customers', { count: rb.value })}`);
