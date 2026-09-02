@@ -112,6 +112,10 @@
         "tagline": "Intelligence of the live web",
         "grounds": "Official regulatory sources",
         "description": "Real-time web grounding via Microsoft Web IQ — restricted to official regulatory domains, returning cited obligations with source links."
+      },
+      "knowledge": {
+        "tagline": "From enterprise knowledge to the live web, via semantic search",
+        "description": "One unified knowledge layer: semantic search across enterprise policies, regulations and tool outputs in Microsoft Foundry, extended in real time to the web via Microsoft Web IQ — restricted to official regulatory domains, with cited obligations and links to their sources."
       }
     }
   },

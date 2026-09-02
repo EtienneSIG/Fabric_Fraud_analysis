@@ -289,23 +289,30 @@ export function FraudIQ() {
             </p>
           </section>
         ))}
-        <section className="ffi-card overflow-hidden border-t-4 p-0" style={{ borderTopColor: COLOR.foundry }}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            {(['foundry', 'web'] as const).map((id, index) => {
-              const iq = IQ_BY_ID[id];
-              return (
-                <div key={id} className={`min-w-0 p-4 ${index ? 'border-t border-gray-100 sm:border-l sm:border-t-0 lg:border-l-0 lg:border-t xl:border-l xl:border-t-0' : ''}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-bold" style={{ color: iq.color }}>{iq.name}</h3>
+        <section className="ffi-card overflow-hidden p-0">
+          <div className="h-1 bg-gradient-to-r from-[#7c3aed] to-[#ea580c]" />
+          <div className="p-4">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <h3 className="text-sm font-bold">
+                <span style={{ color: COLOR.foundry }}>{IQ_BY_ID.foundry.name}</span>
+                <span className="text-gray-400"> + </span>
+                <span style={{ color: COLOR.web }}>{IQ_BY_ID.web.name}</span>
+              </h3>
+              <div className="flex items-center gap-1.5">
+                {(['foundry', 'web'] as const).map((id) => (
+                  <span key={id} className="flex items-center gap-1">
+                    <span className="text-[10px] font-semibold" style={{ color: COLOR[id] }}>
+                      {IQ_BY_ID[id].name}
+                    </span>
                     <Badge live={isLive(id)} />
-                  </div>
-                  <p className="text-xs font-medium text-gray-500">{t(`fraudIqPage.iq.${id}.tagline`)}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
-                    {t(`fraudIqPage.iq.${id}.description`)}
-                  </p>
-                </div>
-              );
-            })}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs font-medium text-gray-500">{t('fraudIqPage.iq.knowledge.tagline')}</p>
+            <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
+              {t('fraudIqPage.iq.knowledge.description')}
+            </p>
           </div>
         </section>
       </div>
