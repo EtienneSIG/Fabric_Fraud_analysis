@@ -18,9 +18,6 @@
 .PARAMETER AppInsightsConnectionString  Optional. Written to the SPA .env.public.local as
   VITE_APPINSIGHTS_CONNECTION_STRING so browser telemetry is wired at build time (the runtime
   Settings > General field remains the no-rebuild alternative).
-.PARAMETER BackendApiUrl  Optional. Written to the SPA .env.public.local as VITE_BACKEND_API_URL so
-  the Web IQ / Work IQ / Teams / OBO pillars reach the backend proxy (Container App) at build time
-  (the runtime Settings > General "Backend proxy URL" field remains the no-rebuild alternative).
 .PARAMETER NameSuffix  Override the unique name suffix ('' reproduces legacy un-suffixed names for an existing env).
 .PARAMETER EnableFabricWorkspace  Create a BILLED Fabric capacity (F SKU) + workspace to host the app.
 .PARAMETER EnableFraudIqSpa  Manage the rayfin-fraudiq-spa Entra app registration in Terraform (enable_fraudiq_spa=true).
@@ -52,7 +49,6 @@ param(
   [string]$FoundryEndpoint,
   [string]$FabricDataAgentUrl,
   [string]$AppInsightsConnectionString,
-  [string]$BackendApiUrl,
   [string]$NameSuffix,
   [switch]$EnableFabricWorkspace,
   [switch]$EnableFraudIqSpa,
@@ -136,7 +132,6 @@ function Set-PublicEnv {
     VITE_FOUNDRY_AGENT_NAME             = $FoundryAgentName
     VITE_FOUNDRY_AGENT_ENDPOINT         = $FoundryAgentEndpoint
     VITE_APPINSIGHTS_CONNECTION_STRING  = $AppInsightsConnectionString
-    VITE_BACKEND_API_URL                = $BackendApiUrl
   }
   $provided = @($pairs.GetEnumerator() | Where-Object { $_.Value })
   if ($provided.Count -eq 0) { return }
