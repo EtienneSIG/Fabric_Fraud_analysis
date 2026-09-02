@@ -164,7 +164,7 @@ function FoundryWebColumn({
   revealed: boolean;
 }) {
   return (
-    <div className="min-w-0 overflow-hidden rounded-xl border border-gray-100 sm:col-span-2 lg:col-span-3">
+    <div className="min-w-0 overflow-hidden rounded-xl border border-gray-100 sm:col-span-2">
       <div className="grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0 border-b border-gray-100 lg:border-b-0 lg:border-r">
           <IqColumn id="foundry" items={foundry} revealed={revealed} embedded />
@@ -387,7 +387,7 @@ export function FraudIQ() {
         {/* Agentic reveal */}
         {started && (
           <>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <IqColumn id="work" items={scenario.work} revealed={phase >= 1} />
               <IqColumn id="fabric" items={scenario.fabric} revealed={phase >= 2} />
               <FoundryWebColumn foundry={scenarioFoundry} web={scenarioWeb} revealed={phase >= 3} />
@@ -489,7 +489,7 @@ export function FraudIQ() {
         )}
         {result && (
           <>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <IqColumn id="fabric" items={result.fabric} revealed={askPhase >= 1} />
               <IqColumn id="work" items={result.work} revealed={askPhase >= 2} />
               <FoundryWebColumn foundry={result.foundry} web={result.web} revealed={askPhase >= 3} />
