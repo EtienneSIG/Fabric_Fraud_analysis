@@ -6,6 +6,7 @@ import {
 
 import i18n from '@/i18n/i18n';
 import { diag, startTimer } from '@/backend/diag';
+import { getAgentTimeoutMs } from '@/backend/services/generalSettings';
 import {
   getForceDemo,
   getFoundryAgent,
@@ -25,9 +26,6 @@ const ENV_FOUNDRY_PROJECT = import.meta.env.VITE_FOUNDRY_PROJECT || '';
 const ENV_AGENT_NAME = import.meta.env.VITE_FOUNDRY_AGENT_NAME || 'fraud-iq-orchestrator';
 const ENV_AGENT_ENDPOINT = import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT || '';
 const AGENT_API_VERSION = '2025-11-15-preview';
-// Cap the direct agent call: a blocked MSAL popup or a slow web-search grounding must not freeze
-// the UI — past this budget we resolve with the deterministic mock instead.
-const AGENT_TIMEOUT_MS = 5_000;
 const SCOPES = ['https://ai.azure.com/.default'];
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
@@ -244,14 +242,16 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
     return mockFoundryAnswer();
   }
   const elapsed = startTimer();
+  // Cap the direct agent call so a blocked popup / slow grounding can't freeze the UI (runtime-tunable).
+  const timeoutMs = getAgentTimeoutMs();
   try {
-    const result = await withTimeout(runFoundryAgent(question), AGENT_TIMEOUT_MS);
+    const result = await withTimeout(runFoundryAgent(question), timeoutMs);
     diag('foundryiq', `direct agent completed in ${elapsed()}ms`, undefined, 'info');
     return result;
   } catch (error) {
     // Slow/blocked sign-in or grounding: degrade gracefully to the mock rather than hang.
     if (error instanceof AgentTimeoutError) {
-      diag('foundryiq', `timed out after ${AGENT_TIMEOUT_MS}ms (${elapsed()}ms elapsed) → demo answer`, undefined, 'error');
+      diag('foundryiq', `timed out after ${timeoutMs}ms (${elapsed()}ms elapsed) → demo answer`, undefined, 'error');
       return { ...mockFoundryAnswer(), degraded: true };
     }
     diag('foundryiq', `direct agent failed after ${elapsed()}ms`, error, 'error');

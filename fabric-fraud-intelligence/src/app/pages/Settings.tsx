@@ -23,13 +23,21 @@ import {
   setForceDemo,
 } from '@/backend/services/foundrySettings';
 import { foundryDirectConfigured } from '@/services/FoundryAgentClient';import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
+import {
+  getAppInsightsConnectionString,
+  setAppInsightsConnectionString,
+  getAgentTimeoutMs,
+  setAgentTimeoutMs,
+} from '@/backend/services/generalSettings';
+import { initTelemetry } from '@/backend/telemetry';
 import { ROLES, ROLE_PERMISSIONS } from '@/backend/models';
 
-type SettingsTab = 'governance' | 'agents' | 'quality';
+type SettingsTab = 'governance' | 'agents' | 'quality' | 'general';
 const TAB_LABELS: Record<SettingsTab, string> = {
   governance: 'pages.settings.tabGovernance',
   agents: 'pages.settings.tabAgents',
   quality: 'pages.settings.tabModelQuality',
+  general: 'pages.settings.tabGeneral',
 };
 
 export function Settings() {
@@ -48,7 +56,7 @@ export function Settings() {
       </div>
 
       <div className="flex gap-1 border-b border-gray-100">
-        {(['governance', 'quality', 'agents'] as const).map((k) => (
+        {(['governance', 'quality', 'agents', 'general'] as const).map((k) => (
           <button
             key={k}
             onClick={() => setTab(k)}
@@ -62,6 +70,8 @@ export function Settings() {
       </div>
 
       {tab === 'agents' && <AgentsTab />}
+
+      {tab === 'general' && <GeneralTab />}
 
       {tab === 'quality' && <ModelQualityTab />}
 
@@ -193,6 +203,108 @@ function AgentsTab() {
       <FoundryAgentCard />
       <WebIqKeyCard />
     </>
+  );
+}
+
+function GeneralTab() {
+  const { t } = useTranslation();
+  const { role } = useRole();
+  const [ai, setAi] = useState(getAppInsightsConnectionString());
+  const [timeoutMs, setTimeoutInput] = useState(String(getAgentTimeoutMs()));
+  const [, bump] = useState(0);
+
+  const aiOn = getAppInsightsConnectionString().length > 0;
+
+  const saveAi = () => {
+    setAppInsightsConnectionString(ai);
+    if (ai.trim()) {
+      initTelemetry();
+      audit.logConfigChange(role, 'Application Insights', t('pages.settings.general.auditAppInsightsSet'));
+    } else {
+      audit.logConfigChange(role, 'Application Insights', t('pages.settings.general.auditAppInsightsClear'));
+    }
+    bump((n) => n + 1);
+  };
+  const clearAi = () => {
+    setAppInsightsConnectionString('');
+    setAi('');
+    audit.logConfigChange(role, 'Application Insights', t('pages.settings.general.auditAppInsightsClear'));
+    bump((n) => n + 1);
+  };
+  const saveTimeout = () => {
+    const n = Number(timeoutMs);
+    setAgentTimeoutMs(Number.isFinite(n) ? n : '');
+    setTimeoutInput(String(getAgentTimeoutMs()));
+    audit.logConfigChange(role, 'Agent timeout', t('pages.settings.general.auditTimeout', { ms: getAgentTimeoutMs() }));
+    bump((n) => n + 1);
+  };
+
+  return (
+    <section className="ffi-card p-6">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.general.title')}</h3>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            aiOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-gray-100 text-gray-500'
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${aiOn ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+          {aiOn ? t('pages.settings.general.statusOn') : t('pages.settings.general.statusOff')}
+        </span>
+      </div>
+      <p className="mb-4 max-w-lg text-xs text-gray-400">{t('pages.settings.general.desc')}</p>
+
+      <p className="mb-1 text-xs font-medium text-gray-500">{t('pages.settings.general.appInsightsTitle')}</p>
+      <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.appInsightsLabel')}</label>
+      <div className="flex max-w-lg gap-2">
+        <input
+          type="password"
+          autoComplete="off"
+          spellCheck={false}
+          value={ai}
+          onChange={(e) => setAi(e.target.value)}
+          placeholder={t('pages.settings.general.appInsightsPlaceholder')}
+          aria-label={t('pages.settings.general.appInsightsLabel')}
+          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+        />
+        <button
+          onClick={saveAi}
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          {t('pages.settings.general.save')}
+        </button>
+        <button
+          onClick={clearAi}
+          disabled={!aiOn}
+          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
+        >
+          {t('pages.settings.general.clear')}
+        </button>
+      </div>
+      <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.appInsightsNote')}</p>
+
+      <p className="mb-1 mt-5 text-xs font-medium text-gray-500">{t('pages.settings.general.timeoutTitle')}</p>
+      <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.timeoutLabel')}</label>
+      <div className="flex max-w-xs gap-2">
+        <input
+          type="number"
+          min={1000}
+          max={120000}
+          step={500}
+          value={timeoutMs}
+          onChange={(e) => setTimeoutInput(e.target.value)}
+          aria-label={t('pages.settings.general.timeoutLabel')}
+          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+        />
+        <button
+          onClick={saveTimeout}
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          {t('pages.settings.general.save')}
+        </button>
+      </div>
+      <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.timeoutNote')}</p>
+    </section>
   );
 }
 
