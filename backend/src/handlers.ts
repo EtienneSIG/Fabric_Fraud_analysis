@@ -187,7 +187,8 @@ export async function regulatoryWebSearch(
       body: JSON.stringify({
         query,
         maxResults: 10,
-        language: req.locale,
+        language: req.locale.slice(0, 2),
+        region: env('WEBIQ_REGION') || 'FR',
         contentFormat: 'passage',
         maxLength: 1200,
       }),
