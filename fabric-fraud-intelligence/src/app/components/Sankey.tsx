@@ -19,7 +19,7 @@ interface Laid {
 
 const WIDTH = 1000;
 const NODE_W = 12;
-const PAD_X = 90;
+const PAD_X = 150;
 const PAD_Y = 18;
 const GAP = 7;
 
@@ -74,7 +74,7 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
     const outOff = new Map<string, number>();
     const inOff = new Map<string, number>();
     const sorted = [...links].sort((a, b) => (laid.get(a.source)?.y0 ?? 0) - (laid.get(b.source)?.y0 ?? 0));
-    const out: { key: string; d: string; color: string; value: number; sLabel: string; tLabel: string }[] = [];
+    const out: { id: string; key: string; d: string; color: string; width: number; value: number; sLabel: string; tLabel: string }[] = [];
     for (const lk of sorted) {
       const s = laid.get(lk.source);
       const t = laid.get(lk.target);
@@ -84,13 +84,14 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
       const to = inOff.get(lk.target) ?? 0;
       outOff.set(lk.source, so + thick);
       inOff.set(lk.target, to + thick);
-      const x0 = s.x + NODE_W;
-      const x1 = t.x;
+      const x0 = s.x + NODE_W / 2;
+      const x1 = t.x + NODE_W / 2;
       const xm = (x0 + x1) / 2;
-      const sy = s.y0 + so;
-      const ty = t.y0 + to;
-      const d = `M${x0},${sy} C${xm},${sy} ${xm},${ty} ${x1},${ty} L${x1},${ty + thick} C${xm},${ty + thick} ${xm},${sy + thick} ${x0},${sy + thick} Z`;
-      out.push({ key: lk.key, d, color: lk.color, value: lk.value, sLabel: s.node.label, tLabel: t.node.label });
+      const sy = s.y0 + so + thick / 2;
+      const ty = t.y0 + to + thick / 2;
+      const d = `M${x0},${sy} C${xm},${sy} ${xm},${ty} ${x1},${ty}`;
+      const width = Math.min(Math.max(Math.sqrt(lk.value) * 0.45, 1), 2.5);
+      out.push({ id: `${lk.key}:${lk.source}>${lk.target}`, key: lk.key, d, color: lk.color, width, value: lk.value, sLabel: s.node.label, tLabel: t.node.label });
     }
     return out;
   }, [links, laid]);
@@ -122,14 +123,17 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
       ))}
       {ribbonGeo.map((rb) => {
         const on = activeKeys ? activeKeys.has(rb.key) : null;
-        const opacity = on === null ? 0.36 : on ? 0.82 : 0.08;
+        const strokeOpacity = on === false ? 0.08 : on === true ? 0.82 : 0.4;
         return (
           <path
-            key={rb.key}
+            key={rb.id}
             d={rb.d}
-            fill={rb.color}
-            fillOpacity={opacity}
-            style={{ cursor: 'pointer', transition: 'fill-opacity 120ms' }}
+            fill="none"
+            stroke={rb.color}
+            strokeOpacity={strokeOpacity}
+            strokeWidth={rb.width + (on === true ? 1 : 0)}
+            vectorEffect="non-scaling-stroke"
+            style={{ cursor: 'pointer', transition: 'stroke-opacity 120ms, stroke-width 120ms' }}
             onMouseEnter={() => {
               setHoverKey(rb.key);
               setTip(`${rb.sLabel} → ${rb.tLabel} · ${tr('components.sankey.customers', { count: rb.value })}`);
@@ -148,12 +152,12 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
         const dim = on === false;
         const isLast = node.col === ncol - 1;
         const isFirst = node.col === 0;
-        const anchor = isLast ? 'end' : isFirst ? 'start' : 'middle';
-        const tx = isLast ? x - 6 : isFirst ? x + NODE_W + 6 : x + NODE_W / 2;
+        const anchor = isFirst ? 'end' : isLast ? 'start' : 'middle';
+        const tx = isFirst ? x - 7 : isLast ? x + NODE_W + 7 : x + NODE_W / 2;
         const ty = isFirst || isLast ? y0 + h / 2 : y0 - 4;
         return (
           <g key={node.id} onMouseEnter={() => { setHoverNode(node.id); setTip(`${node.label} · ${tr('components.sankey.customers', { count: node.value })}`); }} onMouseLeave={() => { setHoverNode(null); setTip(null); }} style={{ cursor: 'pointer' }}>
-            <rect x={x} y={y0} width={NODE_W} height={h} rx={2} fill={node.color} opacity={dim ? 0.25 : 1} />
+            <rect x={x} y={y0} width={NODE_W} height={h} rx={1.5} fill={node.color} opacity={dim ? 0.25 : 0.82} />
             <text x={tx} y={ty} textAnchor={anchor} dominantBaseline={isFirst || isLast ? 'middle' : 'auto'} opacity={dim ? 0.3 : 1} className="fill-slate-600" style={{ fontSize: 10 }}>
               {node.label}
             </text>

@@ -110,7 +110,8 @@ to inspect the deployed agent and traces. The deployed flow contains:
 
 1. An orchestrator agent for fraud and AML investigations.
 2. A connection to the published `Fraud Intelligence Data Agent` for governed case facts.
-3. A regulatory research agent with web grounding limited to official regulatory domains.
+3. A **Web IQ** regulatory experience powered by Foundry Web Search, limited to official
+  regulatory domains and requiring no separate API key or MCP connection.
 4. A synthesis step that preserves citations and requires investigator approval before action.
 
 The deployment runs an end-to-end regulatory question and fails if the answer has no

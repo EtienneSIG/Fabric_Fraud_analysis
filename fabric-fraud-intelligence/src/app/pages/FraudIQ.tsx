@@ -12,20 +12,16 @@ import {
   type IqId,
   type IqResult,
 } from '@/backend/api/microsoftIq';
-import { isWorkIqEnabled, isWebIqEnabled } from '@/backend/config';
-import { diag, startTimer } from '@/backend/diag';
+import { isWorkIqEnabled } from '@/backend/config';
 import { workIq } from '@/backend/services/WorkIqGraphClient';
-import { webIq } from '@/backend/services/WebIqClient';
-import { askFoundryAgent, foundryDirectConfigured } from '@/services/FoundryAgentClient';
+import { askFoundryAgent } from '@/services/FoundryAgentClient';
 
 const isLive = (id: IqId): boolean =>
   id === 'fabric'
     ? true
     : id === 'work'
       ? isWorkIqEnabled()
-      : id === 'web'
-        ? isWebIqEnabled()
-        : foundryDirectConfigured();
+      : true;
 const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed', web: '#ea580c' };
 const IQ_BY_ID = Object.fromEntries(IQS.map((i) => [i.id, i])) as Record<IqId, (typeof IQS)[number]>;
 
@@ -42,18 +38,18 @@ function Badge({ live }: { live: boolean }) {
   );
 }
 
-function MarkdownContent({ children }: { children: string }) {
+function MarkdownContent({ children, compact = false }: { children: string; compact?: boolean }) {
   return (
-    <div className="min-w-0 space-y-3 text-sm leading-6 text-gray-700 wrap-anywhere">
+    <div className={`min-w-0 text-gray-700 [overflow-wrap:anywhere] ${compact ? 'space-y-2 text-xs leading-relaxed' : 'space-y-3 text-sm leading-6'}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ children: heading }) => <h5 className="text-base font-bold text-gray-900">{heading}</h5>,
-          h2: ({ children: heading }) => <h5 className="text-sm font-bold text-gray-900">{heading}</h5>,
-          h3: ({ children: heading }) => <h6 className="text-sm font-semibold text-gray-800">{heading}</h6>,
+          h1: ({ children: heading }) => <h5 className={compact ? 'text-xs font-semibold text-gray-800' : 'text-base font-bold text-gray-900'}>{heading}</h5>,
+          h2: ({ children: heading }) => <h5 className={compact ? 'text-xs font-semibold text-gray-800' : 'text-sm font-bold text-gray-900'}>{heading}</h5>,
+          h3: ({ children: heading }) => <h6 className={compact ? 'text-xs font-semibold text-gray-800' : 'text-sm font-semibold text-gray-800'}>{heading}</h6>,
           p: ({ children: paragraph }) => <p>{paragraph}</p>,
-          ul: ({ children: list }) => <ul className="ml-5 list-disc space-y-1.5">{list}</ul>,
-          ol: ({ children: list }) => <ol className="ml-5 list-decimal space-y-1.5">{list}</ol>,
+          ul: ({ children: list }) => <ul className={`ml-5 list-disc space-y-1.5 ${compact ? 'marker:text-violet-600' : ''}`}>{list}</ul>,
+          ol: ({ children: list }) => <ol className={`ml-5 list-decimal space-y-1.5 ${compact ? 'marker:text-violet-600' : ''}`}>{list}</ol>,
           li: ({ children: item }) => <li className="pl-1">{item}</li>,
           strong: ({ children: strong }) => <strong className="font-semibold text-gray-900">{strong}</strong>,
           blockquote: ({ children: quote }) => (
@@ -83,36 +79,6 @@ function compactMarkdown(value: string): string {
   return text.length > 180 ? `${text.slice(0, 177)}...` : text;
 }
 
-// Skeleton placeholder + progress bar shown while a pillar is grounding / the agent is reasoning.
-function GroundingLoader({ label, lines = 3 }: { label: string; lines?: number }) {
-  const [sec, setSec] = useState(0);
-  useEffect(() => {
-    const id = window.setInterval(() => setSec((s) => s + 1), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  const pct = Math.min(10 + sec * 6, 95);
-  const widths = ['w-3/4', 'w-full', 'w-5/6', 'w-2/3'];
-  return (
-    <div className="mt-3 space-y-3">
-      <div className="space-y-2" aria-hidden>
-        {Array.from({ length: lines }).map((_, i) => (
-          <div key={i} className={`h-2.5 ${widths[i % widths.length]} animate-pulse rounded bg-gray-200 dark:bg-gray-700`} />
-        ))}
-      </div>
-      <div className="h-1 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-        <div
-          className="h-full rounded-full bg-indigo-400 transition-[width] duration-1000 ease-out"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <div className="flex items-center gap-2 text-[11px] text-gray-400">
-        <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
-        {label}{sec >= 3 ? ` · ${sec}s` : ''}
-      </div>
-    </div>
-  );
-}
-
 function IqColumn({
   id,
   items,
@@ -138,7 +104,7 @@ function IqColumn({
       {revealed ? (
         id === 'foundry' && items.length ? (
           <div className="mt-3 min-w-0">
-            <MarkdownContent>{items[0]}</MarkdownContent>
+            <MarkdownContent compact>{items[0]}</MarkdownContent>
             {items.length > 1 && (
               <ul className="mt-4 space-y-2 border-t border-gray-100 pt-3">
                 {items.slice(1).map((item, index) => {
@@ -151,7 +117,7 @@ function IqColumn({
                           {item.slice(0, -url.length).trim()}
                         </a>
                       ) : (
-                        <span className="min-w-0 wrap-break-word">{item}</span>
+                        <span className="min-w-0 break-words">{item}</span>
                       )}
                     </li>
                   );
@@ -171,7 +137,7 @@ function IqColumn({
                   {it.slice(0, -url.length).trim()}
                 </a>
               ) : (
-                <span className="min-w-0 whitespace-pre-wrap wrap-anywhere">{it}</span>
+                <span className="min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere]">{it}</span>
               )}
             </li>
             );
@@ -179,7 +145,10 @@ function IqColumn({
         </ul>
         )
       ) : (
-        <GroundingLoader label={t('fraudIqPage.groundingCol')} />
+        <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
+          <span className="inline-block h-3 w-3 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
+          {t('fraudIqPage.groundingCol')}
+        </div>
       )}
     </div>
   );
@@ -195,7 +164,7 @@ function FoundryWebColumn({
   revealed: boolean;
 }) {
   return (
-    <div className="min-w-0 overflow-hidden rounded-xl border border-gray-100 sm:col-span-2 lg:col-span-3">
+    <div className="min-w-0 overflow-hidden rounded-xl border border-gray-100 sm:col-span-2">
       <div className="grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0 border-b border-gray-100 lg:border-b-0 lg:border-r">
           <IqColumn id="foundry" items={foundry} revealed={revealed} embedded />
@@ -216,8 +185,8 @@ export function FraudIQ() {
   const [started, setStarted] = useState(false);
   const [phase, setPhase] = useState(0); // 1 work · 2 fabric · 3 foundry · 4 recommendation
   const [scenarioFoundry, setScenarioFoundry] = useState<string[]>([]);
+  const [scenarioWeb, setScenarioWeb] = useState<string[]>(scenario.web);
   const [scenarioError, setScenarioError] = useState<string | null>(null);
-  const [scenarioDegraded, setScenarioDegraded] = useState(false);
   const [scenarioRunning, setScenarioRunning] = useState(false);
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
@@ -227,34 +196,25 @@ export function FraudIQ() {
     setStarted(true);
     setPhase(0);
     setScenarioError(null);
-    setScenarioDegraded(false);
+    setScenarioWeb(scenario.web);
     setScenarioRunning(true);
-    // Phase must only ever advance: the mock resolves before these stagger timers, so a plain
-    // setPhase(1|2) here would roll phase back below 3 and the reveal would never complete.
-    timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 1)), 600));
-    timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 2)), 1200));
-    const elapsed = startTimer();
-    diag('fraudiq', `scenario run started (foundry ${foundryDirectConfigured() ? 'direct' : 'demo'})`, undefined, 'info');
+    timers.current.push(window.setTimeout(() => setPhase(1), 600));
+    timers.current.push(window.setTimeout(() => setPhase(2), 1200));
     try {
       const foundry = await askFoundryAgent(
         `${scenario.prompt}\n\nContexte Fabric : alerte ${scenario.alertId}, client ${scenario.customerId}. ` +
         `${scenario.context.join('; ')}. Sépare les faits, les obligations réglementaires et les actions ` +
-        'à soumettre à validation humaine. Cite uniquement des sources officielles.'
+        'à soumettre à validation humaine. Cite uniquement des sources officielles.',
+        i18n.resolvedLanguage
       );
-      diag('fraudiq', `scenario foundry grounding resolved in ${elapsed()}ms`, undefined, 'info');
-      setScenarioFoundry([
-        foundry.answer,
-        ...foundry.citations.map((citation) => `Source officielle · ${citation.title} · ${citation.url}`),
-      ]);
-      setScenarioDegraded(Boolean(foundry.degraded));
-      setPhase((p) => Math.max(p, 3));
-      timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 4)), 500));
+      setScenarioFoundry([foundry.answer]);
+      if (foundry.citations.length) {
+        setScenarioWeb(foundry.citations.map((citation) => `${citation.title} · ${citation.url}`));
+      }
+      setPhase(3);
+      timers.current.push(window.setTimeout(() => setPhase(4), 500));
     } catch (error) {
-      diag('fraudiq', `scenario run failed after ${elapsed()}ms`, error, 'error');
       setScenarioError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
-      // Never leave a pillar spinning on failure: drop pending stagger timers and reveal the columns.
-      timers.current.forEach(clearTimeout);
-      setPhase((p) => Math.max(p, 4));
     } finally {
       setScenarioRunning(false);
     }
@@ -278,11 +238,8 @@ export function FraudIQ() {
     setAskError(null);
     setAskRunning(true);
     setAskPhase(0);
-    const askElapsed = startTimer();
-    diag('fraudiq', 'multi-IQ ask started', undefined, 'info');
     try {
-      setResult(await askMicrosoftIq(question));
-      diag('fraudiq', `multi-IQ ask resolved in ${askElapsed()}ms`, undefined, 'info');
+      setResult(await askMicrosoftIq(question, i18n.resolvedLanguage));
       [400, 800, 1200, 1600].forEach((ms, i) =>
         askTimers.current.push(window.setTimeout(() => setAskPhase(i + 1), ms))
       );
@@ -291,21 +248,8 @@ export function FraudIQ() {
           if (signals && signals.length) setResult((current) => (current ? { ...current, work: signals } : current));
         });
       }
-      if (isWebIqEnabled()) {
-        void webIq.getCitations(question, i18n.language).then((citations) => {
-          if (citations && citations.length) {
-            setResult((current) => current
-              ? { ...current, web: citations.map((citation) => `${citation.title} — ${citation.url}`) }
-              : current);
-          }
-        });
-      }
     } catch (error) {
-      diag('fraudiq', `multi-IQ ask failed after ${askElapsed()}ms`, error, 'error');
       setAskError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
-      // Stop the reveal loaders on failure so nothing spins indefinitely.
-      askTimers.current.forEach(clearTimeout);
-      setAskPhase(4);
     } finally {
       setAskRunning(false);
     }
@@ -323,36 +267,46 @@ export function FraudIQ() {
       {/* The three IQ surfaces */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {IQS.filter((iq) => iq.id === 'fabric' || iq.id === 'work').map((iq) => (
-          <section key={iq.id} className="ffi-card p-4 border-t-4" style={{ borderTopColor: iq.color }}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold" style={{ color: iq.color }}>
-                {iq.name}
-              </h3>
-              <Badge live={isLive(iq.id)} />
+          <section key={iq.id} className="ffi-card overflow-hidden p-0">
+            <div className="h-1.5" style={{ backgroundColor: iq.color }} />
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold" style={{ color: iq.color }}>
+                  {iq.name}
+                </h3>
+                <Badge live={isLive(iq.id)} />
+              </div>
+              <p className="text-xs font-medium text-gray-500">{t(`fraudIqPage.iq.${iq.id}.tagline`)}</p>
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                {t(`fraudIqPage.iq.${iq.id}.description`)}
+              </p>
             </div>
-            <p className="text-xs font-medium text-gray-500">{t(`fraudIqPage.iq.${iq.id}.tagline`)}</p>
-            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
-              {t(`fraudIqPage.iq.${iq.id}.description`)}
-            </p>
           </section>
         ))}
-        <section className="ffi-card overflow-hidden border-t-4 p-0" style={{ borderTopColor: COLOR.foundry }}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            {(['foundry', 'web'] as const).map((id, index) => {
-              const iq = IQ_BY_ID[id];
-              return (
-                <div key={id} className={`min-w-0 p-4 ${index ? 'border-t border-gray-100 sm:border-l sm:border-t-0 lg:border-l-0 lg:border-t xl:border-l xl:border-t-0' : ''}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-bold" style={{ color: iq.color }}>{iq.name}</h3>
+        <section className="ffi-card overflow-hidden p-0">
+          <div className="h-1.5 bg-gradient-to-r from-[#7c3aed] to-[#ea580c]" />
+          <div className="p-4">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <h3 className="text-sm font-bold">
+                <span style={{ color: COLOR.foundry }}>{IQ_BY_ID.foundry.name}</span>
+                <span className="text-gray-400"> + </span>
+                <span style={{ color: COLOR.web }}>{IQ_BY_ID.web.name}</span>
+              </h3>
+              <div className="flex items-center gap-1.5">
+                {(['foundry', 'web'] as const).map((id) => (
+                  <span key={id} className="flex items-center gap-1">
+                    <span className="text-[10px] font-semibold" style={{ color: COLOR[id] }}>
+                      {IQ_BY_ID[id].name}
+                    </span>
                     <Badge live={isLive(id)} />
-                  </div>
-                  <p className="text-xs font-medium text-gray-500">{t(`fraudIqPage.iq.${id}.tagline`)}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
-                    {t(`fraudIqPage.iq.${id}.description`)}
-                  </p>
-                </div>
-              );
-            })}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs font-medium text-gray-500">{t('fraudIqPage.iq.knowledge.tagline')}</p>
+            <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
+              {t('fraudIqPage.iq.knowledge.description')}
+            </p>
           </div>
         </section>
       </div>
@@ -437,15 +391,15 @@ export function FraudIQ() {
         {/* Agentic reveal */}
         {started && (
           <>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <IqColumn id="work" items={scenario.work} revealed={phase >= 1} />
               <IqColumn id="fabric" items={scenario.fabric} revealed={phase >= 2} />
-              <FoundryWebColumn foundry={scenarioFoundry} web={scenario.web} revealed={phase >= 3} />
+              <FoundryWebColumn foundry={scenarioFoundry} web={scenarioWeb} revealed={phase >= 3} />
             </div>
 
             {scenarioError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                {t('fraudIqPage.iqError', { reason: scenarioError })}
+                Foundry IQ indisponible : {scenarioError}
               </p>
             )}
 
@@ -459,11 +413,6 @@ export function FraudIQ() {
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
                   {t('fraudIqPage.foundryRecommendation')}
                 </h4>
-                {scenarioDegraded && (
-                  <span className="rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5">
-                    {t('fraudIqPage.foundryDegraded')}
-                  </span>
-                )}
                 <span className="ml-auto text-[10px] text-indigo-400">{t('fraudIqPage.groundedMultiIq')}</span>
               </div>
               {done ? (
@@ -492,7 +441,7 @@ export function FraudIQ() {
                   </div>
                 </div>
               ) : (
-                <GroundingLoader label={t('fraudIqPage.reasoning')} lines={2} />
+                <p className="mt-1.5 text-xs text-gray-400">{t('fraudIqPage.reasoning')}</p>
               )}
             </div>
           </>
@@ -539,12 +488,12 @@ export function FraudIQ() {
         </div>
         {askError && (
           <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-            {t('fraudIqPage.iqError', { reason: askError })}
+            Foundry IQ indisponible : {askError}
           </p>
         )}
         {result && (
           <>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <IqColumn id="fabric" items={result.fabric} revealed={askPhase >= 1} />
               <IqColumn id="work" items={result.work} revealed={askPhase >= 2} />
               <FoundryWebColumn foundry={result.foundry} web={result.web} revealed={askPhase >= 3} />
@@ -559,11 +508,6 @@ export function FraudIQ() {
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
                   {t('fraudIqPage.synthesisTitle')}
                 </h4>
-                {result.degraded && (
-                  <span className="rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5">
-                    {t('fraudIqPage.foundryDegraded')}
-                  </span>
-                )}
                 <span className="ml-auto text-[10px] text-indigo-400">{t('fraudIqPage.groundedAcross')}</span>
               </div>
               {askPhase >= 4 ? (

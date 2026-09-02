@@ -99,8 +99,6 @@ export interface IqResult {
   foundry: string[];
   web: string[];
   synthesis: Synthesis;
-  // True when the live Foundry agent was configured but timed out and fell back to the demo answer.
-  degraded?: boolean;
 }
 
 export const flavor = (q: string): IqFlavor => {
@@ -113,25 +111,6 @@ export const flavor = (q: string): IqFlavor => {
 };
 
 const euro = (n: number) => `€${Math.round(n).toLocaleString('en-US')}`;
-
-// Canonical official-source portals for Web IQ citations → real links that open in a new tab.
-const OFFICIAL_SOURCES: Record<string, string> = {
-  'EUR-Lex': 'https://eur-lex.europa.eu',
-  'Legifrance': 'https://www.legifrance.gouv.fr',
-  'EBA': 'https://www.eba.europa.eu',
-  'ACPR': 'https://acpr.banque-france.fr/en',
-  'AMF': 'https://www.amf-france.org/en',
-  'FATF': 'https://www.fatf-gafi.org',
-  'TRACFIN': 'https://www.economie.gouv.fr/tracfin',
-};
-const SOURCE_ORDER = ['EUR-Lex', 'Legifrance', 'EBA', 'ACPR', 'AMF', 'FATF', 'TRACFIN'] as const;
-
-// Append the official source URL so IqColumn renders the citation as a new-tab link.
-function withOfficialLink(item: string): string {
-  if (/https?:\/\/\S+$/.test(item)) return item;
-  const key = SOURCE_ORDER.find((k) => item.includes(k));
-  return key ? `${item} ${OFFICIAL_SOURCES[key]}` : item;
-}
 
 /**
  * LIVE Fabric IQ grounding — computed from the actual dataset that is
@@ -216,30 +195,28 @@ export function getSampleQuestions(): string[] {
  * Cross-IQ grounding for a fraud question. Fabric IQ is data-derived and Foundry IQ
  * calls the deployed agent; localized Work IQ and Web IQ values provide fallbacks.
  */
-export async function askMicrosoftIq(question: string): Promise<IqResult> {
+export async function askMicrosoftIq(question: string, language = i18n.resolvedLanguage): Promise<IqResult> {
   const f = flavor(question);
   const t = i18n.getFixedT(null, 'fraudIq');
   const synthesis: Synthesis = {
     ...(t(`synthesis.${f}`, { returnObjects: true }) as Omit<Synthesis, 'confidence'>),
     confidence: IQ_CONFIDENCE[f],
   };
-  const foundry = await askFoundryAgent(question);
-  const foundryItems = [
-    foundry.answer,
-    ...foundry.citations.map((citation) => `Source officielle · ${citation.title} · ${citation.url}`),
-  ];
+  const foundry = await askFoundryAgent(question, language);
+  const webItems = foundry.citations.length
+    ? foundry.citations.map((citation) => `${citation.title} · ${citation.url}`)
+    : t(`web.${f}`, { returnObjects: true }) as string[];
   return {
     fabric: fabricIqLive(question),
     work: t(`work.${f}`, { returnObjects: true }) as string[],
-    foundry: foundryItems,
-    web: (t(`web.${f}`, { returnObjects: true }) as string[]).map(withOfficialLink),
-    degraded: foundry.degraded,
+    foundry: [foundry.answer],
+    web: webItems,
     synthesis: {
       ...synthesis,
       rationale: foundry.answer,
       findings: [
         ...synthesis.findings.filter((finding) => !finding.startsWith('Foundry IQ ·')),
-        ...foundry.citations.map((citation) => `Foundry IQ · ${citation.title}`),
+        ...foundry.citations.map((citation) => `Web IQ · ${citation.title}`),
       ],
     },
   };
@@ -301,7 +278,7 @@ export function cardFraudScenario(): CardFraudScenario {
     work: t('scenario.work', { returnObjects: true }) as string[],
     fabric,
     foundry: t('scenario.foundry', { returnObjects: true }) as string[],
-    web: (t('scenario.web', { returnObjects: true }) as string[]).map(withOfficialLink),
+    web: t('scenario.web', { returnObjects: true }) as string[],
     recommendation: {
       confidence: 0.92,
       actions: t('scenario.recommendationActions', { returnObjects: true }) as string[],

@@ -26,12 +26,17 @@ def build_instructions(domains: list[str]) -> str:
 For every case-specific request:
 1. Use web search to retrieve current regulatory obligations. Accept and cite sources only from these official domains: {domain_list}.
 2. Treat case facts supplied by the user as unverified context. Do not claim access to Fabric or other internal data.
-3. Clearly separate user-provided facts, interpretation, applicable obligations, and recommended actions.
+3. Read the [OUTPUT_LOCALE=xx] marker in the request. Reply only in that language: en = English, fr = French, es = Spanish. The marker overrides the language of all other request content.
 4. Preserve the URL citations returned by web search.
 5. If evidence is missing, state the gap. Never invent internal facts or substitute a non-official source.
 6. Do not make a final fraud, filing, blocking, or customer decision. Require human review and approval.
 
-Answer in the user's language. Do not send personal data, account numbers, transaction details, or other case evidence in a web-search query. Search only for generic legal concepts, rules, guidance, dates, and thresholds."""
+Keep the final answer under 100 words, excluding citation metadata. Use exactly three short localized headings:
+- Assessment: at most 2 bullets.
+- Obligations: at most 2 bullets.
+- Recommended actions: at most 3 bullets; the last bullet must require human approval.
+
+Use short sentences. Do not add an introduction, conclusion, table, confidence score, or repeat the case description. Do not send personal data, account numbers, transaction details, or other case evidence in a search query. Search only for generic legal concepts, rules, guidance, dates, and thresholds."""
 
 
 def main() -> None:
@@ -45,24 +50,29 @@ def main() -> None:
         if config["agentName"] in existing_names:
             project.agents.delete(config["agentName"])
 
+    tools = [
+        WebSearchTool(
+            user_location=WebSearchApproximateLocation(
+                country="FR",
+                city="Paris",
+                region="Ile-de-France",
+            )
+        ),
+    ]
     definition = PromptAgentDefinition(
         model=config["modelDeploymentName"],
         instructions=build_instructions(config["regulatoryDomains"]),
-        tools=[
-            WebSearchTool(
-                user_location=WebSearchApproximateLocation(
-                    country="FR",
-                    city="Paris",
-                    region="Ile-de-France",
-                )
-            ),
-        ],
+        tools=tools,
     )
     agent = project.agents.create_version(
         agent_name=config["agentName"],
         definition=definition,
         description="Grounded fraud investigation across Fabric evidence and official regulatory websites.",
-        metadata={"solution": "fabric-fraud-intelligence", "managedBy": "foundry/deploy_foundry.ps1"},
+        metadata={
+            "solution": "fabric-fraud-intelligence",
+            "managedBy": "foundry/deploy_foundry.ps1",
+            "webIqProvider": "foundry-web-search",
+        },
     )
     print(f"AGENT_NAME={agent.name}")
     print(f"AGENT_VERSION={agent.version}")

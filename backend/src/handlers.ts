@@ -6,7 +6,7 @@
 import { DataLakeServiceClient } from '@azure/storage-file-datalake';
 import { DefaultAzureCredential } from '@azure/identity';
 
-import { env, graphOBO, foundryToken, cognitiveToken, webIqToken, getSecret, logError, scrubPII } from './shared.js';
+import { env, graphOBO, foundryToken, cognitiveToken, logError, scrubPII } from './shared.js';
 
 export interface AgentRunRequest {
   agentName: string;
@@ -22,75 +22,38 @@ export interface AgentReply {
   mode: 'mock' | 'foundry';
 }
 
-// Foundry Agents run over the Responses API (POST {project}/openai/v1/responses with an
-// agent_reference). Overridable so ops can point at the exact project endpoint / agent name.
-const FOUNDRY_ORCHESTRATOR = env('FOUNDRY_ORCHESTRATOR_AGENT') || 'fraud-triage-agent';
-
-// Response `output` items: assistant messages carry output_text content (+ url_citation annotations);
-// tool-call items surface the tools the agent invoked. See learn.microsoft.com Responses API.
-interface ResponseAnnotation {
-  type?: string;
-  url?: string;
-  title?: string;
-}
-interface ResponseContent {
-  type?: string;
-  text?: string;
-  annotations?: ResponseAnnotation[];
-}
-interface ResponseItem {
-  type?: string;
-  role?: string;
-  name?: string;
-  content?: ResponseContent[];
-}
+const API_VERSION = '2025-11-15-preview';
 
 /** Runs the Foundry triage orchestrator (delegates to connected agents, grounds on Fabric via
- *  conn-fabric-fraud-dataagent with OBO) through the Responses API. */
-export async function runAgent(
-  req: AgentRunRequest,
-  userToken: string | null,
-  agentOverride?: string | null
-): Promise<AgentReply> {
-  const endpoint = env('FOUNDRY_PROJECT_ENDPOINT') || env('AI_FOUNDRY_ENDPOINT');
+ *  conn-fabric-fraud-dataagent with OBO). */
+export async function runAgent(req: AgentRunRequest, userToken: string | null): Promise<AgentReply> {
+  const endpoint = env('AI_FOUNDRY_ENDPOINT');
   if (!endpoint) return { runId: `RUN-${Date.now()}`, text: '', generatedQuery: '', grounding: [], mode: 'mock' };
-  const agentName = (agentOverride ?? '').trim() || FOUNDRY_ORCHESTRATOR;
   try {
     const token = await foundryToken(userToken);
-    const res = await fetch(`${endpoint.replace(/\/$/, '')}/openai/v1/responses`, {
+    const res = await fetch(`${endpoint.replace(/\/$/, '')}/agents/fraud-triage-agent/runs?api-version=${API_VERSION}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        agent_reference: { type: 'agent_reference', name: agentName },
-        input: req.prompt,
-        metadata: { ...req.context, locale: req.locale },
-      }),
+      body: JSON.stringify({ input: req.prompt, metadata: { ...req.context, locale: req.locale } }),
     });
-    if (!res.ok) throw new Error(`Foundry response failed: ${res.status}`);
-    const data = (await res.json()) as { id?: string; output_text?: string; output?: ResponseItem[] };
-    const output = data.output ?? [];
-    const messages = output.filter((i) => i.type === 'message').flatMap((i) => i.content ?? []);
-    const text =
-      data.output_text ??
-      messages
-        .filter((c) => c.type === 'output_text')
-        .map((c) => c.text ?? '')
-        .join('\n');
-
-    const grounding: AgentReply['grounding'] = [];
-    for (const item of output) {
-      for (const c of item.content ?? []) {
-        for (const a of c.annotations ?? []) {
-          if (a.type === 'url_citation' && a.url) grounding.push({ title: a.title ?? a.url, source: 'web', confidence: 0.9 });
-        }
-      }
-      // Tool-call items (e.g. fabric_dataagent_call, mcp_call) expose which tools grounded the answer.
-      if (item.type && item.type.endsWith('_call')) {
-        grounding.push({ title: item.name ?? item.type, source: item.type, confidence: 0.8 });
-      }
-    }
-
-    return { runId: data.id ?? `RUN-${Date.now()}`, text, generatedQuery: '', grounding, mode: 'foundry' };
+    if (!res.ok) throw new Error(`Foundry run failed: ${res.status}`);
+    const data = (await res.json()) as {
+      id?: string;
+      output_text?: string;
+      tool_results?: { title?: string; source?: string; score?: number }[];
+      generated_query?: string;
+    };
+    return {
+      runId: data.id ?? `RUN-${Date.now()}`,
+      text: data.output_text ?? '',
+      generatedQuery: data.generated_query ?? '',
+      grounding: (data.tool_results ?? []).map((g) => ({
+        title: g.title ?? 'Fabric',
+        source: g.source ?? 'fabric_dataagent',
+        confidence: g.score ?? 0.8,
+      })),
+      mode: 'foundry',
+    };
   } catch (e) {
     logError('foundry', e, { caseId: req.context.caseId });
     return { runId: `RUN-${Date.now()}`, text: '', generatedQuery: '', grounding: [], mode: 'mock' };
@@ -122,102 +85,6 @@ export async function workIqSignals(req: WorkIqRequest, userToken: string | null
     logError('workiq', e, { entityId: req.entityId });
     return { signals: [] };
   }
-}
-
-export interface RegulatoryWebSearchRequest {
-  query: string;
-  caseId?: string;
-  locale: string;
-}
-export interface RegulatoryCitation {
-  title: string;
-  url: string;
-  snippet: string;
-}
-export interface RegulatoryWebSearchReply {
-  citations: RegulatoryCitation[];
-  mode: 'mock' | 'webiq';
-}
-
-const WEBIQ_SEARCH_URL = 'https://api.microsoft.ai/v3/search/web';
-
-function officialDomains(): string[] {
-  return env('WEBIQ_OFFICIAL_DOMAINS')
-    .split(',')
-    .map((d) => d.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function hostAllowed(url: string, domains: string[]): boolean {
-  try {
-    const host = new URL(url).hostname.toLowerCase();
-    return domains.some((d) => host === d || host.endsWith(`.${d}`));
-  } catch {
-    return false;
-  }
-}
-
-/** Web IQ regulatory grounding: builds a domain-scoped, PII-free web query, restricts results to the
- *  official-domain allow-list server-side, and returns citations. Entra ID app-only token, API-key
- *  fallback, deterministic mock when neither credential is configured. Advisory only (HITL). */
-export async function regulatoryWebSearch(
-  req: RegulatoryWebSearchRequest,
-  _userToken: string | null,
-  userKey?: string | null
-): Promise<RegulatoryWebSearchReply> {
-  const domains = officialDomains();
-  const safeQuery = scrubPII(req.query).slice(0, 400);
-  const siteScope = domains.length ? ` (${domains.map((d) => `site:${d}`).join(' OR ')})` : '';
-  const query = `${safeQuery}${siteScope}`.slice(0, 1000);
-
-  // Analyst-supplied key (from Settings) takes precedence; then Entra app token; then KV secret.
-  const suppliedKey = (userKey ?? '').trim();
-  const token = suppliedKey ? '' : await webIqToken().catch(() => '');
-  const apiKey =
-    suppliedKey || (token ? '' : await getSecret(env('WEBIQ_API_KEY_SECRET_NAME') || 'webiq-api-key').catch(() => ''));
-  if (!token && !apiKey) return { citations: mockCitations(domains, req.locale), mode: 'mock' };
-
-  try {
-    const res = await fetch(WEBIQ_SEARCH_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : { 'x-apikey': apiKey }),
-      },
-      body: JSON.stringify({
-        query,
-        maxResults: 10,
-        language: req.locale.slice(0, 2),
-        region: env('WEBIQ_REGION') || 'FR',
-        contentFormat: 'passage',
-        maxLength: 1200,
-      }),
-    });
-    if (!res.ok) throw new Error(`Web IQ search failed: ${res.status}`);
-    const data = (await res.json()) as {
-      webResults?: { title?: string; url?: string; content?: string }[];
-    };
-    const citations = (data.webResults ?? [])
-      .filter((r) => r.url && (domains.length === 0 || hostAllowed(r.url, domains)))
-      .map((r) => ({ title: r.title ?? r.url ?? '', url: r.url ?? '', snippet: r.content ?? '' }));
-    return { citations, mode: 'webiq' };
-  } catch (e) {
-    logError('webiq', e, { caseId: req.caseId });
-    return { citations: mockCitations(domains, req.locale), mode: 'mock' };
-  }
-}
-
-// Deterministic offline stand-in so the Web IQ pillar renders without a configured credential.
-function mockCitations(domains: string[], locale: string): RegulatoryCitation[] {
-  const src = domains.length ? domains : ['eur-lex.europa.eu', 'acpr.banque-france.fr'];
-  const fr = locale.startsWith('fr');
-  return src.slice(0, 3).map((d) => ({
-    title: fr ? `Obligation réglementaire — ${d}` : `Regulatory obligation — ${d}`,
-    url: `https://${d}/`,
-    snippet: fr
-      ? 'Source officielle : détection et déclaration des opérations suspectes (référence simulée).'
-      : 'Official source: detection and reporting of suspicious activity (simulated reference).',
-  }));
 }
 
 export interface TeamsCaseCard {
@@ -501,48 +368,26 @@ function mockCompare(req: RaftCompareRequest): RaftComparison {
   };
 }
 
-// Azure OpenAI api-version (env-overridable). The default supports gpt-5 / o-series reasoning
-// models (max_completion_tokens, reasoning_effort) as well as classic gpt-4.1 / gpt-4o.
-const AOAI_API_VERSION = env('AOAI_API_VERSION') || '2025-04-01-preview';
-
-// Reasoning models (o-series, gpt-5 family) reject `temperature` and use `max_completion_tokens`;
-// classic chat models (gpt-4.1, gpt-4o) take `temperature`. Detection is by model family name.
-function isReasoningModel(name: string): boolean {
-  const m = name.toLowerCase();
-  return /^o[1-9]/.test(m) || /gpt-5/.test(m);
-}
-
-// One Azure OpenAI chat completion against a named deployment; adapts the request body to the model
-// family. `modelHint` carries the underlying model id when the deployment name is an opaque alias.
-// Returns text + token usage + latency.
+// One Azure OpenAI chat completion against a named deployment; returns text + token usage + latency.
 async function chatOnce(
   endpoint: string,
   deployment: string,
   prompt: string,
-  token: string,
-  modelHint?: string
+  token: string
 ): Promise<{ text: string; tokens: number; latencyMs: number }> {
-  const reasoning = isReasoningModel(modelHint ?? deployment);
-  const body: Record<string, unknown> = {
-    messages: [
-      { role: 'system', content: RAFT_SYSTEM },
-      { role: 'user', content: prompt },
-    ],
-    max_completion_tokens: 2000,
-  };
-  if (reasoning) {
-    const effort = env('AOAI_REASONING_EFFORT');
-    if (effort) body.reasoning_effort = effort;
-  } else {
-    body.temperature = 0.2;
-  }
   const started = Date.now();
   const res = await fetch(
-    `${endpoint.replace(/\/$/, '')}/openai/deployments/${deployment}/chat/completions?api-version=${AOAI_API_VERSION}`,
+    `${endpoint.replace(/\/$/, '')}/openai/deployments/${deployment}/chat/completions?api-version=2024-10-21`,
     {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: RAFT_SYSTEM },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.2,
+      }),
     }
   );
   if (!res.ok) throw new Error(`AOAI ${deployment} failed: ${res.status}`);
@@ -567,13 +412,9 @@ export async function raftCompare(req: RaftCompareRequest, userToken: string | n
   if (!endpoint || !student) return mockCompare(req);
   try {
     const token = await cognitiveToken(userToken);
-    // Underlying model ids (env-overridable) so chatOnce can adapt classic vs reasoning params
-    // even when the deployment name is an opaque alias.
-    const baselineModel = env('RAFT_BASELINE_MODEL') || baselineDep;
-    const studentModel = env('RAFT_STUDENT_MODEL') || student;
     const [b, r] = await Promise.all([
-      chatOnce(endpoint, baselineDep, req.prompt, token, baselineModel),
-      chatOnce(endpoint, student, req.prompt, token, studentModel),
+      chatOnce(endpoint, baselineDep, req.prompt, token),
+      chatOnce(endpoint, student, req.prompt, token),
     ]);
     return {
       mode: 'foundry',

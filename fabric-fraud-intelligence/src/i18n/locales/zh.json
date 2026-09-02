@@ -116,6 +116,10 @@
         "tagline": "即時網絡的智能",
         "grounds": "官方監管來源",
         "description": "透過 Microsoft Web IQ 進行的即時網絡依據 — 僅限官方監管網域，返回附來源連結的引用義務。"
+      },
+      "knowledge": {
+        "tagline": "從企業知識到即時網絡，透過語義搜尋",
+        "description": "統一的知識層：在 Microsoft Foundry 中對企業政策、法規與工具輸出進行語義搜尋，並透過 Microsoft Web IQ 即時延伸至網絡 — 僅限官方監管網域，附引用義務及來源連結。"
       }
     }
   },

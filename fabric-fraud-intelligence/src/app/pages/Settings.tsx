@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useRole } from '@/app/RoleContext';
-import { fabricConfig, integrationConfig, isFoundryEnabled, isWebIqEnabled } from '@/backend/config';
+import { fabricConfig, integrationConfig, isFoundryEnabled } from '@/backend/config';
 import { audit } from '@/backend/services/AuditService';
-import { getWebIqKey, hasWebIqKey, setWebIqKey } from '@/backend/services/webIqSettings';
-import { webIq } from '@/backend/services/WebIqClient';
 import { foundryAgent } from '@/backend/services/FoundryAgentClient';
 import type { ProbeState, ProbeResult } from '@/backend/services/probe';
 import {
@@ -203,7 +201,6 @@ function AgentsTab() {
   return (
     <>
       <FoundryAgentCard />
-      <WebIqKeyCard />
     </>
   );
 }
@@ -583,75 +580,6 @@ function FoundryAgentCard() {
       {custom && <p className="mt-2 text-xs text-amber-600">{t('pages.settings.foundry.overrideNote')}</p>}
       <p className="mt-2 text-xs text-gray-400">{t('pages.settings.foundry.connectionNote')}</p>
       <ConnectionProbe run={() => (foundryDirectConfigured() ? probeFoundryDirect() : foundryAgent.probe())} />
-    </section>
-  );
-}
-
-function WebIqKeyCard() {
-  const { t } = useTranslation();
-  const { role } = useRole();
-  const [value, setValue] = useState(getWebIqKey());
-  const [, bump] = useState(0);
-
-  const configured = hasWebIqKey();
-  const live = isWebIqEnabled();
-
-  const save = () => {
-    const v = value.trim();
-    if (!v) return;
-    setWebIqKey(v);
-    audit.logConfigChange(role, 'Web IQ', t('pages.settings.webiq.auditSet'));
-    bump((n) => n + 1);
-  };
-  const clear = () => {
-    setWebIqKey('');
-    setValue('');
-    audit.logConfigChange(role, 'Web IQ', t('pages.settings.webiq.auditCleared'));
-    bump((n) => n + 1);
-  };
-
-  return (
-    <section className="ffi-card p-6">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.webiq.title')}</h3>
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-            configured && live ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-gray-100 text-gray-500'
-          }`}
-        >
-          <span className={`h-1.5 w-1.5 rounded-full ${configured && live ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-          {configured && live ? t('pages.settings.webiq.statusLive') : t('pages.settings.webiq.statusMock')}
-        </span>
-      </div>
-      <p className="mb-3 max-w-lg text-xs text-gray-400">{t('pages.settings.webiq.desc')}</p>
-      <label className="mb-1 block text-xs font-medium text-gray-500">{t('pages.settings.webiq.keyLabel')}</label>
-      <div className="flex max-w-lg gap-2">
-        <input
-          type="password"
-          autoComplete="off"
-          spellCheck={false}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={t('pages.settings.webiq.placeholder')}
-          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-        />
-        <button
-          onClick={save}
-          disabled={!value.trim()}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
-        >
-          {t('pages.settings.webiq.save')}
-        </button>
-        <button
-          onClick={clear}
-          disabled={!configured}
-          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
-        >
-          {t('pages.settings.webiq.clear')}
-        </button>
-      </div>
-      {configured && !live && <p className="mt-2 text-xs text-amber-600">{t('pages.settings.webiq.needsBackend')}</p>}
-      <ConnectionProbe run={() => webIq.probe()} />
     </section>
   );
 }

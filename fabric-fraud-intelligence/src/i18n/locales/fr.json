@@ -116,6 +116,10 @@
         "tagline": "L’intelligence du web en direct",
         "grounds": "Sources réglementaires officielles",
         "description": "Ancrage web en temps réel via Microsoft Web IQ — limité aux domaines réglementaires officiels, avec des obligations citées et des liens vers leurs sources."
+      },
+      "knowledge": {
+        "tagline": "De la connaissance d’entreprise au web, par recherche sémantique",
+        "description": "Une couche de connaissance unifiée : recherche sémantique sur les politiques, réglementations et outils d’entreprise dans Microsoft Foundry, étendue en temps réel au web via Microsoft Web IQ — limité aux domaines réglementaires officiels, avec obligations citées et liens vers leurs sources."
       }
     }
   },

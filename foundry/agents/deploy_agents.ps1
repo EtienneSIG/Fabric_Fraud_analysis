@@ -26,10 +26,6 @@ param(
   [string]$ModelExtraction = 'extraction',
   [string]$ConnectionName = 'conn-fabric-fraud-dataagent',
   [string]$KnowledgeConnectionName = '',  # optional WS-3 OneLake knowledge (Foundry IQ)
-  [string]$WebIqConnectionName = 'conn-web-iq',
-  [string]$WebIqMcpUrl = 'https://api.microsoft.ai/v3/mcp',
-  [string]$KeyVaultName = '',             # optional; enables the Web IQ regulatory sub-agent when set
-  [string]$WebIqSecretName = 'webiq-api-key',
   [string[]]$OfficialDomains = @('acpr.banque-france.fr', 'amf-france.org', 'eur-lex.europa.eu', 'legifrance.gouv.fr', 'tracfin.economie.gouv.fr', 'eba.europa.eu')
 )
 
@@ -84,27 +80,9 @@ if (-not [string]::IsNullOrWhiteSpace($KnowledgeConnectionName)) {
   $agentTools += @{ type = 'knowledge'; connection = $KnowledgeConnectionName }
 }
 
-# Optional Web IQ (Microsoft Web IQ) regulatory grounding. The key/connection is managed by the
-# agent: read from Key Vault at deploy time and stored in a Foundry connection consumed as an MCP
-# tool. Verify the MCP connection/tool shape against the current Foundry Agents API before a client run.
+# The Web IQ experience uses Foundry's native Web Search tool for current regulatory grounding.
 $officialDomainList = ($OfficialDomains -join ', ')
-$regulatoryTools = $agentTools
-if (-not [string]::IsNullOrWhiteSpace($KeyVaultName)) {
-  $webIqKey = az keyvault secret show --vault-name $KeyVaultName --name $WebIqSecretName --query value -o tsv
-  if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($webIqKey)) {
-    throw "Failed to read Web IQ key '$WebIqSecretName' from Key Vault '$KeyVaultName'."
-  }
-  Write-Host "Ensuring connection $WebIqConnectionName ..."
-  $webIqConnection = @{
-    name        = $WebIqConnectionName
-    type        = 'CustomKeys'
-    target      = $WebIqMcpUrl
-    authType    = 'ApiKey'
-    credentials = @{ keys = @{ 'x-apikey' = $webIqKey } }
-  }
-  Invoke-Foundry -Method 'PUT' -Path "connections/$WebIqConnectionName" -Body $webIqConnection | Out-Null
-  $regulatoryTools = $agentTools + @{ type = 'mcp'; server_label = 'webiq'; server_url = $WebIqMcpUrl; connection = $WebIqConnectionName }
-}
+$regulatoryTools = $agentTools + @{ type = 'web_search' }
 
 # 2) Connected sub-agents. Each declares it is a sub-agent (single-response principle).
 $subAgents = @(
@@ -115,7 +93,7 @@ $subAgents = @(
   @{ name = 'fraud-claims-agent'; model = $ModelExtraction
      instructions = "$hitl`nYou are a SUB-AGENT. Do NOT reply to the user. Summarize claims-fraud evidence and return it to the parent." }
   @{ name = 'fraud-regulatory-agent'; model = $ModelReasoning; tools = $regulatoryTools
-     instructions = "$hitl`nYou are a SUB-AGENT. Do NOT reply to the user. Retrieve current regulatory obligations from official sources via Web IQ, restricting every search to these official domains with site: operators: $officialDomainList. NEVER put personal data, account numbers, transaction details or case evidence in a web query — use only generic legal concepts, rules, dates and thresholds. Cite the official source URLs and return findings to the parent." }
+      instructions = "$hitl`nYou are a SUB-AGENT. Do NOT reply to the user. Retrieve current regulatory obligations with Foundry Web Search, restricting every search to these official domains with site: operators: $officialDomainList. NEVER put personal data, account numbers, transaction details or case evidence in a web query — use only generic legal concepts, rules, dates and thresholds. Cite the official source URLs and return findings to the parent." }
 )
 
 $connectedTools = @()

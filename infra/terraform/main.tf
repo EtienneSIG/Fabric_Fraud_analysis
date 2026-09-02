@@ -271,10 +271,6 @@ resource "azurerm_function_app_flex_consumption" "bot" {
     AI_FOUNDRY_ENDPOINT                   = local.foundry_project_endpoint
     EVENTHUB_NAMESPACE                    = "${azurerm_eventhub_namespace.this.name}.servicebus.windows.net"
     EVENTHUB_NAME                         = azurerm_eventhub.transactions.name
-    WEBIQ_CLIENT_ID                       = var.webiq_client_id
-    WEBIQ_TENANT_ID                       = coalesce(var.webiq_tenant_id, var.tenant_id)
-    WEBIQ_CLIENT_SECRET_NAME              = var.webiq_client_secret_name
-    WEBIQ_OFFICIAL_DOMAINS                = join(",", var.webiq_official_domains)
     APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.this.connection_string
     }, var.enable_entra_apps ? {
     BOT_APP_ID                   = azuread_application.bot[0].client_id

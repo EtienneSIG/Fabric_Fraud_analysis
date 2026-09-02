@@ -28,6 +28,8 @@ const ENV_AGENT_NAME = import.meta.env.VITE_FOUNDRY_AGENT_NAME || 'fraud-iq-orch
 const ENV_AGENT_ENDPOINT = import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT || '';
 const AGENT_API_VERSION = '2025-11-15-preview';
 const SCOPES = ['https://ai.azure.com/.default'];
+const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+const OUTPUT_TOKEN_LIMIT = 1200;
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
 
@@ -107,6 +109,24 @@ export function getVersionedAgentEndpoint(endpoint: string): string {
   const url = new URL(endpoint);
   url.searchParams.set('api-version', AGENT_API_VERSION);
   return url.toString();
+}
+
+export type FoundryLocale = 'en' | 'fr' | 'es';
+
+export function shouldRetryFoundryRequest(status: number): boolean {
+  return RETRYABLE_STATUSES.has(status);
+}
+
+export function normalizeFoundryLocale(language?: string): FoundryLocale {
+  if (language?.toLowerCase().startsWith('fr')) return 'fr';
+  if (language?.toLowerCase().startsWith('es')) return 'es';
+  return 'en';
+}
+
+// Pin the agent output locale and bound the response length (matches the deployed prompt contract).
+export function buildFoundryRequest(question: string, language?: string) {
+  const locale = normalizeFoundryLocale(language);
+  return { input: `[OUTPUT_LOCALE=${locale}]\n${question}`, max_output_tokens: OUTPUT_TOKEN_LIMIT };
 }
 
 let application: PublicClientApplication | undefined;
@@ -227,33 +247,41 @@ async function acquireAgentToken(): Promise<string> {
   return getAccessToken(getApplication());
 }
 
-// The agent HTTP round-trip only — safe to cap with a timeout.
-async function callAgent(question: string, accessToken: string): Promise<FoundryAgentResult> {
+// The agent HTTP round-trip only — safe to cap with a timeout. Retries once on a transient status.
+async function callAgent(question: string, accessToken: string, language?: string): Promise<FoundryAgentResult> {
   const endpoint = getVersionedAgentEndpoint(effectiveAgentEndpoint());
   const host = new URL(endpoint).host;
   diag('foundryiq', `direct agent call → ${host} (agent ${effectiveAgentName()})`, undefined, 'info');
+  const body = JSON.stringify(buildFoundryRequest(question, language));
 
-  const fetchElapsed = startTimer();
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ input: question }),
-  });
-  diag('foundryiq', `agent HTTP ${response.status} in ${fetchElapsed()}ms`, undefined, response.ok ? 'info' : 'error');
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const fetchElapsed = startTimer();
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body,
+    });
+    diag('foundryiq', `agent HTTP ${response.status} in ${fetchElapsed()}ms`, undefined, response.ok ? 'info' : 'error');
 
-  if (!response.ok) {
+    if (response.ok) {
+      const result = parseFoundryResponse(await response.json() as FoundryResponse);
+      diag('foundryiq', `parsed answer (${result.answer.length} chars, ${result.citations.length} citations)`, undefined, 'info');
+      return result;
+    }
+    if (attempt === 0 && shouldRetryFoundryRequest(response.status)) {
+      await new Promise((resolve) => window.setTimeout(resolve, 750));
+      continue;
+    }
     const details = await response.json().catch(() => undefined) as { error?: { message?: string } } | undefined;
     throw new Error(details?.error?.message || `Foundry IQ request failed (${response.status}).`);
   }
-  const result = parseFoundryResponse(await response.json() as FoundryResponse);
-  diag('foundryiq', `parsed answer (${result.answer.length} chars, ${result.citations.length} citations)`, undefined, 'info');
-  return result;
+  throw new Error('Foundry IQ request failed.');
 }
 
-export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
+export async function askFoundryAgent(question: string, language?: string): Promise<FoundryAgentResult> {
   if (!foundryDirectConfigured()) {
     diag('foundryiq', 'direct agent not configured → deterministic demo answer', undefined, 'info');
     return mockFoundryAnswer();
@@ -264,7 +292,7 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
   const timeoutMs = getAgentTimeoutMs();
   try {
     const token = await acquireAgentToken();
-    const result = await withTimeout(callAgent(question, token), timeoutMs);
+    const result = await withTimeout(callAgent(question, token, language), timeoutMs);
     diag('foundryiq', `direct agent completed in ${elapsed()}ms`, undefined, 'info');
     return result;
   } catch (error) {

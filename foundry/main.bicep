@@ -23,6 +23,11 @@ resource foundryAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
     disableLocalAuth: true
     dynamicThrottlingEnabled: true
     publicNetworkAccess: 'Enabled'
+    networkAcls: {
+      defaultAction: 'Allow'
+      ipRules: []
+      virtualNetworkRules: []
+    }
     restrictOutboundNetworkAccess: false
   }
 }

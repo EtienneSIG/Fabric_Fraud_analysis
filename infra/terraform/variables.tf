@@ -143,40 +143,6 @@ variable "foundry_project_name" {
   default     = "fraud-intelligence"
 }
 
-# --- Microsoft Web IQ (regulatory web grounding, Web IQ pillar) ---
-# The Web IQ credential is NOT a Terraform variable: place the app-only client secret directly in
-# Key Vault under var.webiq_client_secret_name so it never lands in Terraform state.
-variable "webiq_client_id" {
-  type        = string
-  description = "Entra app (client) id bound to the Web IQ account for app-only tokens. Empty disables Web IQ."
-  default     = ""
-}
-
-variable "webiq_tenant_id" {
-  type        = string
-  description = "Tenant id for the Web IQ client-credentials token. Empty falls back to var.tenant_id."
-  default     = ""
-}
-
-variable "webiq_client_secret_name" {
-  type        = string
-  description = "Key Vault secret name holding the Web IQ app client secret (created out-of-band, not by Terraform)."
-  default     = "webiq-client-secret"
-}
-
-variable "webiq_official_domains" {
-  type        = list(string)
-  description = "Official regulatory domains the Web IQ agent restricts search and citations to."
-  default = [
-    "acpr.banque-france.fr",
-    "amf-france.org",
-    "eur-lex.europa.eu",
-    "legifrance.gouv.fr",
-    "tracfin.economie.gouv.fr",
-    "eba.europa.eu",
-  ]
-}
-
 variable "eventhub_partition_count" {
   type        = number
   description = "Partitions for the real-time transactions event hub."

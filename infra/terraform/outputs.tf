@@ -66,11 +66,6 @@ output "fraudiq_spa_client_id" {
   value       = try(azuread_application.fraudiq_spa[0].client_id, null)
 }
 
-output "webiq_client_secret_name" {
-  description = "Place the Web IQ app client secret in Key Vault under this name (not managed by Terraform)."
-  value       = var.webiq_client_secret_name
-}
-
 output "tenant_id" {
   value = var.tenant_id
 }

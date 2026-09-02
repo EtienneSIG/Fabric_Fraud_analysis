@@ -116,6 +116,10 @@
         "tagline": "Inteligencia de la web en tiempo real",
         "grounds": "Fuentes regulatorias oficiales",
         "description": "Fundamentación web en tiempo real mediante Microsoft Web IQ — restringida a dominios regulatorios oficiales, con obligaciones citadas y enlaces a sus fuentes."
+      },
+      "knowledge": {
+        "tagline": "Del conocimiento empresarial a la web en tiempo real, mediante búsqueda semántica",
+        "description": "Una capa de conocimiento unificada: búsqueda semántica sobre las políticas, normativas y resultados de herramientas de la empresa en Microsoft Foundry, extendida en tiempo real a la web mediante Microsoft Web IQ — restringida a dominios regulatorios oficiales, con obligaciones citadas y enlaces a sus fuentes."
       }
     }
   },

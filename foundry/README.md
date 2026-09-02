@@ -7,9 +7,11 @@ delegated connection to the published Fabric Data Agent, and the versioned
 
 The agent uses one server-side tool:
 
-- **Web Search** retrieves current regulatory guidance with URL citations. The
+- **Web IQ** is the application experience for current regulatory grounding. It is
+  powered by Foundry's native **Web Search** tool and requires no separate API key.
+  Web Search retrieves current guidance with URL citations. The
   prompt limits accepted evidence to the official domains in `config.json`, and
-  the validation script rejects citations outside that list.
+  the validation script rejects citations outside that list. Always on.
 
 The Fabric Data Agent connection remains provisioned for other consumers, but it is
 not attached to `fraud-iq-orchestrator` as a tool.
@@ -27,7 +29,7 @@ not attached to `fraud-iq-orchestrator` as a tool.
 Web Search sends generated search queries outside the Azure compliance and geography
 boundary and incurs separate usage charges. Do not include customer or case data in
 search queries. The agent instructions explicitly separate generic regulatory search
-terms from governed Fabric evidence.
+terms from governed Fabric evidence. The same restriction applies to Web IQ queries.
 
 ## Deploy from scratch
 
@@ -48,11 +50,10 @@ creates or updates the Fabric MCP connection, a local `.venv` receives the pinne
 SDK range, and Foundry creates a new immutable agent version.
 
 Use `-ReplaceAgent` to delete the existing agent and recreate version 1. Use
-`-SkipInfrastructure` to retain the account and project while reconciling models,
-the connection, and the agent. Use `-SkipModels` to leave existing model deployments
-untouched. Use
-`-SkipValidation` only when delegated Fabric consent cannot be completed during
-deployment.
+`-SkipInfrastructure` to retain the account and project while
+reconciling models, the connections, and the agent. Use `-SkipModels` to leave
+existing model deployments untouched. Use `-SkipValidation` only when the
+regulatory citation check cannot be completed during deployment.
 
 To deploy or verify only the model catalog:
 
@@ -67,6 +68,18 @@ Existing deployments with matching settings are reported as `UNCHANGED`. A
 different existing deployment is protected from replacement unless `-Force` is
 specified. The manifest includes the three GPT deployments, MAI Image, and the
 embedding deployment used by this project.
+
+## Validate Web IQ
+
+Web IQ is enabled whenever the deployed agent contains the native `web_search`
+tool. No separate key or connection is required. Run the standard deployment
+without `-SkipValidation`; success prints `VALIDATION=PASS` and the official source
+URLs returned by the agent. Validation runs in English, French, and Spanish and
+fails if a response is empty, exceeds 120 words, or has no official citation.
+Rayfin sends an explicit `[OUTPUT_LOCALE=en|fr|es]` marker and the agent returns
+three short sections: assessment, obligations, and recommended actions. You can
+also inspect `fraud-iq-orchestrator` in the
+Foundry portal and confirm that its tool list contains `web_search`.
 
 ## Fabric connection consent
 
@@ -86,8 +99,8 @@ secret. It is part of Fabric's permission enforcement.
 
 ## Configuration
 
-`config.json` versions the agent name, connection name, deployed model, regulatory
-domain allow-list, and validation question. The default Fabric identifiers are the
+`config.json` versions the agent name, Fabric connection name, deployed model,
+regulatory domain allow-list, and validation question. The default Fabric identifiers are the
 deployed demo resources:
 
 - Workspace: `c57a379b-7e6d-481a-9c9b-662bb0bae77d`
