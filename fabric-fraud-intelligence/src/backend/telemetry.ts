@@ -28,6 +28,7 @@ export function initTelemetry(): void {
   const s = document.createElement('script');
   s.src = 'https://js.monitor.azure.com/scripts/b/ai.3.gbl.min.js';
   s.crossOrigin = 'anonymous';
+  s.onerror = () => { loading = false; }; // let a later save retry if the CDN load failed
   s.onload = () => {
     try {
       const AI = g.Microsoft?.ApplicationInsights;
