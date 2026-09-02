@@ -32,6 +32,11 @@ resource foundryAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
     disableLocalAuth: true
     dynamicThrottlingEnabled: true
     publicNetworkAccess: 'Enabled'
+    networkAcls: {
+      defaultAction: 'Allow'
+      ipRules: []
+      virtualNetworkRules: []
+    }
     restrictOutboundNetworkAccess: false
   }
 }
@@ -64,6 +69,10 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = if (deployKeyVault) {
     enableSoftDelete: true
     softDeleteRetentionInDays: 90
     publicNetworkAccess: 'Enabled'
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: 'Allow'
+    }
   }
 }
 
