@@ -284,7 +284,7 @@ export function EntityNetwork({ nodes, edges, selected, onSelect, height = 520, 
         <CtrlButton label="−" title={t('components.graphCtrl.zoomOut')} onClick={() => zoomCenter(1.25)} />
         <CtrlButton label="⤢" title={t('components.graphCtrl.resetView')} onClick={() => setView(base)} />
       </div>
-      <div className="absolute bottom-3 left-3 text-[11px] text-slate-400 bg-white/70 dark:bg-slate-900/70 rounded-md px-2 py-0.5">
+      <div className="ffi-graph-hint absolute bottom-3 left-3 rounded-md px-2 py-0.5 text-[11px]">
         {t('components.graphCtrl.panHint')}
       </div>
     </div>

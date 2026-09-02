@@ -22,7 +22,12 @@ const isLive = (id: IqId): boolean =>
     : id === 'work'
       ? isWorkIqEnabled()
       : true;
-const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed', web: '#ea580c' };
+const COLOR: Record<IqId, string> = {
+  fabric: 'var(--ffi-iq-fabric)',
+  work: 'var(--ffi-iq-work)',
+  foundry: 'var(--ffi-iq-foundry)',
+  web: 'var(--ffi-iq-web)',
+};
 const IQ_BY_ID = Object.fromEntries(IQS.map((i) => [i.id, i])) as Record<IqId, (typeof IQS)[number]>;
 
 function Badge({ live }: { live: boolean }) {
@@ -268,10 +273,10 @@ export function FraudIQ() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {IQS.filter((iq) => iq.id === 'fabric' || iq.id === 'work').map((iq) => (
           <section key={iq.id} className="ffi-card overflow-hidden p-0">
-            <div className="h-1.5" style={{ backgroundColor: iq.color }} />
+            <div className="h-1.5" style={{ backgroundColor: COLOR[iq.id] }} />
             <div className="p-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold" style={{ color: iq.color }}>
+                <h3 className="text-sm font-bold" style={{ color: COLOR[iq.id] }}>
                   {iq.name}
                 </h3>
                 <Badge live={isLive(iq.id)} />
@@ -314,7 +319,7 @@ export function FraudIQ() {
         </div>
 
         {/* Alert context */}
-        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4">
+        <div className="ffi-alert-context mt-3 rounded-xl border border-red-200 bg-red-50 p-4">
           <div className="flex items-center gap-2">
             <span aria-hidden>🚨</span>
             <span className="text-sm font-semibold text-red-700">
@@ -323,7 +328,7 @@ export function FraudIQ() {
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {scenario.context.map((ctx) => (
-              <span key={ctx} className="rounded-full bg-white border border-red-200 text-red-700 text-xs px-2.5 py-1">
+              <span key={ctx} className="ffi-alert-chip rounded-full bg-white border border-red-200 text-red-700 text-xs px-2.5 py-1">
                 {ctx}
               </span>
             ))}

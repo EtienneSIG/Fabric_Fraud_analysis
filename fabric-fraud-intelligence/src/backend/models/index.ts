@@ -8,9 +8,9 @@ export type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
 export const SEVERITIES: Severity[] = ['Low', 'Medium', 'High', 'Critical'];
 
 export const SEVERITY_COLORS: Record<Severity, string> = {
-  Low: '#16a34a',
-  Medium: '#d97706',
-  High: '#ea580c',
+  Low: '#15803d',
+  Medium: '#b45309',
+  High: '#c2410c',
   Critical: '#dc2626',
 };
 

@@ -25,7 +25,7 @@ export function RiskScoreBadge({
       style={{ backgroundColor: SEVERITY_COLORS[sev] }}
     >
       {Math.round(score * 100)}
-      <span className="opacity-80">· {sev}</span>
+      <span>· {sev}</span>
     </span>
   );
 }
