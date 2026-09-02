@@ -252,6 +252,9 @@ export function FraudIQ() {
     } catch (error) {
       diag('fraudiq', `scenario run failed after ${elapsed()}ms`, error, 'error');
       setScenarioError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
+      // Never leave a pillar spinning on failure: drop pending stagger timers and reveal the columns.
+      timers.current.forEach(clearTimeout);
+      setPhase((p) => Math.max(p, 4));
     } finally {
       setScenarioRunning(false);
     }
@@ -300,6 +303,9 @@ export function FraudIQ() {
     } catch (error) {
       diag('fraudiq', `multi-IQ ask failed after ${askElapsed()}ms`, error, 'error');
       setAskError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
+      // Stop the reveal loaders on failure so nothing spins indefinitely.
+      askTimers.current.forEach(clearTimeout);
+      setAskPhase(4);
     } finally {
       setAskRunning(false);
     }

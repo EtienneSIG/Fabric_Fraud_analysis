@@ -268,13 +268,14 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
     diag('foundryiq', `direct agent completed in ${elapsed()}ms`, undefined, 'info');
     return result;
   } catch (error) {
-    // Slow/blocked grounding: degrade gracefully to the mock rather than hang.
-    if (error instanceof AgentTimeoutError) {
-      diag('foundryiq', `timed out after ${timeoutMs}ms (${elapsed()}ms elapsed) → demo answer`, undefined, 'error');
-      return { ...mockFoundryAnswer(), degraded: true };
-    }
-    diag('foundryiq', `direct agent failed after ${elapsed()}ms`, error, 'error');
-    throw error;
+    // Any failure (timeout, cancelled sign-in, 403, network) degrades to the deterministic demo
+    // answer so the pillar never stalls. The real reason is logged and still surfaced by the
+    // Settings "Test connection" probe (which calls the agent directly and does throw).
+    const reason = error instanceof AgentTimeoutError
+      ? `timed out after ${timeoutMs}ms`
+      : error instanceof Error ? error.message : String(error);
+    diag('foundryiq', `direct agent failed (${reason}) after ${elapsed()}ms → demo answer`, error, 'error');
+    return { ...mockFoundryAnswer(), degraded: true };
   }
 }
 
