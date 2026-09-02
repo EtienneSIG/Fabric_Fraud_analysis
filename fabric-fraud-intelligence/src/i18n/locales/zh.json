@@ -327,7 +327,7 @@
         "backendTitle": "后端代理 URL",
         "backendLabel": "基础 URL",
         "backendPlaceholder": "https://func-….azurewebsites.net/api",
-        "backendNote": "实时功能（Web IQ、代理）需要可访问的后端。在此浏览器中覆盖构建时的 VITE_BACKEND_API_URL，无需重新构建。",
+        "backendNote": "Work IQ、Teams 和 RAFT 等实时功能需要可访问的后端。在此浏览器中覆盖构建时的 VITE_BACKEND_API_URL，无需重新构建。",
         "auditBackendSet": "已设置后端代理 URL",
         "auditBackendClear": "已清除后端代理 URL"
       },

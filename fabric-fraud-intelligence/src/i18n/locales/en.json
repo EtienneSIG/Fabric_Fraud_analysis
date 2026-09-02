@@ -324,7 +324,7 @@
         "backendTitle": "Backend proxy URL",
         "backendLabel": "Base URL",
         "backendPlaceholder": "https://func-….azurewebsites.net/api",
-        "backendNote": "A reachable backend is required for the live pillars (Web IQ, agent proxy). Overrides the build-time VITE_BACKEND_API_URL for this browser — no rebuild needed.",
+        "backendNote": "A reachable backend is required for the live Work IQ, Teams and RAFT pillars. Overrides the build-time VITE_BACKEND_API_URL for this browser — no rebuild needed.",
         "auditAppInsightsSet": "Application Insights connection string set",
         "auditAppInsightsClear": "Application Insights connection string cleared",
         "auditTimeout": "Agent timeout set to {{ms}} ms",

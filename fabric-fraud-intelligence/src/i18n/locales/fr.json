@@ -327,7 +327,7 @@
         "backendTitle": "URL du proxy backend",
         "backendLabel": "URL de base",
         "backendPlaceholder": "https://func-….azurewebsites.net/api",
-        "backendNote": "Un backend joignable est requis pour les piliers live (Web IQ, proxy d'agent). Remplace le VITE_BACKEND_API_URL du build pour ce navigateur — sans rebuild.",
+        "backendNote": "Un backend joignable est requis pour les piliers live Work IQ, Teams et RAFT. Remplace le VITE_BACKEND_API_URL du build pour ce navigateur — sans rebuild.",
         "auditBackendSet": "URL du proxy backend définie",
         "auditBackendClear": "URL du proxy backend effacée"
       },
