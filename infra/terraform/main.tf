@@ -392,8 +392,9 @@ resource "azurerm_key_vault_secret" "graph_obo" {
 # Public SPA app registration for the direct-browser Foundry IQ path
 # (MSAL PublicClientApplication → signed-in user calls the agent responses API).
 # Off by default; enable with enable_fraudiq_spa and paste the client id into
-# Settings › Agents › Client ID (SPA). The analyst also needs the Azure AI User
-# role on the Foundry project for the ai.azure.com token to be authorized.
+# Settings › Agents › Client ID (SPA). The analyst also needs a data-plane role
+# on the Foundry account (fraudiq_analyst_object_ids below) for the ai.azure.com
+# token to be authorized — Owner/Contributor grant no dataActions.
 # --------------------------------------------------------------------------
 resource "azuread_application" "fraudiq_spa" {
   count            = var.enable_fraudiq_spa ? 1 : 0
@@ -408,4 +409,13 @@ resource "azuread_application" "fraudiq_spa" {
 resource "azuread_service_principal" "fraudiq_spa" {
   count     = var.enable_fraudiq_spa ? 1 : 0
   client_id = azuread_application.fraudiq_spa[0].client_id
+}
+
+# Data-plane grant so signed-in analysts can call the agent responses API on the
+# Foundry account (the SPA direct path). Empty list by default → manages none.
+resource "azurerm_role_assignment" "fraudiq_analyst" {
+  for_each             = toset(var.fraudiq_analyst_object_ids)
+  scope                = azurerm_cognitive_account.this.id
+  role_definition_name = var.fraudiq_analyst_role
+  principal_id         = each.value
 }

@@ -207,6 +207,18 @@ variable "fraudiq_spa_redirect_uris" {
   ]
 }
 
+variable "fraudiq_analyst_object_ids" {
+  type        = list(string)
+  description = "Entra object ids (users/groups) granted the Foundry data-plane role for the direct-browser Foundry IQ path. Empty = manage none (grant out of band). Do NOT re-list a principal already granted manually — it 409s unless imported."
+  default     = []
+}
+
+variable "fraudiq_analyst_role" {
+  type        = string
+  description = "Data-plane role granted to fraudiq_analyst_object_ids on the Foundry account. 'Cognitive Services User' is the portable choice; 'Azure AI User' may not exist in every tenant."
+  default     = "Cognitive Services User"
+}
+
 variable "enable_search" {
   type        = bool
   description = "Provision the Azure AI Search service backing the RAFT corpus. Off by default to keep base cost down."
