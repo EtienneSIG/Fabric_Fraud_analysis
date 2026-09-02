@@ -229,8 +229,10 @@ export function FraudIQ() {
     setScenarioError(null);
     setScenarioDegraded(false);
     setScenarioRunning(true);
-    timers.current.push(window.setTimeout(() => setPhase(1), 600));
-    timers.current.push(window.setTimeout(() => setPhase(2), 1200));
+    // Phase must only ever advance: the mock resolves before these stagger timers, so a plain
+    // setPhase(1|2) here would roll phase back below 3 and the reveal would never complete.
+    timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 1)), 600));
+    timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 2)), 1200));
     const elapsed = startTimer();
     diag('fraudiq', `scenario run started (foundry ${foundryDirectConfigured() ? 'direct' : 'demo'})`, undefined, 'info');
     try {
@@ -245,8 +247,8 @@ export function FraudIQ() {
         ...foundry.citations.map((citation) => `Source officielle · ${citation.title} · ${citation.url}`),
       ]);
       setScenarioDegraded(Boolean(foundry.degraded));
-      setPhase(3);
-      timers.current.push(window.setTimeout(() => setPhase(4), 500));
+      setPhase((p) => Math.max(p, 3));
+      timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 4)), 500));
     } catch (error) {
       diag('fraudiq', `scenario run failed after ${elapsed()}ms`, error, 'error');
       setScenarioError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
