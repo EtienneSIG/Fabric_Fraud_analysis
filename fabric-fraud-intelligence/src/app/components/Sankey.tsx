@@ -84,8 +84,8 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
       const to = inOff.get(lk.target) ?? 0;
       outOff.set(lk.source, so + thick);
       inOff.set(lk.target, to + thick);
-      const x0 = s.x + NODE_W;
-      const x1 = t.x;
+      const x0 = s.x + NODE_W / 2;
+      const x1 = t.x + NODE_W / 2;
       const xm = (x0 + x1) / 2;
       const sy = s.y0 + so;
       const ty = t.y0 + to;
@@ -153,7 +153,7 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
         const ty = isFirst || isLast ? y0 + h / 2 : y0 - 4;
         return (
           <g key={node.id} onMouseEnter={() => { setHoverNode(node.id); setTip(`${node.label} · ${tr('components.sankey.customers', { count: node.value })}`); }} onMouseLeave={() => { setHoverNode(null); setTip(null); }} style={{ cursor: 'pointer' }}>
-            <rect x={x} y={y0} width={NODE_W} height={h} rx={2} fill={node.color} opacity={dim ? 0.25 : 1} />
+            <rect x={x} y={y0} width={NODE_W} height={h} fill="transparent" />
             <text x={tx} y={ty} textAnchor={anchor} dominantBaseline={isFirst || isLast ? 'middle' : 'auto'} opacity={dim ? 0.3 : 1} className="fill-slate-600" style={{ fontSize: 10 }}>
               {node.label}
             </text>
