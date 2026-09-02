@@ -59,6 +59,7 @@
       "Herramienta: se ejecutaron la puntuación de riesgo y el cribado con contexto fundamentado."
     ]
   },
+  "mockAgentAnswer": "**Hechos (contexto no verificado)** — Señales de alerta aportadas por el analista; ninguna confirma por sí sola fraude ni origen ilícito.\n\n**Obligaciones** — Vigilancia de operaciones basada en el riesgo; si persiste una sospecha LCB/FT tras el examen, comunicación escrita a la unidad de inteligencia financiera.\n\n**Acciones para validación humana** — Verificar la coherencia cliente/transacción y las señales de autenticación; documentar el análisis; escalar si las señales se corroboran. Toda restricción, comunicación o decisión sobre el cliente requiere aprobación habilitada.",
   "web": {
     "aml": [
       "Web IQ · EUR-Lex: obligaciones de la UE sobre detección y notificación de operaciones sospechosas, con enlace a la fuente.",

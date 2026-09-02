@@ -52,10 +52,20 @@ export function effectiveAgentEndpoint(): string {
 export const foundryDirectConfigured = (): boolean =>
   !getForceDemo() && Boolean(effectiveClientId() && effectiveTenantId() && effectiveAgentEndpoint());
 
-/** Deterministic, localized grounding used when no direct Foundry agent is configured. */
+/** Deterministic, localized grounding used when no direct Foundry agent is configured.
+ *  Mirrors the deployed fraud-iq-orchestrator service prompt: facts (unverified) / obligations /
+ *  human-validation actions, with one official citation — concise enough to fit the Foundry column. */
 function mockFoundryAnswer(): FoundryAgentResult {
   const t = i18n.getFixedT(null, 'fraudIq');
-  return { answer: t('synthesis.generic.rationale'), citations: [] };
+  return {
+    answer: t('mockAgentAnswer'),
+    citations: [
+      {
+        title: 'ACPR — surveillance LCB-FT',
+        url: 'https://acpr.banque-france.fr/fr/publications-et-statistiques/publications/dispositifs-automatises-de-surveillance-des-operations-en-matiere-de-lcb-ft',
+      },
+    ],
+  };
 }
 
 interface FoundryAnnotation {
