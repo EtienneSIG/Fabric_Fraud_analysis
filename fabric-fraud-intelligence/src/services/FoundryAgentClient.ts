@@ -209,6 +209,9 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
 
 class AgentTimeoutError extends Error {}
 
+// A manual "Test connection" can wait longer than the demo-UX agent timeout for the round-trip.
+const PROBE_TIMEOUT_MS = 30_000;
+
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const id = window.setTimeout(() => reject(new AgentTimeoutError('Foundry IQ timed out.')), ms);
@@ -219,13 +222,16 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-async function runFoundryAgent(question: string): Promise<FoundryAgentResult> {
+// Interactive MSAL sign-in is user-paced, so it is acquired separately and never under a timeout.
+async function acquireAgentToken(): Promise<string> {
+  return getAccessToken(getApplication());
+}
+
+// The agent HTTP round-trip only — safe to cap with a timeout.
+async function callAgent(question: string, accessToken: string): Promise<FoundryAgentResult> {
   const endpoint = getVersionedAgentEndpoint(effectiveAgentEndpoint());
   const host = new URL(endpoint).host;
   diag('foundryiq', `direct agent call → ${host} (agent ${effectiveAgentName()})`, undefined, 'info');
-
-  const client = getApplication();
-  const accessToken = await getAccessToken(client);
 
   const fetchElapsed = startTimer();
   const response = await fetch(endpoint, {
@@ -253,14 +259,16 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
     return mockFoundryAnswer();
   }
   const elapsed = startTimer();
-  // Cap the direct agent call so a blocked popup / slow grounding can't freeze the UI (runtime-tunable).
+  // Only the agent round-trip is capped (runtime-tunable); the sign-in popup is not, so a first-time
+  // interactive login can't trip the timeout.
   const timeoutMs = getAgentTimeoutMs();
   try {
-    const result = await withTimeout(runFoundryAgent(question), timeoutMs);
+    const token = await acquireAgentToken();
+    const result = await withTimeout(callAgent(question, token), timeoutMs);
     diag('foundryiq', `direct agent completed in ${elapsed()}ms`, undefined, 'info');
     return result;
   } catch (error) {
-    // Slow/blocked sign-in or grounding: degrade gracefully to the mock rather than hang.
+    // Slow/blocked grounding: degrade gracefully to the mock rather than hang.
     if (error instanceof AgentTimeoutError) {
       diag('foundryiq', `timed out after ${timeoutMs}ms (${elapsed()}ms elapsed) → demo answer`, undefined, 'error');
       return { ...mockFoundryAnswer(), degraded: true };
@@ -272,14 +280,15 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
 
 /** On-demand connectivity probe for the direct SPA path: signs in and pings the agent so the
  *  Settings "Test connection" button reflects the tenant / client / endpoint just entered, instead
- *  of the backend-proxy path. Runs the real call (not the mock fallback) so live and unreachable
- *  are distinguishable. */
+ *  of the backend-proxy path. Sign-in is not timed (user-paced); only the agent round-trip is, so a
+ *  first interactive login reports the real result rather than a spurious timeout. */
 export async function probeFoundryDirect(): Promise<ProbeResult> {
   if (getForceDemo()) return { state: 'off', detail: 'Force demo enabled' };
   if (!foundryDirectConfigured()) return { state: 'off', detail: 'Direct agent not configured' };
   const elapsed = startTimer();
   try {
-    await withTimeout(runFoundryAgent('ping'), getAgentTimeoutMs());
+    const token = await acquireAgentToken();
+    await withTimeout(callAgent('ping', token), PROBE_TIMEOUT_MS);
     const detail = `direct · ${elapsed()} ms`;
     diag('foundryiq', `probe -> live (${detail})`, undefined, 'info');
     return { state: 'live', detail };

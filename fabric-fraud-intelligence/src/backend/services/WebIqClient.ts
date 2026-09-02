@@ -1,6 +1,6 @@
 import { isWebIqEnabled } from '@/backend/config';
 import { postJson } from '@/backend/services/backendApi';
-import { getWebIqKey } from '@/backend/services/webIqSettings';
+import { getWebIqKey, hasWebIqKey } from '@/backend/services/webIqSettings';
 import type { ProbeState, ProbeResult } from '@/backend/services/probe';
 import { diag } from '@/backend/diag';
 
@@ -36,7 +36,14 @@ export class WebIqClient {
 
   /** On-demand connectivity probe: pings the backend and reports the real service mode + detail. */
   async probe(locale = 'en'): Promise<ProbeResult> {
-    if (!isWebIqEnabled()) return { state: 'off', detail: 'Web IQ not configured (demo mode)' };
+    if (!isWebIqEnabled()) {
+      // The key is a secret consumed by the backend proxy (the SPA can't call Web IQ directly), so
+      // the live pillar also needs a reachable backend (VITE_BACKEND_API_URL). Say which is missing.
+      const detail = hasWebIqKey()
+        ? 'Key saved — the live pillar also needs a reachable backend proxy (none deployed).'
+        : 'Web IQ not configured (demo mode)';
+      return { state: 'off', detail };
+    }
     const started = Date.now();
     try {
       const key = getWebIqKey();
