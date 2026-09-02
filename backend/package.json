@@ -6,7 +6,8 @@
   "main": "dist/functions.js",
   "scripts": {
     "build": "tsc",
-    "start": "func start"
+    "start": "func start",
+    "start:server": "node dist/server.js"
   },
   "dependencies": {
     "@azure/functions": "^4.5.0",
