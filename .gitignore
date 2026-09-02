@@ -11,6 +11,12 @@ foundry/main.json
 # Node
 node_modules/
 
+# Stray root-level Node manifests: the rayfin CLI is run via npx from fabric-fraud-intelligence/,
+# so a package.json/lock at the repo ROOT is an accidental artifact. Anchored with '/' so the real
+# subproject manifests (fabric-fraud-intelligence, backend, video/remotion-slidedeck) stay tracked.
+/package.json
+/package-lock.json
+
 # Local env / secrets
 *.local
 .venv/
