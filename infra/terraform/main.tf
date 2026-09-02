@@ -387,3 +387,25 @@ resource "azurerm_key_vault_secret" "graph_obo" {
   key_vault_id = azurerm_key_vault.this.id
   depends_on   = [azurerm_role_assignment.kv_deployer]
 }
+
+# --------------------------------------------------------------------------
+# Public SPA app registration for the direct-browser Foundry IQ path
+# (MSAL PublicClientApplication → signed-in user calls the agent responses API).
+# Off by default; enable with enable_fraudiq_spa and paste the client id into
+# Settings › Agents › Client ID (SPA). The analyst also needs the Azure AI User
+# role on the Foundry project for the ai.azure.com token to be authorized.
+# --------------------------------------------------------------------------
+resource "azuread_application" "fraudiq_spa" {
+  count            = var.enable_fraudiq_spa ? 1 : 0
+  display_name     = "rayfin-fraudiq-spa"
+  sign_in_audience = "AzureADMyOrg"
+
+  single_page_application {
+    redirect_uris = var.fraudiq_spa_redirect_uris
+  }
+}
+
+resource "azuread_service_principal" "fraudiq_spa" {
+  count     = var.enable_fraudiq_spa ? 1 : 0
+  client_id = azuread_application.fraudiq_spa[0].client_id
+}

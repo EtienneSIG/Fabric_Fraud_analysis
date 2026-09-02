@@ -190,6 +190,23 @@ variable "enable_entra_apps" {
   default     = true
 }
 
+variable "enable_fraudiq_spa" {
+  type        = bool
+  description = "Create the public SPA app registration (rayfin-fraudiq-spa) for the direct-browser Foundry IQ path. Off by default; requires directory-write rights."
+  default     = false
+}
+
+variable "fraudiq_spa_redirect_uris" {
+  type        = list(string)
+  description = "SPA redirect URIs for rayfin-fraudiq-spa — the .../msal-redirect.html and .../popup-relay.html of each app origin (Rayfin prod host + localhost)."
+  default = [
+    "https://mild-falls-763438f7b8-swedencentral.webapp.fabricapps.net/msal-redirect.html",
+    "https://mild-falls-763438f7b8-swedencentral.webapp.fabricapps.net/popup-relay.html",
+    "http://localhost:5173/msal-redirect.html",
+    "http://localhost:5173/popup-relay.html",
+  ]
+}
+
 variable "enable_search" {
   type        = bool
   description = "Provision the Azure AI Search service backing the RAFT corpus. Off by default to keep base cost down."

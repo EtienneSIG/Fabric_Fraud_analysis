@@ -61,6 +61,11 @@ output "graph_obo_client_id" {
   value       = try(azuread_application.graph_obo[0].client_id, null)
 }
 
+output "fraudiq_spa_client_id" {
+  description = "Public SPA app (client) id for the direct-browser Foundry IQ path — paste into Settings › Agents › Client ID (SPA)."
+  value       = try(azuread_application.fraudiq_spa[0].client_id, null)
+}
+
 output "webiq_client_secret_name" {
   description = "Place the Web IQ app client secret in Key Vault under this name (not managed by Terraform)."
   value       = var.webiq_client_secret_name
