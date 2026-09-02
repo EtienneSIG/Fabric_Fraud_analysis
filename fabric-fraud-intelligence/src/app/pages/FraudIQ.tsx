@@ -292,16 +292,7 @@ export function FraudIQ() {
                 <span className="text-gray-400"> + </span>
                 <span style={{ color: COLOR.web }}>{IQ_BY_ID.web.name}</span>
               </h3>
-              <div className="flex items-center gap-1.5">
-                {(['foundry', 'web'] as const).map((id) => (
-                  <span key={id} className="flex items-center gap-1">
-                    <span className="text-[10px] font-semibold" style={{ color: COLOR[id] }}>
-                      {IQ_BY_ID[id].name}
-                    </span>
-                    <Badge live={isLive(id)} />
-                  </span>
-                ))}
-              </div>
+              <Badge live={isLive('foundry') && isLive('web')} />
             </div>
             <p className="text-xs font-medium text-gray-500">{t('fraudIqPage.iq.knowledge.tagline')}</p>
             <p className="mt-1.5 text-xs leading-relaxed text-gray-500">

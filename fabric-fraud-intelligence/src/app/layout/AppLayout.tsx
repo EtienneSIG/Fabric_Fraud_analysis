@@ -8,7 +8,6 @@ import { useRole } from '@/app/RoleContext';
 import { NAV } from '@/app/routes';
 import { ROLES } from '@/backend/models';
 import { SUPPORTED_LOCALES } from '@/i18n/i18n';
-import { IntegrationModeBadge } from '@/app/layout/IntegrationModeBadge';
 
 const NAV_KEY = 'ffi.nav.collapsed';
 
@@ -97,25 +96,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
             {t('common.appTitle')}
           </h1>
           <div className="flex items-center gap-4">
-            <IntegrationModeBadge />
-            <button
-              type="button"
-              onClick={toggle}
-              title={t('common.theme.toggle')}
-              aria-label={t('common.theme.toggle')}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:border-indigo-500 focus:outline-none"
-            >
-              {theme === 'dark' ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" strokeLinecap="round" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </button>
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-400">{t('common.language')}</span>
               <select
@@ -147,6 +127,24 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <span className="text-sm text-gray-500" title={user}>
               {user}
             </span>
+            <button
+              type="button"
+              onClick={toggle}
+              title={t('common.theme.toggle')}
+              aria-label={t('common.theme.toggle')}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:border-indigo-500 focus:outline-none"
+            >
+              {theme === 'dark' ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </button>
             <button
               onClick={() => void signOut()}
               className="text-gray-400 hover:text-gray-600 text-sm"
