@@ -197,6 +197,14 @@ export function Settings() {
   );
 }
 
+// Shared form styling so the Settings forms stay consistent (inputs + primary/ghost buttons).
+const FIELD_INPUT =
+  'w-full min-w-0 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100';
+const BTN_PRIMARY =
+  'shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-40';
+const BTN_GHOST =
+  'shrink-0 rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800';
+
 function AgentsTab() {
   return (
     <>
@@ -274,7 +282,7 @@ function GeneralTab() {
 
       <p className="mb-1 text-xs font-medium text-gray-500">{t('pages.settings.general.appInsightsTitle')}</p>
       <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.appInsightsLabel')}</label>
-      <div className="flex max-w-lg gap-2">
+      <div className="max-w-lg">
         <input
           type="password"
           autoComplete="off"
@@ -283,27 +291,22 @@ function GeneralTab() {
           onChange={(e) => setAi(e.target.value)}
           placeholder={t('pages.settings.general.appInsightsPlaceholder')}
           aria-label={t('pages.settings.general.appInsightsLabel')}
-          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          className={FIELD_INPUT}
         />
-        <button
-          onClick={saveAi}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          {t('pages.settings.general.save')}
-        </button>
-        <button
-          onClick={clearAi}
-          disabled={!aiOn}
-          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
-        >
-          {t('pages.settings.general.clear')}
-        </button>
+        <div className="mt-2 flex justify-end gap-2">
+          <button onClick={clearAi} disabled={!aiOn} className={BTN_GHOST}>
+            {t('pages.settings.general.clear')}
+          </button>
+          <button onClick={saveAi} className={BTN_PRIMARY}>
+            {t('pages.settings.general.save')}
+          </button>
+        </div>
       </div>
       <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.appInsightsNote')}</p>
 
       <p className="mb-1 mt-5 text-xs font-medium text-gray-500">{t('pages.settings.general.backendTitle')}</p>
       <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.backendLabel')}</label>
-      <div className="flex max-w-lg gap-2">
+      <div className="max-w-lg">
         <input
           type="url"
           autoComplete="off"
@@ -312,27 +315,22 @@ function GeneralTab() {
           onChange={(e) => setBackend(e.target.value)}
           placeholder={t('pages.settings.general.backendPlaceholder')}
           aria-label={t('pages.settings.general.backendLabel')}
-          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          className={FIELD_INPUT}
         />
-        <button
-          onClick={saveBackend}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          {t('pages.settings.general.save')}
-        </button>
-        <button
-          onClick={clearBackend}
-          disabled={!backendOn}
-          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
-        >
-          {t('pages.settings.general.clear')}
-        </button>
+        <div className="mt-2 flex justify-end gap-2">
+          <button onClick={clearBackend} disabled={!backendOn} className={BTN_GHOST}>
+            {t('pages.settings.general.clear')}
+          </button>
+          <button onClick={saveBackend} className={BTN_PRIMARY}>
+            {t('pages.settings.general.save')}
+          </button>
+        </div>
       </div>
       <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.backendNote')}</p>
 
       <p className="mb-1 mt-5 text-xs font-medium text-gray-500">{t('pages.settings.general.timeoutTitle')}</p>
       <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.timeoutLabel')}</label>
-      <div className="flex max-w-xs gap-2">
+      <div className="flex max-w-xs items-center gap-2">
         <input
           type="number"
           min={1000}
@@ -341,12 +339,9 @@ function GeneralTab() {
           value={timeoutMs}
           onChange={(e) => setTimeoutInput(e.target.value)}
           aria-label={t('pages.settings.general.timeoutLabel')}
-          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          className={FIELD_INPUT}
         />
-        <button
-          onClick={saveTimeout}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-        >
+        <button onClick={saveTimeout} className={BTN_PRIMARY}>
           {t('pages.settings.general.save')}
         </button>
       </div>
@@ -381,7 +376,7 @@ function ConnectionProbe({ run }: { run: () => Promise<ProbeResult> }) {
       <button
         onClick={test}
         disabled={state === 'testing'}
-        className="inline-flex items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-40 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+        className="inline-flex items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-40 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
       >
         {state === 'testing' ? t('pages.settings.probe.testing') : t('pages.settings.probe.test')}
       </button>
@@ -497,7 +492,7 @@ function FoundryAgentCard() {
           onChange={(e) => setEndpointIn(e.target.value)}
           placeholder={t('pages.settings.foundry.endpointPlaceholder')}
           aria-label={t('pages.settings.foundry.endpointLabel')}
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          className={FIELD_INPUT}
         />
         <div className="grid grid-cols-2 gap-2">
           <input
@@ -507,7 +502,7 @@ function FoundryAgentCard() {
             onChange={(e) => setTenant(e.target.value)}
             placeholder={t('pages.settings.foundry.tenantLabel')}
             aria-label={t('pages.settings.foundry.tenantLabel')}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+            className={FIELD_INPUT}
           />
           <input
             autoComplete="off"
@@ -516,23 +511,16 @@ function FoundryAgentCard() {
             onChange={(e) => setClient(e.target.value)}
             placeholder={t('pages.settings.foundry.clientLabel')}
             aria-label={t('pages.settings.foundry.clientLabel')}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+            className={FIELD_INPUT}
           />
         </div>
       </div>
-      <div className="mb-3 flex max-w-lg gap-2">
-        <button
-          onClick={saveConnection}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          {t('pages.settings.foundry.saveConnection')}
-        </button>
-        <button
-          onClick={clearConnection}
-          disabled={!hasConnection}
-          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
-        >
+      <div className="mb-4 flex max-w-lg justify-end gap-2">
+        <button onClick={clearConnection} disabled={!hasConnection} className={BTN_GHOST}>
           {t('pages.settings.foundry.reset')}
+        </button>
+        <button onClick={saveConnection} className={BTN_PRIMARY}>
+          {t('pages.settings.foundry.saveConnection')}
         </button>
       </div>
 
@@ -547,7 +535,7 @@ function FoundryAgentCard() {
       </label>
 
       <label className="mb-1 block text-xs font-medium text-gray-500">{t('pages.settings.foundry.agentLabel')}</label>
-      <div className="flex max-w-lg gap-2">
+      <div className="max-w-lg">
         <input
           list="ffi-foundry-agents"
           autoComplete="off"
@@ -555,27 +543,21 @@ function FoundryAgentCard() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={DEFAULT_FOUNDRY_AGENT}
-          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          className={FIELD_INPUT}
         />
         <datalist id="ffi-foundry-agents">
           {KNOWN_FOUNDRY_AGENTS.map((a) => (
             <option key={a} value={a} />
           ))}
         </datalist>
-        <button
-          onClick={save}
-          disabled={!value.trim()}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
-        >
-          {t('pages.settings.foundry.save')}
-        </button>
-        <button
-          onClick={reset}
-          disabled={!custom}
-          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
-        >
-          {t('pages.settings.foundry.reset')}
-        </button>
+        <div className="mt-2 flex justify-end gap-2">
+          <button onClick={reset} disabled={!custom} className={BTN_GHOST}>
+            {t('pages.settings.foundry.reset')}
+          </button>
+          <button onClick={save} disabled={!value.trim()} className={BTN_PRIMARY}>
+            {t('pages.settings.foundry.save')}
+          </button>
+        </div>
       </div>
       {custom && <p className="mt-2 text-xs text-amber-600">{t('pages.settings.foundry.overrideNote')}</p>}
       <p className="mt-2 text-xs text-gray-400">{t('pages.settings.foundry.connectionNote')}</p>
