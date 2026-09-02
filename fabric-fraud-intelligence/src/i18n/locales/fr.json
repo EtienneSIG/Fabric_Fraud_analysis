@@ -93,6 +93,8 @@
     "synthesisInProgress": "Synthèse en cours…",
     "fraudIqTitle": "Fraud IQ",
     "groundingCol": "ancrage…",
+    "iqError": "Microsoft IQ indisponible : {{reason}}",
+    "foundryDegraded": "Réponse de démonstration · agent réel indisponible",
     "microsoftIqIntro": "L’intelligence anti-fraude propulsée par <b>Microsoft IQ</b> : <b>Fabric IQ</b> (données & ontologie, en direct sur nos tables), <b>Work IQ</b> (contexte de travail Microsoft 365) et <b>Foundry IQ</b> (connaissance & raisonnement des agents).",
     "iq": {
       "fabric": {

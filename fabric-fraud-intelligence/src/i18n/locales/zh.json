@@ -93,6 +93,8 @@
     "synthesisInProgress": "綜合分析進行中…",
     "fraudIqTitle": "Fraud IQ",
     "groundingCol": "建立依據中…",
+    "iqError": "Microsoft IQ 不可用：{{reason}}",
+    "foundryDegraded": "示範回應 · 實際代理不可用",
     "microsoftIqIntro": "由 <b>Microsoft IQ</b> 驅動的反詐騙智能：<b>Fabric IQ</b>（數據與本體，即時連接我們的資料表）、<b>Work IQ</b>（Microsoft 365 工作情境）及 <b>Foundry IQ</b>（代理知識與推理）。",
     "iq": {
       "fabric": {

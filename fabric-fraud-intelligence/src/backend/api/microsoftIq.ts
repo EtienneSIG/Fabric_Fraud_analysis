@@ -99,6 +99,8 @@ export interface IqResult {
   foundry: string[];
   web: string[];
   synthesis: Synthesis;
+  // True when the live Foundry agent was configured but timed out and fell back to the demo answer.
+  degraded?: boolean;
 }
 
 export const flavor = (q: string): IqFlavor => {
@@ -212,6 +214,7 @@ export async function askMicrosoftIq(question: string): Promise<IqResult> {
     work: t(`work.${f}`, { returnObjects: true }) as string[],
     foundry: foundryItems,
     web: t(`web.${f}`, { returnObjects: true }) as string[],
+    degraded: foundry.degraded,
     synthesis: {
       ...synthesis,
       rationale: foundry.answer,

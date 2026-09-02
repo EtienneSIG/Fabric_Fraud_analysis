@@ -13,6 +13,7 @@ import {
   type IqResult,
 } from '@/backend/api/microsoftIq';
 import { isWorkIqEnabled, isWebIqEnabled } from '@/backend/config';
+import { diag, startTimer } from '@/backend/diag';
 import { workIq } from '@/backend/services/WorkIqGraphClient';
 import { webIq } from '@/backend/services/WebIqClient';
 import { askFoundryAgent, foundryDirectConfigured } from '@/services/FoundryAgentClient';
@@ -82,6 +83,36 @@ function compactMarkdown(value: string): string {
   return text.length > 180 ? `${text.slice(0, 177)}...` : text;
 }
 
+// Skeleton placeholder + progress bar shown while a pillar is grounding / the agent is reasoning.
+function GroundingLoader({ label, lines = 3 }: { label: string; lines?: number }) {
+  const [sec, setSec] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setSec((s) => s + 1), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const pct = Math.min(10 + sec * 6, 95);
+  const widths = ['w-3/4', 'w-full', 'w-5/6', 'w-2/3'];
+  return (
+    <div className="mt-3 space-y-3">
+      <div className="space-y-2" aria-hidden>
+        {Array.from({ length: lines }).map((_, i) => (
+          <div key={i} className={`h-2.5 ${widths[i % widths.length]} animate-pulse rounded bg-gray-200 dark:bg-gray-700`} />
+        ))}
+      </div>
+      <div className="h-1 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+        <div
+          className="h-full rounded-full bg-indigo-400 transition-[width] duration-1000 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="flex items-center gap-2 text-[11px] text-gray-400">
+        <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
+        {label}{sec >= 3 ? ` · ${sec}s` : ''}
+      </div>
+    </div>
+  );
+}
+
 function IqColumn({
   id,
   items,
@@ -148,10 +179,7 @@ function IqColumn({
         </ul>
         )
       ) : (
-        <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
-          <span className="inline-block h-3 w-3 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
-          {t('fraudIqPage.groundingCol')}
-        </div>
+        <GroundingLoader label={t('fraudIqPage.groundingCol')} />
       )}
     </div>
   );
@@ -189,6 +217,7 @@ export function FraudIQ() {
   const [phase, setPhase] = useState(0); // 1 work · 2 fabric · 3 foundry · 4 recommendation
   const [scenarioFoundry, setScenarioFoundry] = useState<string[]>([]);
   const [scenarioError, setScenarioError] = useState<string | null>(null);
+  const [scenarioDegraded, setScenarioDegraded] = useState(false);
   const [scenarioRunning, setScenarioRunning] = useState(false);
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
@@ -198,22 +227,28 @@ export function FraudIQ() {
     setStarted(true);
     setPhase(0);
     setScenarioError(null);
+    setScenarioDegraded(false);
     setScenarioRunning(true);
     timers.current.push(window.setTimeout(() => setPhase(1), 600));
     timers.current.push(window.setTimeout(() => setPhase(2), 1200));
+    const elapsed = startTimer();
+    diag('fraudiq', `scenario run started (foundry ${foundryDirectConfigured() ? 'direct' : 'demo'})`, undefined, 'info');
     try {
       const foundry = await askFoundryAgent(
         `${scenario.prompt}\n\nContexte Fabric : alerte ${scenario.alertId}, client ${scenario.customerId}. ` +
         `${scenario.context.join('; ')}. Sépare les faits, les obligations réglementaires et les actions ` +
         'à soumettre à validation humaine. Cite uniquement des sources officielles.'
       );
+      diag('fraudiq', `scenario foundry grounding resolved in ${elapsed()}ms`, undefined, 'info');
       setScenarioFoundry([
         foundry.answer,
         ...foundry.citations.map((citation) => `Source officielle · ${citation.title} · ${citation.url}`),
       ]);
+      setScenarioDegraded(Boolean(foundry.degraded));
       setPhase(3);
       timers.current.push(window.setTimeout(() => setPhase(4), 500));
     } catch (error) {
+      diag('fraudiq', `scenario run failed after ${elapsed()}ms`, error, 'error');
       setScenarioError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
     } finally {
       setScenarioRunning(false);
@@ -238,8 +273,11 @@ export function FraudIQ() {
     setAskError(null);
     setAskRunning(true);
     setAskPhase(0);
+    const askElapsed = startTimer();
+    diag('fraudiq', 'multi-IQ ask started', undefined, 'info');
     try {
       setResult(await askMicrosoftIq(question));
+      diag('fraudiq', `multi-IQ ask resolved in ${askElapsed()}ms`, undefined, 'info');
       [400, 800, 1200, 1600].forEach((ms, i) =>
         askTimers.current.push(window.setTimeout(() => setAskPhase(i + 1), ms))
       );
@@ -258,6 +296,7 @@ export function FraudIQ() {
         });
       }
     } catch (error) {
+      diag('fraudiq', `multi-IQ ask failed after ${askElapsed()}ms`, error, 'error');
       setAskError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
     } finally {
       setAskRunning(false);
@@ -398,7 +437,7 @@ export function FraudIQ() {
 
             {scenarioError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                Foundry IQ indisponible : {scenarioError}
+                {t('fraudIqPage.iqError', { reason: scenarioError })}
               </p>
             )}
 
@@ -412,6 +451,11 @@ export function FraudIQ() {
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
                   {t('fraudIqPage.foundryRecommendation')}
                 </h4>
+                {scenarioDegraded && (
+                  <span className="rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5">
+                    {t('fraudIqPage.foundryDegraded')}
+                  </span>
+                )}
                 <span className="ml-auto text-[10px] text-indigo-400">{t('fraudIqPage.groundedMultiIq')}</span>
               </div>
               {done ? (
@@ -440,7 +484,7 @@ export function FraudIQ() {
                   </div>
                 </div>
               ) : (
-                <p className="mt-1.5 text-xs text-gray-400">{t('fraudIqPage.reasoning')}</p>
+                <GroundingLoader label={t('fraudIqPage.reasoning')} lines={2} />
               )}
             </div>
           </>
@@ -487,7 +531,7 @@ export function FraudIQ() {
         </div>
         {askError && (
           <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-            Foundry IQ indisponible : {askError}
+            {t('fraudIqPage.iqError', { reason: askError })}
           </p>
         )}
         {result && (
@@ -507,6 +551,11 @@ export function FraudIQ() {
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
                   {t('fraudIqPage.synthesisTitle')}
                 </h4>
+                {result.degraded && (
+                  <span className="rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5">
+                    {t('fraudIqPage.foundryDegraded')}
+                  </span>
+                )}
                 <span className="ml-auto text-[10px] text-indigo-400">{t('fraudIqPage.groundedAcross')}</span>
               </div>
               {askPhase >= 4 ? (

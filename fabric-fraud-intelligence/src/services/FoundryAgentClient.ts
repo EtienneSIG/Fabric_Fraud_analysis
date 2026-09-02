@@ -5,6 +5,7 @@ import {
 } from '@azure/msal-browser';
 
 import i18n from '@/i18n/i18n';
+import { diag, startTimer } from '@/backend/diag';
 import {
   getForceDemo,
   getFoundryAgent,
@@ -24,6 +25,9 @@ const ENV_FOUNDRY_PROJECT = import.meta.env.VITE_FOUNDRY_PROJECT || '';
 const ENV_AGENT_NAME = import.meta.env.VITE_FOUNDRY_AGENT_NAME || 'fraud-iq-orchestrator';
 const ENV_AGENT_ENDPOINT = import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT || '';
 const AGENT_API_VERSION = '2025-11-15-preview';
+// Cap the direct agent call: a blocked MSAL popup or a slow web-search grounding must not freeze
+// the UI — past this budget we resolve with the deterministic mock instead.
+const AGENT_TIMEOUT_MS = 5_000;
 const SCOPES = ['https://ai.azure.com/.default'];
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
@@ -86,6 +90,8 @@ export interface FoundryCitation {
 export interface FoundryAgentResult {
   answer: string;
   citations: FoundryCitation[];
+  // True when a configured live agent failed/timed out and we fell back to the demo answer.
+  degraded?: boolean;
 }
 
 export function getVersionedAgentEndpoint(endpoint: string): string {
@@ -149,16 +155,23 @@ export function requiresInteractiveAuth(error: unknown): boolean {
 
 async function getAccessToken(client: PublicClientApplication): Promise<string> {
   const account = await getAccount(client);
+  const elapsed = startTimer();
   try {
     const token = await client.acquireTokenSilent({ account, scopes: SCOPES });
+    diag('foundryiq', `token acquired silently in ${elapsed()}ms`, undefined, 'info');
     return token.accessToken;
   } catch (error) {
-    if (!requiresInteractiveAuth(error)) throw error;
+    if (!requiresInteractiveAuth(error)) {
+      diag('foundryiq', 'silent token acquisition failed', error, 'error');
+      throw error;
+    }
+    diag('foundryiq', 'silent token expired → interactive popup (may block on user)', undefined, 'info');
     const token = await client.acquireTokenPopup({
       account,
       scopes: SCOPES,
       redirectUri: AUTH_REDIRECT_URI,
     });
+    diag('foundryiq', `token acquired via popup in ${elapsed()}ms`, undefined, 'info');
     return token.accessToken;
   }
 }
@@ -185,11 +198,28 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
   return { answer, citations };
 }
 
-export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
-  if (!foundryDirectConfigured()) return mockFoundryAnswer();
+class AgentTimeoutError extends Error {}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const id = window.setTimeout(() => reject(new AgentTimeoutError('Foundry IQ timed out.')), ms);
+    promise.then(
+      (value) => { window.clearTimeout(id); resolve(value); },
+      (error) => { window.clearTimeout(id); reject(error); }
+    );
+  });
+}
+
+async function runFoundryAgent(question: string): Promise<FoundryAgentResult> {
+  const endpoint = getVersionedAgentEndpoint(effectiveAgentEndpoint());
+  const host = new URL(endpoint).host;
+  diag('foundryiq', `direct agent call → ${host} (agent ${effectiveAgentName()})`, undefined, 'info');
+
   const client = getApplication();
   const accessToken = await getAccessToken(client);
-  const response = await fetch(getVersionedAgentEndpoint(effectiveAgentEndpoint()), {
+
+  const fetchElapsed = startTimer();
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -197,10 +227,34 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
     },
     body: JSON.stringify({ input: question }),
   });
+  diag('foundryiq', `agent HTTP ${response.status} in ${fetchElapsed()}ms`, undefined, response.ok ? 'info' : 'error');
 
   if (!response.ok) {
     const details = await response.json().catch(() => undefined) as { error?: { message?: string } } | undefined;
     throw new Error(details?.error?.message || `Foundry IQ request failed (${response.status}).`);
   }
-  return parseFoundryResponse(await response.json() as FoundryResponse);
+  const result = parseFoundryResponse(await response.json() as FoundryResponse);
+  diag('foundryiq', `parsed answer (${result.answer.length} chars, ${result.citations.length} citations)`, undefined, 'info');
+  return result;
+}
+
+export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
+  if (!foundryDirectConfigured()) {
+    diag('foundryiq', 'direct agent not configured → deterministic demo answer', undefined, 'info');
+    return mockFoundryAnswer();
+  }
+  const elapsed = startTimer();
+  try {
+    const result = await withTimeout(runFoundryAgent(question), AGENT_TIMEOUT_MS);
+    diag('foundryiq', `direct agent completed in ${elapsed()}ms`, undefined, 'info');
+    return result;
+  } catch (error) {
+    // Slow/blocked sign-in or grounding: degrade gracefully to the mock rather than hang.
+    if (error instanceof AgentTimeoutError) {
+      diag('foundryiq', `timed out after ${AGENT_TIMEOUT_MS}ms (${elapsed()}ms elapsed) → demo answer`, undefined, 'error');
+      return { ...mockFoundryAnswer(), degraded: true };
+    }
+    diag('foundryiq', `direct agent failed after ${elapsed()}ms`, error, 'error');
+    throw error;
+  }
 }
