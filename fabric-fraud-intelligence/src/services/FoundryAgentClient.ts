@@ -34,9 +34,6 @@ const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 const OUTPUT_TOKEN_LIMIT = 6000;
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
-// Full-page redirect returns to the app root (must be a registered SPA redirect URI). Used only as a
-// fallback when the sign-in popup is blocked (e.g. by a pop-up blocker in a plain browser tab).
-const APP_REDIRECT_URI = window.location.origin;
 
 // Effective values: browser override (Settings) first, then build-time env.
 const effectiveTenantId = (): string => getFoundryTenantId() || ENV_TENANT_ID;
@@ -173,22 +170,13 @@ async function getAccount(client: PublicClientApplication): Promise<AccountInfo>
     client.setActiveAccount(existing);
     return existing;
   }
-  try {
-    const login = await client.loginPopup({
-      scopes: SCOPES,
-      redirectUri: AUTH_REDIRECT_URI,
-    });
-    if (!login.account) throw new Error('Microsoft Entra sign-in returned no account.');
-    client.setActiveAccount(login.account);
-    return login.account;
-  } catch (error) {
-    if (isPopupBlocked(error)) {
-      // Pop-up blocked (common blocker / gesture loss): fall back to a full-page redirect sign-in.
-      diag('foundryiq', 'sign-in popup blocked \u2192 full-page redirect', undefined, 'info');
-      await client.loginRedirect({ scopes: SCOPES, redirectUri: APP_REDIRECT_URI });
-    }
-    throw error;
-  }
+  const login = await client.loginPopup({
+    scopes: SCOPES,
+    redirectUri: AUTH_REDIRECT_URI,
+  });
+  if (!login.account) throw new Error('Microsoft Entra sign-in returned no account.');
+  client.setActiveAccount(login.account);
+  return login.account;
 }
 
 export function requiresInteractiveAuth(error: unknown): boolean {
@@ -196,19 +184,9 @@ export function requiresInteractiveAuth(error: unknown): boolean {
     (typeof error === 'object' && error !== null && 'errorCode' in error && error.errorCode === 'timed_out');
 }
 
-// MSAL reports a blocked/closed popup (and a gesture-lost popup) as these codes; fall back to a
-// full-page redirect rather than surfacing a spurious `user_cancelled`.
-function isPopupBlocked(error: unknown): boolean {
-  if (typeof error === 'object' && error !== null && 'errorCode' in error) {
-    const code = (error as { errorCode?: string }).errorCode;
-    return code === 'popup_window_error' || code === 'empty_window_error' || code === 'user_cancelled';
-  }
-  return false;
-}
-
-// Processes a returning full-page redirect sign-in and eagerly initializes MSAL at app start, so the
-// first interactive popup opens inside the click gesture (a popup opened after an await is blocked
-// and surfaces as `user_cancelled`). Safe no-op when the direct agent is not configured.
+// Eagerly initializes MSAL at app start so the first sign-in popup opens inside the click gesture (a
+// popup opened after an await is blocked and surfaces as `user_cancelled`). Also clears any stale
+// redirect interaction state. Safe no-op when the direct agent is not configured.
 export async function handleFoundryRedirect(): Promise<void> {
   if (!effectiveClientId()) return;
   try {
@@ -233,22 +211,14 @@ async function getAccessToken(client: PublicClientApplication): Promise<string> 
       diag('foundryiq', 'silent token acquisition failed', error, 'error');
       throw error;
     }
-    diag('foundryiq', 'silent token expired \u2192 interactive sign-in', undefined, 'info');
-    try {
-      const token = await client.acquireTokenPopup({
-        account,
-        scopes: SCOPES,
-        redirectUri: AUTH_REDIRECT_URI,
-      });
-      diag('foundryiq', `token acquired via popup in ${elapsed()}ms`, undefined, 'info');
-      return token.accessToken;
-    } catch (popupError) {
-      if (isPopupBlocked(popupError)) {
-        diag('foundryiq', 'token popup blocked \u2192 full-page redirect', undefined, 'info');
-        await client.acquireTokenRedirect({ account, scopes: SCOPES, redirectUri: APP_REDIRECT_URI });
-      }
-      throw popupError;
-    }
+    diag('foundryiq', 'silent token expired \u2192 interactive popup', undefined, 'info');
+    const token = await client.acquireTokenPopup({
+      account,
+      scopes: SCOPES,
+      redirectUri: AUTH_REDIRECT_URI,
+    });
+    diag('foundryiq', `token acquired via popup in ${elapsed()}ms`, undefined, 'info');
+    return token.accessToken;
   }
 }
 
