@@ -317,9 +317,15 @@
         "timeoutTitle": "Agent response timeout",
         "timeoutLabel": "Timeout (ms)",
         "timeoutNote": "Max wait for the live Foundry agent before falling back to the demo answer (1000–120000 ms, default 5000).",
+        "backendTitle": "Backend proxy URL",
+        "backendLabel": "Base URL",
+        "backendPlaceholder": "https://func-….azurewebsites.net/api",
+        "backendNote": "A reachable backend is required for the live pillars (Web IQ, agent proxy). Overrides the build-time VITE_BACKEND_API_URL for this browser — no rebuild needed.",
         "auditAppInsightsSet": "Application Insights connection string set",
         "auditAppInsightsClear": "Application Insights connection string cleared",
-        "auditTimeout": "Agent timeout set to {{ms}} ms"
+        "auditTimeout": "Agent timeout set to {{ms}} ms",
+        "auditBackendSet": "Backend proxy URL set",
+        "auditBackendClear": "Backend proxy URL cleared"
       },
       "roleMatrix": "Role & access matrix",
       "role": "Role",

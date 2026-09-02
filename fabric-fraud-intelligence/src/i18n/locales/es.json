@@ -319,7 +319,13 @@
         "timeoutNote": "Espera máxima del agente Foundry real antes de recurrir a la respuesta de demostración (1000–120000 ms, predeterminado 5000).",
         "auditAppInsightsSet": "Cadena de conexión de Application Insights definida",
         "auditAppInsightsClear": "Cadena de conexión de Application Insights borrada",
-        "auditTimeout": "Tiempo del agente ajustado a {{ms}} ms"
+        "auditTimeout": "Tiempo del agente ajustado a {{ms}} ms",
+        "backendTitle": "URL del proxy backend",
+        "backendLabel": "URL base",
+        "backendPlaceholder": "https://func-….azurewebsites.net/api",
+        "backendNote": "Se requiere un backend accesible para los pilares en vivo (Web IQ, proxy de agente). Sustituye VITE_BACKEND_API_URL del build en este navegador, sin recompilar.",
+        "auditBackendSet": "URL del proxy backend establecida",
+        "auditBackendClear": "URL del proxy backend borrada"
       },
       "roleMatrix": "Matriz de roles y acceso",
       "role": "Rol",

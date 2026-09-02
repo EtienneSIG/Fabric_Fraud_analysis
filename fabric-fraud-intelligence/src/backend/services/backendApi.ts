@@ -1,10 +1,10 @@
-import { integrationConfig } from '@/backend/config';
+import { getBackendApiUrl } from '@/backend/services/generalSettings';
 import { diag } from '@/backend/diag';
 
 const DEFAULT_TIMEOUT_MS = 15000;
 
 function base(): string {
-  return integrationConfig.backendApiUrl.replace(/\/$/, '');
+  return getBackendApiUrl();
 }
 
 async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>, timeoutMs: number): Promise<T> {

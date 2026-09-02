@@ -1,5 +1,6 @@
 // Central configuration read from Vite env vars. Fabric Apps inject VITE_*.
 import { hasWebIqKey } from '@/backend/services/webIqSettings';
+import { getBackendApiUrl } from '@/backend/services/generalSettings';
 
 export type AppMode = 'mock' | 'fabric';
 
@@ -52,7 +53,8 @@ export const integrationConfig: IntegrationConfig = {
 export const isMock = (): boolean => fabricConfig.mode !== 'fabric' || !fabricConfig.dataAgentId;
 
 // A real integration also needs a reachable backend endpoint; otherwise fall back to mock.
-const backendReady = (): boolean => !isMock() && !!integrationConfig.backendApiUrl;
+// The URL can come from the build-time env or the runtime Settings > Général override.
+const backendReady = (): boolean => !isMock() && !!getBackendApiUrl();
 
 export const isFoundryEnabled = (): boolean => backendReady() && integrationConfig.foundryEnabled;
 export const isWorkIqEnabled = (): boolean => backendReady() && integrationConfig.workIqEnabled;

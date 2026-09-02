@@ -2,6 +2,7 @@
 // never bundled or sent anywhere except the telemetry endpoint the analyst configures.
 const KEY_APPINSIGHTS = 'ffi.telemetry.appInsights';
 const KEY_AGENT_TIMEOUT = 'ffi.agent.timeoutMs';
+const KEY_BACKEND = 'ffi.backend.apiUrl';
 
 export const DEFAULT_AGENT_TIMEOUT_MS = 5_000;
 const MIN_AGENT_TIMEOUT_MS = 1_000;
@@ -27,6 +28,15 @@ function write(key: string, value: string): void {
 
 export const getAppInsightsConnectionString = (): string => read(KEY_APPINSIGHTS);
 export const setAppInsightsConnectionString = (value: string): void => write(KEY_APPINSIGHTS, value);
+
+/** Effective backend proxy URL: the browser override when set, else the build-time env var.
+ *  Trailing slashes are trimmed so callers can append paths directly. Setting it enables the
+ *  backend-gated live pillars (Web IQ, Foundry proxy) without a rebuild. */
+export function getBackendApiUrl(): string {
+  const raw = read(KEY_BACKEND) || ((import.meta.env.VITE_BACKEND_API_URL as string | undefined) ?? '');
+  return raw.replace(/\/+$/, '');
+}
+export const setBackendApiUrl = (value: string): void => write(KEY_BACKEND, value);
 
 /** Effective agent timeout: the stored value when valid, else the default. */
 export function getAgentTimeoutMs(): number {

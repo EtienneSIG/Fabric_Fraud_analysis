@@ -28,6 +28,8 @@ import {
   setAppInsightsConnectionString,
   getAgentTimeoutMs,
   setAgentTimeoutMs,
+  getBackendApiUrl,
+  setBackendApiUrl,
 } from '@/backend/services/generalSettings';
 import { initTelemetry } from '@/backend/telemetry';
 import { ROLES, ROLE_PERMISSIONS } from '@/backend/models';
@@ -211,9 +213,11 @@ function GeneralTab() {
   const { role } = useRole();
   const [ai, setAi] = useState(getAppInsightsConnectionString());
   const [timeoutMs, setTimeoutInput] = useState(String(getAgentTimeoutMs()));
+  const [backend, setBackend] = useState(getBackendApiUrl());
   const [, bump] = useState(0);
 
   const aiOn = getAppInsightsConnectionString().length > 0;
+  const backendOn = getBackendApiUrl().length > 0;
 
   const saveAi = () => {
     setAppInsightsConnectionString(ai);
@@ -236,6 +240,23 @@ function GeneralTab() {
     setAgentTimeoutMs(Number.isFinite(n) ? n : '');
     setTimeoutInput(String(getAgentTimeoutMs()));
     audit.logConfigChange(role, 'Agent timeout', t('pages.settings.general.auditTimeout', { ms: getAgentTimeoutMs() }));
+    bump((n) => n + 1);
+  };
+
+  const saveBackend = () => {
+    setBackendApiUrl(backend);
+    setBackend(getBackendApiUrl());
+    audit.logConfigChange(
+      role,
+      'Backend URL',
+      backend.trim() ? t('pages.settings.general.auditBackendSet') : t('pages.settings.general.auditBackendClear')
+    );
+    bump((n) => n + 1);
+  };
+  const clearBackend = () => {
+    setBackendApiUrl('');
+    setBackend('');
+    audit.logConfigChange(role, 'Backend URL', t('pages.settings.general.auditBackendClear'));
     bump((n) => n + 1);
   };
 
@@ -282,6 +303,35 @@ function GeneralTab() {
         </button>
       </div>
       <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.appInsightsNote')}</p>
+
+      <p className="mb-1 mt-5 text-xs font-medium text-gray-500">{t('pages.settings.general.backendTitle')}</p>
+      <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.backendLabel')}</label>
+      <div className="flex max-w-lg gap-2">
+        <input
+          type="url"
+          autoComplete="off"
+          spellCheck={false}
+          value={backend}
+          onChange={(e) => setBackend(e.target.value)}
+          placeholder={t('pages.settings.general.backendPlaceholder')}
+          aria-label={t('pages.settings.general.backendLabel')}
+          className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+        />
+        <button
+          onClick={saveBackend}
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          {t('pages.settings.general.save')}
+        </button>
+        <button
+          onClick={clearBackend}
+          disabled={!backendOn}
+          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40"
+        >
+          {t('pages.settings.general.clear')}
+        </button>
+      </div>
+      <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.backendNote')}</p>
 
       <p className="mb-1 mt-5 text-xs font-medium text-gray-500">{t('pages.settings.general.timeoutTitle')}</p>
       <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.timeoutLabel')}</label>

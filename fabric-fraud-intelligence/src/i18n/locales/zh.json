@@ -319,7 +319,13 @@
         "timeoutNote": "回退到示范回应前等待实际 Foundry 代理的最长时间（1000–120000 毫秒，默认 5000）。",
         "auditAppInsightsSet": "已设置 Application Insights 连接字符串",
         "auditAppInsightsClear": "已清除 Application Insights 连接字符串",
-        "auditTimeout": "代理超时设为 {{ms}} 毫秒"
+        "auditTimeout": "代理超时设为 {{ms}} 毫秒",
+        "backendTitle": "后端代理 URL",
+        "backendLabel": "基础 URL",
+        "backendPlaceholder": "https://func-….azurewebsites.net/api",
+        "backendNote": "实时功能（Web IQ、代理）需要可访问的后端。在此浏览器中覆盖构建时的 VITE_BACKEND_API_URL，无需重新构建。",
+        "auditBackendSet": "已设置后端代理 URL",
+        "auditBackendClear": "已清除后端代理 URL"
       },
       "roleMatrix": "角色與存取矩陣",
       "role": "角色",
