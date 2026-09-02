@@ -19,7 +19,7 @@ interface Laid {
 
 const WIDTH = 1000;
 const NODE_W = 12;
-const PAD_X = 90;
+const PAD_X = 150;
 const PAD_Y = 18;
 const GAP = 7;
 
@@ -152,12 +152,12 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
         const dim = on === false;
         const isLast = node.col === ncol - 1;
         const isFirst = node.col === 0;
-        const anchor = isLast ? 'end' : isFirst ? 'start' : 'middle';
-        const tx = isLast ? x - 6 : isFirst ? x + NODE_W + 6 : x + NODE_W / 2;
+        const anchor = isFirst ? 'end' : isLast ? 'start' : 'middle';
+        const tx = isFirst ? x - 7 : isLast ? x + NODE_W + 7 : x + NODE_W / 2;
         const ty = isFirst || isLast ? y0 + h / 2 : y0 - 4;
         return (
           <g key={node.id} onMouseEnter={() => { setHoverNode(node.id); setTip(`${node.label} · ${tr('components.sankey.customers', { count: node.value })}`); }} onMouseLeave={() => { setHoverNode(null); setTip(null); }} style={{ cursor: 'pointer' }}>
-            <rect x={x} y={y0} width={NODE_W} height={h} fill="transparent" />
+            <rect x={x} y={y0} width={NODE_W} height={h} rx={1.5} fill={node.color} opacity={dim ? 0.25 : 0.82} />
             <text x={tx} y={ty} textAnchor={anchor} dominantBaseline={isFirst || isLast ? 'middle' : 'auto'} opacity={dim ? 0.3 : 1} className="fill-slate-600" style={{ fontSize: 10 }}>
               {node.label}
             </text>

@@ -12,10 +12,10 @@ function renderSankey() {
 }
 
 describe('Sankey layout', () => {
-  it('draws no opaque node bars over the ribbons', () => {
+  it('draws colored node bars for every event', () => {
     const fills = [...renderSankey().matchAll(/<rect[^>]*?fill="([^"]*)"/g)].map((m) => m[1]);
     expect(fills.length).toBeGreaterThan(0);
-    expect(new Set(fills)).toEqual(new Set(['transparent']));
+    expect(fills.every((fill) => /^#[0-9a-f]{6}$/i.test(fill))).toBe(true);
   });
 
   it('draws bounded centerlines instead of background-like closed ribbons', () => {
