@@ -175,7 +175,7 @@ export function EntityGraph() {
                     <span className="ml-auto text-[10px] text-indigo-100">{t('pages.entityGraph.fabricDataAgent')}</span>
                   </div>
                   {narrative && (
-                    <div className="space-y-2.5 bg-white p-3">
+                    <div className="ffi-ai-narrative-body space-y-2.5 bg-white p-3">
                       <div className="flex items-center gap-2">
                         <span
                           className="rounded-md px-2 py-0.5 text-[11px] font-semibold"
@@ -197,18 +197,18 @@ export function EntityGraph() {
                         <ul className="mt-1 space-y-1">
                           {narrative.signals.map((s, i) => (
                             <li key={i} className="flex gap-1.5 text-[11px] leading-relaxed text-gray-600">
-                              <span className="text-indigo-500">•</span>
+                              <span className="text-indigo-500 dark:text-indigo-300">•</span>
                               <span>{s}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-[11px] text-gray-600">
+                      <div className="ffi-ai-network rounded-lg bg-slate-50 px-2.5 py-1.5 text-[11px] text-gray-600">
                         <span className="font-semibold text-gray-500">{t('pages.entityGraph.network')} · </span>
                         {narrative.network}
                       </div>
-                      <div className="rounded-lg border-l-2 border-green-400 bg-green-50 px-2.5 py-1.5 text-[11px] text-gray-700">
-                        <span className="font-semibold text-green-700">{t('pages.entityGraph.recommended')} · </span>
+                      <div className="ffi-ai-recommendation rounded-lg border-l-2 border-green-400 bg-green-50 px-2.5 py-1.5 text-[11px] text-gray-700">
+                        <span className="font-semibold text-green-700 dark:text-green-300">{t('pages.entityGraph.recommended')} · </span>
                         {narrative.action}
                       </div>
                     </div>

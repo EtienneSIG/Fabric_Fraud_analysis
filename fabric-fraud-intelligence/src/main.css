@@ -100,3 +100,19 @@
   background-color: #111827;
   border-color: #7f1d1d;
 }
+.dark select option {
+  color: #e5e7eb;
+  background-color: #111827;
+}
+.dark .ffi-ai-narrative-body {
+  background-color: #111827;
+}
+.dark .ffi-ai-network {
+  color: #d1d5db;
+  background-color: #1e293b;
+}
+.dark .ffi-ai-recommendation {
+  color: #d1fae5;
+  background-color: rgba(6, 78, 59, 0.45);
+  border-color: #34d399;
+}
