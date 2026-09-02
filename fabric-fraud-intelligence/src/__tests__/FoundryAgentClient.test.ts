@@ -54,7 +54,7 @@ describe('buildFoundryRequest', () => {
   it('pins the output locale and bounds the generated response', () => {
     expect(buildFoundryRequest('Analyse cette alerte.', 'fr-FR')).toEqual({
       input: '[OUTPUT_LOCALE=fr]\nAnalyse cette alerte.',
-      max_output_tokens: 1200,
+      max_output_tokens: 6000,
     });
   });
 });

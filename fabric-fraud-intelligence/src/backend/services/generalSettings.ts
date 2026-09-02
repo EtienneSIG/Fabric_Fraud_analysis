@@ -4,7 +4,9 @@ const KEY_APPINSIGHTS = 'ffi.telemetry.appInsights';
 const KEY_AGENT_TIMEOUT = 'ffi.agent.timeoutMs';
 const KEY_BACKEND = 'ffi.backend.apiUrl';
 
-export const DEFAULT_AGENT_TIMEOUT_MS = 5_000;
+// The live Foundry agent is a reasoning model (reasoning + web_search); a real round-trip takes
+// ~30-60s, so the default must be generous or every live call times out into the mock answer.
+export const DEFAULT_AGENT_TIMEOUT_MS = 90_000;
 const MIN_AGENT_TIMEOUT_MS = 1_000;
 const MAX_AGENT_TIMEOUT_MS = 120_000;
 

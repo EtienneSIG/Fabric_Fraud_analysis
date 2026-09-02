@@ -29,7 +29,9 @@ const ENV_AGENT_ENDPOINT = import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT || '';
 const AGENT_API_VERSION = '2025-11-15-preview';
 const SCOPES = ['https://ai.azure.com/.default'];
 const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
-const OUTPUT_TOKEN_LIMIT = 1200;
+// gpt-5.6-terra is a reasoning model: reasoning + web_search tokens count against this budget, so it
+// must be large enough to leave room for the final message (1200 left the response `incomplete`).
+const OUTPUT_TOKEN_LIMIT = 6000;
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
 
@@ -229,8 +231,9 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
 
 class AgentTimeoutError extends Error {}
 
-// A manual "Test connection" can wait longer than the demo-UX agent timeout for the round-trip.
-const PROBE_TIMEOUT_MS = 30_000;
+// A manual "Test connection" waits for the full reasoning round-trip (web_search + generation can
+// take ~30-60s), so it is capped well above the demo-UX agent timeout.
+const PROBE_TIMEOUT_MS = 90_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
