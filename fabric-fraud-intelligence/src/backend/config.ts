@@ -52,9 +52,10 @@ export const integrationConfig: IntegrationConfig = {
 
 export const isMock = (): boolean => fabricConfig.mode !== 'fabric' || !fabricConfig.dataAgentId;
 
-// A real integration also needs a reachable backend endpoint; otherwise fall back to mock.
-// The URL can come from the build-time env or the runtime Settings > Général override.
-const backendReady = (): boolean => !isMock() && !!getBackendApiUrl();
+// A backend-gated live pillar (Foundry proxy, Web IQ, Work IQ, Teams, RAFT) needs a reachable
+// backend endpoint — defined by the URL alone (build-time env OR the runtime Settings > Général
+// override), independent of the Fabric data mode. No URL → the pillar stays on its mock path.
+const backendReady = (): boolean => !!getBackendApiUrl();
 
 export const isFoundryEnabled = (): boolean => backendReady() && integrationConfig.foundryEnabled;
 export const isWorkIqEnabled = (): boolean => backendReady() && integrationConfig.workIqEnabled;
