@@ -195,14 +195,14 @@ export function getSampleQuestions(): string[] {
  * Cross-IQ grounding for a fraud question. Fabric IQ is data-derived and Foundry IQ
  * calls the deployed agent; localized Work IQ and Web IQ values provide fallbacks.
  */
-export async function askMicrosoftIq(question: string): Promise<IqResult> {
+export async function askMicrosoftIq(question: string, language = i18n.resolvedLanguage): Promise<IqResult> {
   const f = flavor(question);
   const t = i18n.getFixedT(null, 'fraudIq');
   const synthesis: Synthesis = {
     ...(t(`synthesis.${f}`, { returnObjects: true }) as Omit<Synthesis, 'confidence'>),
     confidence: IQ_CONFIDENCE[f],
   };
-  const foundry = await askFoundryAgent(question);
+  const foundry = await askFoundryAgent(question, language);
   const webItems = foundry.citations.length
     ? foundry.citations.map((citation) => `${citation.title} · ${citation.url}`)
     : t(`web.${f}`, { returnObjects: true }) as string[];

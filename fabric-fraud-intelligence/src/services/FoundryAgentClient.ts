@@ -12,8 +12,11 @@ const AGENT_ENDPOINT =
 const AGENT_API_VERSION = '2025-11-15-preview';
 const SCOPES = ['https://ai.azure.com/.default'];
 const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+const OUTPUT_TOKEN_LIMIT = 1200;
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
+
+export type FoundryLocale = 'en' | 'fr' | 'es';
 
 interface FoundryAnnotation {
   type?: string;
@@ -143,6 +146,20 @@ export function shouldRetryFoundryRequest(status: number): boolean {
   return RETRYABLE_STATUSES.has(status);
 }
 
+export function normalizeFoundryLocale(language?: string): FoundryLocale {
+  if (language?.toLowerCase().startsWith('fr')) return 'fr';
+  if (language?.toLowerCase().startsWith('es')) return 'es';
+  return 'en';
+}
+
+export function buildFoundryRequest(question: string, language?: string) {
+  const locale = normalizeFoundryLocale(language);
+  return {
+    input: `[OUTPUT_LOCALE=${locale}]\n${question}`,
+    max_output_tokens: OUTPUT_TOKEN_LIMIT,
+  };
+}
+
 async function foundryError(response: Response): Promise<Error> {
   const details = await response.json().catch(() => undefined) as {
     error?: { message?: string; request_id?: string };
@@ -156,7 +173,7 @@ async function foundryError(response: Response): Promise<Error> {
   return new Error(`${message} [HTTP ${response.status}${requestId ? ` · request ${requestId}` : ''}]`);
 }
 
-export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
+export async function askFoundryAgent(question: string, language?: string): Promise<FoundryAgentResult> {
   const client = getApplication();
   const accessToken = await getAccessToken(client);
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -166,7 +183,7 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ input: question }),
+      body: JSON.stringify(buildFoundryRequest(question, language)),
     });
 
     if (response.ok) return parseFoundryResponse(await response.json() as FoundryResponse);

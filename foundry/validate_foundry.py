@@ -40,23 +40,38 @@ def main() -> None:
         allow_preview=True,
     )
     openai = project.get_openai_client(agent_name=config["agentName"])
-    response = openai.responses.create(input=config["validationQuestion"])
+    for locale, question in config["validationQuestions"].items():
+        response = None
+        for _ in range(2):
+            response = openai.responses.create(
+                input=f"[OUTPUT_LOCALE={locale}]\n{question}",
+                max_output_tokens=1200,
+            )
+            if response.output_text.strip():
+                break
 
-    if not response.output_text.strip():
-        raise RuntimeError("The Foundry agent returned an empty response.")
+        if response is None or not response.output_text.strip():
+            raise RuntimeError(f"The Foundry agent returned an empty {locale} response.")
+        word_count = len(response.output_text.split())
+        if word_count > 120:
+            raise RuntimeError(
+                f"The Foundry agent returned {word_count} {locale} words; expected at most 120."
+            )
 
-    urls = citation_urls(response)
-    if not urls:
-        raise RuntimeError("No regulatory URL citation was returned.")
+        urls = citation_urls(response)
+        if not urls:
+            raise RuntimeError(f"No regulatory URL citation was returned for {locale}.")
 
-    unexpected = [url for url in urls if not is_allowed(url, config["regulatoryDomains"])]
-    if unexpected:
-        raise RuntimeError(f"Non-official citation(s) returned: {unexpected}")
+        unexpected = [url for url in urls if not is_allowed(url, config["regulatoryDomains"])]
+        if unexpected:
+            raise RuntimeError(f"Non-official {locale} citation(s) returned: {unexpected}")
 
-    print(f"VALIDATION=PASS")
-    print(f"CITATION_COUNT={len(urls)}")
-    for url in urls:
-        print(f"CITATION={url}")
+        print(f"LOCALE={locale}")
+        print(f"WORD_COUNT={word_count}")
+        print(f"CITATION_COUNT={len(urls)}")
+        for url in urls:
+            print(f"CITATION={url}")
+    print("VALIDATION=PASS")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildFoundryRequest,
   getVersionedAgentEndpoint,
+  normalizeFoundryLocale,
   parseFoundryResponse,
   requiresInteractiveAuth,
   shouldRetryFoundryRequest,
@@ -32,6 +34,28 @@ describe('shouldRetryFoundryRequest', () => {
 
   it('does not retry authentication or validation failures', () => {
     expect([400, 401, 403, 404].some(shouldRetryFoundryRequest)).toBe(false);
+  });
+});
+
+describe('normalizeFoundryLocale', () => {
+  it('maps Rayfin languages to supported Foundry output locales', () => {
+    expect(normalizeFoundryLocale('fr-FR')).toBe('fr');
+    expect(normalizeFoundryLocale('es')).toBe('es');
+    expect(normalizeFoundryLocale('en-US')).toBe('en');
+  });
+
+  it('falls back to English for an absent or unsupported language', () => {
+    expect(normalizeFoundryLocale()).toBe('en');
+    expect(normalizeFoundryLocale('de')).toBe('en');
+  });
+});
+
+describe('buildFoundryRequest', () => {
+  it('pins the output locale and bounds the generated response', () => {
+    expect(buildFoundryRequest('Analyse cette alerte.', 'fr-FR')).toEqual({
+      input: '[OUTPUT_LOCALE=fr]\nAnalyse cette alerte.',
+      max_output_tokens: 1200,
+    });
   });
 });
 

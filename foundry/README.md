@@ -74,7 +74,11 @@ embedding deployment used by this project.
 Web IQ is enabled whenever the deployed agent contains the native `web_search`
 tool. No separate key or connection is required. Run the standard deployment
 without `-SkipValidation`; success prints `VALIDATION=PASS` and the official source
-URLs returned by the agent. You can also inspect `fraud-iq-orchestrator` in the
+URLs returned by the agent. Validation runs in English, French, and Spanish and
+fails if a response is empty, exceeds 120 words, or has no official citation.
+Rayfin sends an explicit `[OUTPUT_LOCALE=en|fr|es]` marker and the agent returns
+three short sections: assessment, obligations, and recommended actions. You can
+also inspect `fraud-iq-orchestrator` in the
 Foundry portal and confirm that its tool list contains `web_search`.
 
 ## Fabric connection consent

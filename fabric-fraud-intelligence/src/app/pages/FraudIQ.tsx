@@ -204,7 +204,8 @@ export function FraudIQ() {
       const foundry = await askFoundryAgent(
         `${scenario.prompt}\n\nContexte Fabric : alerte ${scenario.alertId}, client ${scenario.customerId}. ` +
         `${scenario.context.join('; ')}. Sépare les faits, les obligations réglementaires et les actions ` +
-        'à soumettre à validation humaine. Cite uniquement des sources officielles.'
+        'à soumettre à validation humaine. Cite uniquement des sources officielles.',
+        i18n.resolvedLanguage
       );
       setScenarioFoundry([foundry.answer]);
       if (foundry.citations.length) {
@@ -238,7 +239,7 @@ export function FraudIQ() {
     setAskRunning(true);
     setAskPhase(0);
     try {
-      setResult(await askMicrosoftIq(question));
+      setResult(await askMicrosoftIq(question, i18n.resolvedLanguage));
       [400, 800, 1200, 1600].forEach((ms, i) =>
         askTimers.current.push(window.setTimeout(() => setAskPhase(i + 1), ms))
       );

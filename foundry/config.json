@@ -15,5 +15,9 @@
     "justice.gouv.fr",
     "legifrance.gouv.fr"
   ],
-  "validationQuestion": "Quelles sont les obligations réglementaires européennes actuellement applicables en matière de détection et de déclaration des opérations suspectes ? Cite uniquement des sources officielles."
+  "validationQuestions": {
+    "en": "What current European regulatory obligations apply to detecting and reporting suspicious transactions? Cite only official sources.",
+    "fr": "Quelles sont les obligations réglementaires européennes actuellement applicables en matière de détection et de déclaration des opérations suspectes ? Cite uniquement des sources officielles.",
+    "es": "¿Qué obligaciones regulatorias europeas vigentes se aplican a la detección y declaración de operaciones sospechosas? Cita únicamente fuentes oficiales."
+  }
 }
