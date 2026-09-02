@@ -345,7 +345,7 @@ function ConnectionProbe({ run }: { run: () => Promise<ProbeResult> }) {
         </span>
       )}
       {detail && state !== 'testing' && (
-        <code className="max-w-[240px] truncate text-[11px] text-gray-400 dark:text-gray-500" title={detail}>
+        <code className="max-w-60 truncate text-[11px] text-gray-400 dark:text-gray-500" title={detail}>
           {detail}
         </code>
       )}

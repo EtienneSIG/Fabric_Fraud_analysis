@@ -44,7 +44,7 @@ function Badge({ live }: { live: boolean }) {
 
 function MarkdownContent({ children }: { children: string }) {
   return (
-    <div className="min-w-0 space-y-3 text-sm leading-6 text-gray-700 [overflow-wrap:anywhere]">
+    <div className="min-w-0 space-y-3 text-sm leading-6 text-gray-700 wrap-anywhere">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -151,7 +151,7 @@ function IqColumn({
                           {item.slice(0, -url.length).trim()}
                         </a>
                       ) : (
-                        <span className="min-w-0 break-words">{item}</span>
+                        <span className="min-w-0 wrap-break-word">{item}</span>
                       )}
                     </li>
                   );
@@ -171,7 +171,7 @@ function IqColumn({
                   {it.slice(0, -url.length).trim()}
                 </a>
               ) : (
-                <span className="min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere]">{it}</span>
+                <span className="min-w-0 whitespace-pre-wrap wrap-anywhere">{it}</span>
               )}
             </li>
             );

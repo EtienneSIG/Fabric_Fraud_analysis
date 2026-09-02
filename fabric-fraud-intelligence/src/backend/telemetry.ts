@@ -20,7 +20,8 @@ let loading = false;
 export function initTelemetry(): void {
   const g = globalThis as unknown as AiGlobal;
   if (g.appInsights || loading) return; // already loaded by the build snippet or a prior call
-  const cs = getAppInsightsConnectionString();
+  // Browser-local override (General settings) first, then the build-time VITE_ value.
+  const cs = getAppInsightsConnectionString() || import.meta.env.VITE_APPINSIGHTS_CONNECTION_STRING || '';
   if (!cs || cs.indexOf('InstrumentationKey=') !== 0) return;
   if (typeof document === 'undefined') return;
   loading = true;
