@@ -18,10 +18,12 @@ describe('Sankey layout', () => {
     expect(new Set(fills)).toEqual(new Set(['transparent']));
   });
 
-  it('keeps resting ribbons transparent to avoid a chart backdrop', () => {
-    const opacities = [...renderSankey().matchAll(/fill-opacity="([^"]*)"/g)].map((m) => Number(m[1]));
-    expect(opacities.length).toBeGreaterThan(0);
-    expect(new Set(opacities)).toEqual(new Set([0]));
+  it('draws bounded centerlines instead of background-like closed ribbons', () => {
+    const markup = renderSankey();
+    const paths = [...markup.matchAll(/<path[^>]*d="([^"]*)"[^>]*fill="([^"]*)"[^>]*stroke-width="([^"]*)"/g)];
+    expect(paths.length).toBeGreaterThan(0);
+    expect(paths.every((match) => !match[1].includes(' Z') && match[2] === 'none')).toBe(true);
+    expect(Math.max(...paths.map((match) => Number(match[3])))).toBeLessThanOrEqual(2.5);
   });
 
   it('chains ribbons across columns without gaps', () => {
