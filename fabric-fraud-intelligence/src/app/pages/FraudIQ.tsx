@@ -38,18 +38,18 @@ function Badge({ live }: { live: boolean }) {
   );
 }
 
-function MarkdownContent({ children }: { children: string }) {
+function MarkdownContent({ children, compact = false }: { children: string; compact?: boolean }) {
   return (
-    <div className="min-w-0 space-y-3 text-sm leading-6 text-gray-700 [overflow-wrap:anywhere]">
+    <div className={`min-w-0 text-gray-700 [overflow-wrap:anywhere] ${compact ? 'space-y-2 text-xs leading-relaxed' : 'space-y-3 text-sm leading-6'}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ children: heading }) => <h5 className="text-base font-bold text-gray-900">{heading}</h5>,
-          h2: ({ children: heading }) => <h5 className="text-sm font-bold text-gray-900">{heading}</h5>,
-          h3: ({ children: heading }) => <h6 className="text-sm font-semibold text-gray-800">{heading}</h6>,
+          h1: ({ children: heading }) => <h5 className={compact ? 'text-xs font-semibold text-gray-800' : 'text-base font-bold text-gray-900'}>{heading}</h5>,
+          h2: ({ children: heading }) => <h5 className={compact ? 'text-xs font-semibold text-gray-800' : 'text-sm font-bold text-gray-900'}>{heading}</h5>,
+          h3: ({ children: heading }) => <h6 className={compact ? 'text-xs font-semibold text-gray-800' : 'text-sm font-semibold text-gray-800'}>{heading}</h6>,
           p: ({ children: paragraph }) => <p>{paragraph}</p>,
-          ul: ({ children: list }) => <ul className="ml-5 list-disc space-y-1.5">{list}</ul>,
-          ol: ({ children: list }) => <ol className="ml-5 list-decimal space-y-1.5">{list}</ol>,
+          ul: ({ children: list }) => <ul className={`ml-5 list-disc space-y-1.5 ${compact ? 'marker:text-violet-600' : ''}`}>{list}</ul>,
+          ol: ({ children: list }) => <ol className={`ml-5 list-decimal space-y-1.5 ${compact ? 'marker:text-violet-600' : ''}`}>{list}</ol>,
           li: ({ children: item }) => <li className="pl-1">{item}</li>,
           strong: ({ children: strong }) => <strong className="font-semibold text-gray-900">{strong}</strong>,
           blockquote: ({ children: quote }) => (
@@ -104,7 +104,7 @@ function IqColumn({
       {revealed ? (
         id === 'foundry' && items.length ? (
           <div className="mt-3 min-w-0">
-            <MarkdownContent>{items[0]}</MarkdownContent>
+            <MarkdownContent compact>{items[0]}</MarkdownContent>
             {items.length > 1 && (
               <ul className="mt-4 space-y-2 border-t border-gray-100 pt-3">
                 {items.slice(1).map((item, index) => {
