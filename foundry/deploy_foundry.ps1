@@ -110,6 +110,9 @@ if (-not $SkipKeyVault) {
       az rest --method put --uri $webIqConnectionUri --body "@$webIqBodyFile" --output none
     } finally {
       Remove-Item $webIqBodyFile -ErrorAction SilentlyContinue
+      # Clear the secret from memory as soon as it's no longer needed.
+      $webIqKey = $null
+      $webIqConnectionBody = $null
     }
   } else {
     Write-Warning "Web IQ secret '$webIqSecretName' not found in Key Vault '$KeyVaultName'. Deploying fraud-iq-orchestrator with web search only; see foundry/README.md to enable Web IQ."

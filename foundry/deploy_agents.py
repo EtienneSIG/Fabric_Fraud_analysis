@@ -68,6 +68,9 @@ def main() -> None:
     ]
     webiq_enabled = bool(args.webiq_connection_id)
     if webiq_enabled:
+        # No tool-call approval gate: this mirrors the already-unapproved WebSearchTool above.
+        # Both are read-only, domain-restricted regulatory lookups with no case PII; the HITL
+        # requirement applies to the agent's final advisory output, not to this search step.
         tools.append(
             MCPTool(
                 server_label="webiq",
