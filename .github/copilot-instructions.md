@@ -38,6 +38,15 @@ deployed by PowerShell + REST, and an Azure support layer provisioned by Terrafo
   `functions` service** (shares Fabric SSO context). A single Terraform-provisioned **Azure Function
   (Flex Consumption)** hosts the Teams Bot messaging endpoint and is the fallback for anything the
   Rayfin functions can't do.
+- **Deploying the Function code** — Terraform (`-Infra`) creates the *empty* app; the `backend/` code
+  is a **separate publish** step, and the app is **optional** (the SPA is mock-first; the direct
+  Foundry path is SPA-only; only Web IQ / Teams / OBO / OneLake need it). The deployment storage is
+  **hardened** (`allowSharedKeyAccess=false` + `publicNetworkAccess=Disabled`), so the **only** working
+  path is **OneDeploy over managed identity**: `deploy.ps1 -Backend` → `func azure functionapp publish`
+  (or a `Azure/functions-action` GitHub workflow). `az functionapp deployment source config-zip`
+  (Kudu → 403 storage) and `az webapp deploy --type zip` (SCM → 502) both fail here — do NOT chase
+  them, and do NOT relax the storage lockdown to force a deploy. If `func` is broken locally
+  (e.g. Node 26), publish from a Node LTS env or via CI.
 
 ## Microsoft Graph / O365
 - Use **delegated permissions + OBO** (analyst-driven scenarios). Do NOT mix application and
