@@ -34,11 +34,42 @@ npm run still      # -> out/frame.png
 - Change per-slide duration via `SLIDE_FRAMES` (default 6 s at 30 fps).
 - Swap or add screenshots: drop the PNG in `public/` and add an entry in `slides`.
 
-## Refresh the screenshots
-The images are copies of `docs/images/`. To re-sync after regenerating them:
+## Run the guided demo app locally (demo mode)
+The screenshots come from the app running in **demo mode** — a deterministic mock dataset with an
+auto sign-in (no MSAL, no Azure, no backend). From the SPA folder:
 ```powershell
-Copy-Item ..\..\docs\images\*.png .\public\ -Force
+cd ..\..\fabric-fraud-intelligence
+npm install            # first time only
+npm run dev:demo       # = vite --mode public  →  http://localhost:5173
 ```
+- `--mode public` loads `.env.public` (`VITE_PUBLIC_DEMO=true`), so `PublicDemoAuthService`
+  signs you in as a fixed analyst automatically.
+- The in-app animations (Fraud IQ agentic loader, entity force-graph, Fraud Flow Sankey) all run
+  on the mock data — nothing external is called.
+
+> ⚠️ Run it **from `fabric-fraud-intelligence/`**, never the repo root. Also prefer `dev:demo`
+> over `dev`: plain `npm run dev` runs a `rayfin env` prestep that can hang on a managed package
+> mirror. `dev:demo` skips it.
+
+## Refresh the screenshots (keep the deck in sync)
+The `public/*.png` are copies of `docs/images/`. When a screen changes, regenerate them with the
+reproducible Playwright capture (1600×1000 @2x → 3200×2000, matching the existing images):
+```powershell
+# 1. Start the demo app (shell A)
+cd ..\..\fabric-fraud-intelligence
+npm run dev:demo                                   # http://localhost:5173
+
+# 2. Capture all 9 screens (shell B) — writes into ../docs/images/
+cd ..\..\fabric-fraud-intelligence
+npm run screenshots -- http://localhost:5173
+
+# 3. Sync the refreshed PNGs into this deck (from the repo root)
+Copy-Item docs\images\*.png video\remotion-slidedeck\public\ -Force
+```
+- The capture script lives at `fabric-fraud-intelligence/scripts/capture-screenshots.mjs`
+  (routes + per-screen settle timings for the animated views).
+- If you add / remove / reorder a screen, also update the flow in `src/slides.ts` **and** the
+  README "Screens" section so the guided demo stays accurate.
 
 > Downloadable & portable: the `public/` folder already contains the images, so the
 > whole `remotion-slidedeck/` folder works on its own (just `npm install`).
