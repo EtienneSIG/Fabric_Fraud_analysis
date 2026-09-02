@@ -16,6 +16,7 @@ node_modules/
 .venv/
 rayfin/.env*
 rayfin/.deployments.json
+local.secrets.md
 
 # Terraform local state, plans, and secrets
 **/.terraform/
