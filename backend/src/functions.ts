@@ -6,7 +6,6 @@ import type { z } from 'zod';
 import {
   runAgent,
   workIqSignals,
-  regulatoryWebSearch,
   notifyTeams,
   upsertCaseDecision,
   emailReport,
@@ -24,7 +23,6 @@ import {
   evidenceUploadSchema,
   agentRunExportSchema,
   raftCompareSchema,
-  regulatoryWebSearchSchema,
 } from './schemas.js';
 
 const json = (status: number, body: unknown): HttpResponseInit => ({
@@ -67,17 +65,6 @@ app.http('workiqSignals', {
       flavor: req.query.get('flavor') ?? 'generic',
       locale: req.query.get('locale') ?? 'en',
     }, userToken(req))),
-});
-
-// Web IQ regulatory grounding: domain-scoped, PII-free web search over official sources.
-app.http('webiqSearch', {
-  route: 'webiq/search',
-  methods: ['POST'],
-  authLevel: 'anonymous',
-  handler: async (req) => {
-    const p = await parse(req, regulatoryWebSearchSchema);
-    return p.ok ? json(200, await regulatoryWebSearch(p.data, userToken(req))) : p.res;
-  },
 });
 
 app.http('notifyTeams', {

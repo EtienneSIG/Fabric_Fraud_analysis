@@ -1,4 +1,4 @@
-import { ClientSecretCredential, DefaultAzureCredential, OnBehalfOfCredential } from '@azure/identity';
+import { DefaultAzureCredential, OnBehalfOfCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
 import { Client } from '@microsoft/microsoft-graph-client';
 
@@ -78,7 +78,6 @@ export async function foundryToken(userToken: string | null): Promise<string> {
   }
   return (await new DefaultAzureCredential().getToken(scope))?.token ?? '';
 }
-
 /** Bearer token for the Azure OpenAI data plane (Cognitive Services) — used for the RAFT A/B
  *  baseline-vs-student chat calls. OBO on behalf of the analyst, MI fallback. */
 export async function cognitiveToken(userToken: string | null): Promise<string> {
@@ -88,15 +87,4 @@ export async function cognitiveToken(userToken: string | null): Promise<string> 
     return (await cred.getToken(scope))?.token ?? '';
   }
   return (await new DefaultAzureCredential().getToken(scope))?.token ?? '';
-}
-
-/** App-only bearer for the Microsoft Web IQ API (Entra ID client-credentials). Empty when the
- *  Web IQ app registration is not configured, so the caller can fall back to an API key or mock. */
-export async function webIqToken(): Promise<string> {
-  const clientId = env('WEBIQ_CLIENT_ID');
-  const tenantId = env('WEBIQ_TENANT_ID') || env('AZURE_TENANT_ID');
-  if (!clientId || !tenantId) return '';
-  const clientSecret = await getSecret(env('WEBIQ_CLIENT_SECRET_NAME') || 'webiq-client-secret');
-  const cred = new ClientSecretCredential(tenantId, clientId, clientSecret);
-  return (await cred.getToken('https://api.microsoft.ai/.default'))?.token ?? '';
 }

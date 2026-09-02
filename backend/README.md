@@ -19,7 +19,6 @@ agent proxy, Microsoft Graph (OBO), Teams bot messaging endpoint, and OneLake wr
 | --- | --- | --- |
 | `POST /api/agents/run` | `runAgent` | `FoundryAgentClient` |
 | `GET /api/workiq/signals` | `workIqSignals` | `WorkIqGraphClient` |
-| `POST /api/webiq/search` | `regulatoryWebSearch` | `WebIqClient` |
 | `POST /api/notify/teams` | `notifyTeams` | `TeamsNotificationService` |
 | `POST /api/cases/decision` | `upsertCaseDecision` | closed-loop writeback |
 | `POST /api/reports/email` | `emailReport` | `O365ReportService` |
@@ -34,8 +33,6 @@ npm run build
 func start   # requires Azure Functions Core Tools v4
 ```
 Point the SPA at it: `VITE_BACKEND_API_URL=http://localhost:7071/api`.
-Set `VITE_WEBIQ_ENABLED=true` to exercise `/api/webiq/search`; without configured Web IQ
-credentials, the handler returns deterministic mock citations from the official-domain allow-list.
 
 ## Minimal deployment package
 

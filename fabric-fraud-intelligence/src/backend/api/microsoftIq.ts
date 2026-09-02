@@ -203,21 +203,20 @@ export async function askMicrosoftIq(question: string): Promise<IqResult> {
     confidence: IQ_CONFIDENCE[f],
   };
   const foundry = await askFoundryAgent(question);
-  const foundryItems = [
-    foundry.answer,
-    ...foundry.citations.map((citation) => `Source officielle · ${citation.title} · ${citation.url}`),
-  ];
+  const webItems = foundry.citations.length
+    ? foundry.citations.map((citation) => `${citation.title} · ${citation.url}`)
+    : t(`web.${f}`, { returnObjects: true }) as string[];
   return {
     fabric: fabricIqLive(question),
     work: t(`work.${f}`, { returnObjects: true }) as string[],
-    foundry: foundryItems,
-    web: t(`web.${f}`, { returnObjects: true }) as string[],
+    foundry: [foundry.answer],
+    web: webItems,
     synthesis: {
       ...synthesis,
       rationale: foundry.answer,
       findings: [
         ...synthesis.findings.filter((finding) => !finding.startsWith('Foundry IQ ·')),
-        ...foundry.citations.map((citation) => `Foundry IQ · ${citation.title}`),
+        ...foundry.citations.map((citation) => `Web IQ · ${citation.title}`),
       ],
     },
   };

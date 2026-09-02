@@ -12,9 +12,8 @@ import {
   type IqId,
   type IqResult,
 } from '@/backend/api/microsoftIq';
-import { isWorkIqEnabled, isWebIqEnabled } from '@/backend/config';
+import { isWorkIqEnabled } from '@/backend/config';
 import { workIq } from '@/backend/services/WorkIqGraphClient';
-import { webIq } from '@/backend/services/WebIqClient';
 import { askFoundryAgent } from '@/services/FoundryAgentClient';
 
 const isLive = (id: IqId): boolean =>
@@ -22,9 +21,7 @@ const isLive = (id: IqId): boolean =>
     ? true
     : id === 'work'
       ? isWorkIqEnabled()
-      : id === 'web'
-        ? isWebIqEnabled()
-        : true;
+      : true;
 const COLOR: Record<IqId, string> = { fabric: '#4f46e5', work: '#0d9488', foundry: '#7c3aed', web: '#ea580c' };
 const IQ_BY_ID = Object.fromEntries(IQS.map((i) => [i.id, i])) as Record<IqId, (typeof IQS)[number]>;
 
@@ -188,6 +185,7 @@ export function FraudIQ() {
   const [started, setStarted] = useState(false);
   const [phase, setPhase] = useState(0); // 1 work · 2 fabric · 3 foundry · 4 recommendation
   const [scenarioFoundry, setScenarioFoundry] = useState<string[]>([]);
+  const [scenarioWeb, setScenarioWeb] = useState<string[]>(scenario.web);
   const [scenarioError, setScenarioError] = useState<string | null>(null);
   const [scenarioRunning, setScenarioRunning] = useState(false);
   const timers = useRef<number[]>([]);
@@ -198,6 +196,7 @@ export function FraudIQ() {
     setStarted(true);
     setPhase(0);
     setScenarioError(null);
+    setScenarioWeb(scenario.web);
     setScenarioRunning(true);
     timers.current.push(window.setTimeout(() => setPhase(1), 600));
     timers.current.push(window.setTimeout(() => setPhase(2), 1200));
@@ -207,10 +206,10 @@ export function FraudIQ() {
         `${scenario.context.join('; ')}. Sépare les faits, les obligations réglementaires et les actions ` +
         'à soumettre à validation humaine. Cite uniquement des sources officielles.'
       );
-      setScenarioFoundry([
-        foundry.answer,
-        ...foundry.citations.map((citation) => `Source officielle · ${citation.title} · ${citation.url}`),
-      ]);
+      setScenarioFoundry([foundry.answer]);
+      if (foundry.citations.length) {
+        setScenarioWeb(foundry.citations.map((citation) => `${citation.title} · ${citation.url}`));
+      }
       setPhase(3);
       timers.current.push(window.setTimeout(() => setPhase(4), 500));
     } catch (error) {
@@ -246,15 +245,6 @@ export function FraudIQ() {
       if (isWorkIqEnabled()) {
         void workIq.getSignals(question, flavor(question), i18n.language).then((signals) => {
           if (signals && signals.length) setResult((current) => (current ? { ...current, work: signals } : current));
-        });
-      }
-      if (isWebIqEnabled()) {
-        void webIq.getCitations(question, i18n.language).then((citations) => {
-          if (citations && citations.length) {
-            setResult((current) => current
-              ? { ...current, web: citations.map((citation) => `${citation.title} — ${citation.url}`) }
-              : current);
-          }
         });
       }
     } catch (error) {
@@ -400,7 +390,7 @@ export function FraudIQ() {
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <IqColumn id="work" items={scenario.work} revealed={phase >= 1} />
               <IqColumn id="fabric" items={scenario.fabric} revealed={phase >= 2} />
-              <FoundryWebColumn foundry={scenarioFoundry} web={scenario.web} revealed={phase >= 3} />
+              <FoundryWebColumn foundry={scenarioFoundry} web={scenarioWeb} revealed={phase >= 3} />
             </div>
 
             {scenarioError && (

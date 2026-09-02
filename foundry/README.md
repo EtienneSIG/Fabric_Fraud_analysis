@@ -2,18 +2,16 @@
 
 This folder recreates the Foundry portion of the demo from source. It provisions
 the `esigfoundry` Foundry resource, the `FraudIQ` project, the model deployments, a
-delegated connection to the published Fabric Data Agent, an optional Key Vault +
-Web IQ connection, and the versioned `fraud-iq-orchestrator` prompt agent.
+delegated connection to the published Fabric Data Agent, and the versioned
+`fraud-iq-orchestrator` prompt agent.
 
-The agent uses up to two server-side tools:
+The agent uses one server-side tool:
 
-- **Web Search** retrieves current regulatory guidance with URL citations. The
+- **Web IQ** is the application experience for current regulatory grounding. It is
+  powered by Foundry's native **Web Search** tool and requires no separate API key.
+  Web Search retrieves current guidance with URL citations. The
   prompt limits accepted evidence to the official domains in `config.json`, and
   the validation script rejects citations outside that list. Always on.
-- **Web IQ** (Microsoft Web IQ, MCP tool `conn-web-iq`) is an optional, more
-  targeted regulatory grounding source. It only attaches once the real Web IQ API
-  key is stored in Key Vault — see [Enable Web IQ](#enable-web-iq) below. Until
-  then the agent keeps working on Web Search alone.
 
 The Fabric Data Agent connection remains provisioned for other consumers, but it is
 not attached to `fraud-iq-orchestrator` as a tool.
@@ -27,7 +25,6 @@ not attached to `fraud-iq-orchestrator` as a tool.
 - Access to the Fabric workspace, Data Agent, and its Lakehouse source.
 - A paid Fabric F2 or higher capacity and a published Fabric Data Agent.
 - Web Search enabled for the target Azure subscription.
-- To enable Web IQ: a Microsoft Web IQ subscription/API key.
 
 Web Search sends generated search queries outside the Azure compliance and geography
 boundary and incurs separate usage charges. Do not include customer or case data in
@@ -47,20 +44,16 @@ az login --tenant "<tenant-id>"
   -Location "eastus"
 ```
 
-The script is repeatable. Azure Resource Manager updates the infrastructure
-(including a `kv-esigfoundry` Key Vault used only to store the Web IQ key),
+The script is repeatable. Azure Resource Manager updates the infrastructure,
 `deploy_models.ps1` reconciles the deployments declared in `models.json`, `az rest`
-creates or updates the Fabric MCP connection and (once the Web IQ key is set) the
-Web IQ connection, a local `.venv` receives the pinned SDK range, and Foundry
-creates a new immutable agent version.
+creates or updates the Fabric MCP connection, a local `.venv` receives the pinned
+SDK range, and Foundry creates a new immutable agent version.
 
 Use `-ReplaceAgent` to delete the existing agent and recreate version 1. Use
-`-SkipInfrastructure` to retain the account, project, and Key Vault while
+`-SkipInfrastructure` to retain the account and project while
 reconciling models, the connections, and the agent. Use `-SkipModels` to leave
-existing model deployments untouched. Use `-SkipKeyVault` to skip Key Vault
-provisioning and the Web IQ connection lookup entirely (keeps the agent on Web
-Search only). Use `-SkipValidation` only when delegated Fabric consent cannot be
-completed during deployment.
+existing model deployments untouched. Use `-SkipValidation` only when the
+regulatory citation check cannot be completed during deployment.
 
 To deploy or verify only the model catalog:
 
@@ -76,36 +69,13 @@ different existing deployment is protected from replacement unless `-Force` is
 specified. The manifest includes the three GPT deployments, MAI Image, and the
 embedding deployment used by this project.
 
-## Enable Web IQ
+## Validate Web IQ
 
-Web IQ is prepared but stays off until a real API key is available — this repo has
-no access to your Foundry/Web IQ subscription, so finish this step yourself:
-
-1. Deploy (or redeploy) once to provision `kv-esigfoundry`:
-   ```powershell
-   & foundry/deploy_foundry.ps1 -SubscriptionId "<subscription-id>" -ResourceGroup "esig_demo"
-   ```
-   If you're not the Key Vault data-plane admin yet, add
-   `-KeyVaultAdminPrincipalId "<your-object-id>"` (or grant yourself **Key Vault
-   Secrets Officer** on `kv-esigfoundry` with `az role assignment create`).
-2. Store your Web IQ API key as the `webiq-api-key` secret:
-   ```powershell
-   az keyvault secret set --vault-name "kv-esigfoundry" --name "webiq-api-key" --value "<your-web-iq-api-key>"
-   ```
-3. Rerun the deployment (infra is idempotent, so `-SkipInfrastructure` is optional
-   but faster once the vault already exists):
-   ```powershell
-   & foundry/deploy_foundry.ps1 -SubscriptionId "<subscription-id>" -ResourceGroup "esig_demo" -SkipInfrastructure
-   ```
-   The script reads the secret, creates/updates the `conn-web-iq` connection, and
-   redeploys `fraud-iq-orchestrator` with the Web IQ MCP tool attached. Validation
-   (step 4 below) then exercises whichever tool the agent actually used.
-4. Confirm it worked: rerun without `-SkipValidation` (the default) and check the
-   printed `AGENT_ID`/`VALIDATION=PASS` output, or open the project in the Foundry
-   portal and inspect the `fraud-iq-orchestrator` tool list for `mcp`/`webiq`.
-
-If the secret is missing or empty, the script prints a warning and deploys with
-Web Search only — it never fails the deployment for this reason.
+Web IQ is enabled whenever the deployed agent contains the native `web_search`
+tool. No separate key or connection is required. Run the standard deployment
+without `-SkipValidation`; success prints `VALIDATION=PASS` and the official source
+URLs returned by the agent. You can also inspect `fraud-iq-orchestrator` in the
+Foundry portal and confirm that its tool list contains `web_search`.
 
 ## Fabric connection consent
 
@@ -125,9 +95,8 @@ secret. It is part of Fabric's permission enforcement.
 
 ## Configuration
 
-`config.json` versions the agent name, connection names (`fabricConnectionName`,
-`webIqConnectionName`), deployed model, Web IQ MCP URL/secret name, regulatory
-domain allow-list, and validation question. The default Fabric identifiers are the
+`config.json` versions the agent name, Fabric connection name, deployed model,
+regulatory domain allow-list, and validation question. The default Fabric identifiers are the
 deployed demo resources:
 
 - Workspace: `c57a379b-7e6d-481a-9c9b-662bb0bae77d`

@@ -6,7 +6,7 @@
 import { DataLakeServiceClient } from '@azure/storage-file-datalake';
 import { DefaultAzureCredential } from '@azure/identity';
 
-import { env, graphOBO, foundryToken, cognitiveToken, webIqToken, getSecret, logError, scrubPII } from './shared.js';
+import { env, graphOBO, foundryToken, cognitiveToken, logError, scrubPII } from './shared.js';
 
 export interface AgentRunRequest {
   agentName: string;
@@ -85,97 +85,6 @@ export async function workIqSignals(req: WorkIqRequest, userToken: string | null
     logError('workiq', e, { entityId: req.entityId });
     return { signals: [] };
   }
-}
-
-export interface RegulatoryWebSearchRequest {
-  query: string;
-  caseId?: string;
-  locale: string;
-}
-export interface RegulatoryCitation {
-  title: string;
-  url: string;
-  snippet: string;
-}
-export interface RegulatoryWebSearchReply {
-  citations: RegulatoryCitation[];
-  mode: 'mock' | 'webiq';
-}
-
-const WEBIQ_SEARCH_URL = 'https://api.microsoft.ai/v3/search/web';
-
-function officialDomains(): string[] {
-  return env('WEBIQ_OFFICIAL_DOMAINS')
-    .split(',')
-    .map((d) => d.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function hostAllowed(url: string, domains: string[]): boolean {
-  try {
-    const host = new URL(url).hostname.toLowerCase();
-    return domains.some((d) => host === d || host.endsWith(`.${d}`));
-  } catch {
-    return false;
-  }
-}
-
-/** Web IQ regulatory grounding: builds a domain-scoped, PII-free web query, restricts results to the
- *  official-domain allow-list server-side, and returns citations. Entra ID app-only token, API-key
- *  fallback, deterministic mock when neither credential is configured. Advisory only (HITL). */
-export async function regulatoryWebSearch(
-  req: RegulatoryWebSearchRequest,
-  _userToken: string | null
-): Promise<RegulatoryWebSearchReply> {
-  const domains = officialDomains();
-  const safeQuery = scrubPII(req.query).slice(0, 400);
-  const siteScope = domains.length ? ` (${domains.map((d) => `site:${d}`).join(' OR ')})` : '';
-  const query = `${safeQuery}${siteScope}`.slice(0, 1000);
-
-  const token = await webIqToken().catch(() => '');
-  const apiKey = token ? '' : await getSecret(env('WEBIQ_API_KEY_SECRET_NAME') || 'webiq-api-key').catch(() => '');
-  if (!token && !apiKey) return { citations: mockCitations(domains, req.locale), mode: 'mock' };
-
-  try {
-    const res = await fetch(WEBIQ_SEARCH_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : { 'x-apikey': apiKey }),
-      },
-      body: JSON.stringify({
-        query,
-        maxResults: 10,
-        language: req.locale,
-        contentFormat: 'passage',
-        maxLength: 1200,
-      }),
-    });
-    if (!res.ok) throw new Error(`Web IQ search failed: ${res.status}`);
-    const data = (await res.json()) as {
-      webResults?: { title?: string; url?: string; content?: string }[];
-    };
-    const citations = (data.webResults ?? [])
-      .filter((r) => r.url && (domains.length === 0 || hostAllowed(r.url, domains)))
-      .map((r) => ({ title: r.title ?? r.url ?? '', url: r.url ?? '', snippet: r.content ?? '' }));
-    return { citations, mode: 'webiq' };
-  } catch (e) {
-    logError('webiq', e, { caseId: req.caseId });
-    return { citations: mockCitations(domains, req.locale), mode: 'mock' };
-  }
-}
-
-// Deterministic offline stand-in so the Web IQ pillar renders without a configured credential.
-function mockCitations(domains: string[], locale: string): RegulatoryCitation[] {
-  const src = domains.length ? domains : ['eur-lex.europa.eu', 'acpr.banque-france.fr'];
-  const fr = locale.startsWith('fr');
-  return src.slice(0, 3).map((d) => ({
-    title: fr ? `Obligation réglementaire — ${d}` : `Regulatory obligation — ${d}`,
-    url: `https://${d}/`,
-    snippet: fr
-      ? 'Source officielle : détection et déclaration des opérations suspectes (référence simulée).'
-      : 'Official source: detection and reporting of suspicious activity (simulated reference).',
-  }));
 }
 
 export interface TeamsCaseCard {
