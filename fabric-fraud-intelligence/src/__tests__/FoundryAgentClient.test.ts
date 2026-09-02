@@ -4,6 +4,7 @@ import {
   getVersionedAgentEndpoint,
   parseFoundryResponse,
   requiresInteractiveAuth,
+  shouldRetryFoundryRequest,
 } from '@/services/FoundryAgentClient';
 
 describe('getVersionedAgentEndpoint', () => {
@@ -21,6 +22,16 @@ describe('requiresInteractiveAuth', () => {
 
   it('does not hide unrelated authentication failures', () => {
     expect(requiresInteractiveAuth({ errorCode: 'invalid_request' })).toBe(false);
+  });
+});
+
+describe('shouldRetryFoundryRequest', () => {
+  it('retries transient service and throttling responses', () => {
+    expect([408, 429, 500, 502, 503, 504].every(shouldRetryFoundryRequest)).toBe(true);
+  });
+
+  it('does not retry authentication or validation failures', () => {
+    expect([400, 401, 403, 404].some(shouldRetryFoundryRequest)).toBe(false);
   });
 });
 

@@ -11,6 +11,7 @@ const AGENT_ENDPOINT =
   'https://esigfoundry.services.ai.azure.com/api/projects/FraudIQ/agents/fraud-iq-orchestrator/endpoint/protocols/openai/responses';
 const AGENT_API_VERSION = '2025-11-15-preview';
 const SCOPES = ['https://ai.azure.com/.default'];
+const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
 const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
 
@@ -138,21 +139,42 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
   return { answer, citations };
 }
 
+export function shouldRetryFoundryRequest(status: number): boolean {
+  return RETRYABLE_STATUSES.has(status);
+}
+
+async function foundryError(response: Response): Promise<Error> {
+  const details = await response.json().catch(() => undefined) as {
+    error?: { message?: string; request_id?: string };
+    request_id?: string;
+  } | undefined;
+  const requestId = response.headers.get('x-request-id') ||
+    response.headers.get('apim-request-id') ||
+    details?.error?.request_id ||
+    details?.request_id;
+  const message = details?.error?.message || `Foundry IQ request failed (${response.status}).`;
+  return new Error(`${message} [HTTP ${response.status}${requestId ? ` · request ${requestId}` : ''}]`);
+}
+
 export async function askFoundryAgent(question: string): Promise<FoundryAgentResult> {
   const client = getApplication();
   const accessToken = await getAccessToken(client);
-  const response = await fetch(getVersionedAgentEndpoint(AGENT_ENDPOINT), {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ input: question }),
-  });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await fetch(getVersionedAgentEndpoint(AGENT_ENDPOINT), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ input: question }),
+    });
 
-  if (!response.ok) {
-    const details = await response.json().catch(() => undefined) as { error?: { message?: string } } | undefined;
-    throw new Error(details?.error?.message || `Foundry IQ request failed (${response.status}).`);
+    if (response.ok) return parseFoundryResponse(await response.json() as FoundryResponse);
+    if (attempt === 0 && shouldRetryFoundryRequest(response.status)) {
+      await new Promise((resolve) => window.setTimeout(resolve, 750));
+      continue;
+    }
+    throw await foundryError(response);
   }
-  return parseFoundryResponse(await response.json() as FoundryResponse);
+  throw new Error('Foundry IQ request failed.');
 }
