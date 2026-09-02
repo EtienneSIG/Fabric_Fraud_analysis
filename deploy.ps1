@@ -15,8 +15,12 @@
   Optional. Written to the SPA .env.public.local before `rayfin up` to wire the direct Foundry IQ
   agent (tenant/RG-agnostic). Absent -> the app keeps its safe mock path (no cross-tenant login).
 .PARAMETER ExistingFoundryProjectEndpoint  Reuse an existing Foundry project and its deployed models.
+.PARAMETER AppInsightsConnectionString  Optional. Written to the SPA .env.public.local as
+  VITE_APPINSIGHTS_CONNECTION_STRING so browser telemetry is wired at build time (the runtime
+  Settings > General field remains the no-rebuild alternative).
 .PARAMETER NameSuffix  Override the unique name suffix ('' reproduces legacy un-suffixed names for an existing env).
 .PARAMETER EnableFabricWorkspace  Create a BILLED Fabric capacity (F SKU) + workspace to host the app.
+.PARAMETER EnableFraudIqSpa  Manage the rayfin-fraudiq-spa Entra app registration in Terraform (enable_fraudiq_spa=true).
 .PARAMETER WhatIf     Verify + terraform plan only; no apply/publish/rayfin up.
 .PARAMETER Force      Skip confirmation prompts before real deployments.
 .PARAMETER SkipVerify Skip the build/test/validate gate (not recommended).
@@ -44,8 +48,10 @@ param(
   [string]$FunctionAppName,
   [string]$FoundryEndpoint,
   [string]$FabricDataAgentUrl,
+  [string]$AppInsightsConnectionString,
   [string]$NameSuffix,
   [switch]$EnableFabricWorkspace,
+  [switch]$EnableFraudIqSpa,
   [string]$FabricAdminMember,
 
   # Foundry IQ direct-agent wiring for the SPA build (all optional; tenant/RG-agnostic).
@@ -112,18 +118,20 @@ function Invoke-Native {
   if ($LASTEXITCODE -ne 0) { throw "$What failed (exit $LASTEXITCODE)." }
 }
 
-# Writes the provided VITE_FOUNDRY_* values to the SPA's .env.public.local so `rayfin up`'s
-# `vite build --mode public` wires the direct Foundry IQ agent. Only keys passed on the command line
-# are written; absent keys leave the app on its safe mock path (no cross-tenant login). This file is
-# mode-scoped, so it takes precedence over the .env.local that rayfin refreshes.
+# Writes the provided public build vars (VITE_FOUNDRY_* + App Insights) to the SPA's
+# .env.public.local so `rayfin up`'s `vite build --mode public` wires the direct Foundry IQ agent and
+# browser telemetry. Only keys passed on the command line are written; absent keys leave the app on
+# its safe mock path (no cross-tenant login). This file is mode-scoped, so it takes precedence over
+# the .env.local that rayfin refreshes.
 function Set-PublicEnv {
   $pairs = [ordered]@{
-    VITE_FOUNDRY_TENANT_ID      = $FoundryTenantId
-    VITE_FOUNDRY_CLIENT_ID      = $FoundryClientId
-    VITE_FOUNDRY_ACCOUNT        = $FoundryAccount
-    VITE_FOUNDRY_PROJECT        = $FoundryProject
-    VITE_FOUNDRY_AGENT_NAME     = $FoundryAgentName
-    VITE_FOUNDRY_AGENT_ENDPOINT = $FoundryAgentEndpoint
+    VITE_FOUNDRY_TENANT_ID              = $FoundryTenantId
+    VITE_FOUNDRY_CLIENT_ID              = $FoundryClientId
+    VITE_FOUNDRY_ACCOUNT                = $FoundryAccount
+    VITE_FOUNDRY_PROJECT                = $FoundryProject
+    VITE_FOUNDRY_AGENT_NAME             = $FoundryAgentName
+    VITE_FOUNDRY_AGENT_ENDPOINT         = $FoundryAgentEndpoint
+    VITE_APPINSIGHTS_CONNECTION_STRING  = $AppInsightsConnectionString
   }
   $provided = @($pairs.GetEnumerator() | Where-Object { $_.Value })
   if ($provided.Count -eq 0) { return }
@@ -134,7 +142,7 @@ function Set-PublicEnv {
     $lines += "$($p.Key)=$($p.Value)"
   }
   Set-Content -Path $envFile -Value $lines -Encoding UTF8
-  Write-Host ("  Wrote {0} Foundry var(s) to .env.public.local" -f $provided.Count) -ForegroundColor DarkGray
+  Write-Host ("  Wrote {0} public build var(s) to .env.public.local" -f $provided.Count) -ForegroundColor DarkGray
 }
 
 # Expected resource names (mirror infra/terraform/locals.tf naming convention).
@@ -199,7 +207,7 @@ function Test-IdentitiesAndRbac {
   $base = "/subscriptions/$Sub/resourceGroups/$rg/providers"
   $checks = @(
     @{ Role = 'Key Vault Secrets User'; Scope = "$base/Microsoft.KeyVault/vaults/$($n.KeyVault)" }
-    @{ Role = 'Storage Blob Data Owner'; Scope = "$base/Microsoft.Storage/storageAccounts/$($n.Storage)" }
+    @{ Role = 'Storage Blob Data Contributor'; Scope = "$base/Microsoft.Storage/storageAccounts/$($n.Storage)" }
     @{ Role = 'Azure Event Hubs Data Receiver'; Scope = "$base/Microsoft.EventHub/namespaces/$($n.EventHubNs)" }
   )
   foreach ($c in $checks) {
@@ -293,6 +301,9 @@ if ($Infra) {
         $tfVars += '-var=enable_fabric_workspace=true'
         $admin = if ($FabricAdminMember) { $FabricAdminMember } else { az account show --query user.name -o tsv }
         if ($admin) { $tfVars += "-var=fabric_admin_member=$admin" }
+      }
+      if ($EnableFraudIqSpa) {
+        $tfVars += '-var=enable_fraudiq_spa=true'
       }
       # -detailed-exitcode: 0 = no delta, 1 = error, 2 = changes pending.
       terraform plan -input=false -detailed-exitcode -out tfplan @tfVars | Tee-Object -Variable planLog

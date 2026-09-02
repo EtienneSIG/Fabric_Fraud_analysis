@@ -6,6 +6,7 @@ import {
 
 import i18n from '@/i18n/i18n';
 import { diag, startTimer } from '@/backend/diag';
+import type { ProbeResult } from '@/backend/services/probe';
 import { getAgentTimeoutMs } from '@/backend/services/generalSettings';
 import {
   getForceDemo,
@@ -266,5 +267,25 @@ export async function askFoundryAgent(question: string): Promise<FoundryAgentRes
     }
     diag('foundryiq', `direct agent failed after ${elapsed()}ms`, error, 'error');
     throw error;
+  }
+}
+
+/** On-demand connectivity probe for the direct SPA path: signs in and pings the agent so the
+ *  Settings "Test connection" button reflects the tenant / client / endpoint just entered, instead
+ *  of the backend-proxy path. Runs the real call (not the mock fallback) so live and unreachable
+ *  are distinguishable. */
+export async function probeFoundryDirect(): Promise<ProbeResult> {
+  if (getForceDemo()) return { state: 'off', detail: 'Force demo enabled' };
+  if (!foundryDirectConfigured()) return { state: 'off', detail: 'Direct agent not configured' };
+  const elapsed = startTimer();
+  try {
+    await withTimeout(runFoundryAgent('ping'), getAgentTimeoutMs());
+    const detail = `direct · ${elapsed()} ms`;
+    diag('foundryiq', `probe -> live (${detail})`, undefined, 'info');
+    return { state: 'live', detail };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    diag('foundryiq', `probe -> unreachable (${detail})`, error, 'error');
+    return { state: 'unreachable', detail };
   }
 }

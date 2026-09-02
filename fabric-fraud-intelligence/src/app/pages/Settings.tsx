@@ -22,7 +22,7 @@ import {
   getForceDemo,
   setForceDemo,
 } from '@/backend/services/foundrySettings';
-import { foundryDirectConfigured } from '@/services/FoundryAgentClient';import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
+import { foundryDirectConfigured, probeFoundryDirect } from '@/services/FoundryAgentClient';import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
 import {
   getAppInsightsConnectionString,
   setAppInsightsConnectionString,
@@ -334,7 +334,7 @@ function ConnectionProbe({ run }: { run: () => Promise<ProbeResult> }) {
       <button
         onClick={test}
         disabled={state === 'testing'}
-        className="rounded-md border border-gray-200 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700"
+        className="inline-flex items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-40 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
       >
         {state === 'testing' ? t('pages.settings.probe.testing') : t('pages.settings.probe.test')}
       </button>
@@ -532,7 +532,7 @@ function FoundryAgentCard() {
       </div>
       {custom && <p className="mt-2 text-xs text-amber-600">{t('pages.settings.foundry.overrideNote')}</p>}
       <p className="mt-2 text-xs text-gray-400">{t('pages.settings.foundry.connectionNote')}</p>
-      <ConnectionProbe run={() => foundryAgent.probe()} />
+      <ConnectionProbe run={() => (foundryDirectConfigured() ? probeFoundryDirect() : foundryAgent.probe())} />
     </section>
   );
 }
