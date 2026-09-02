@@ -197,13 +197,15 @@ export function Settings() {
   );
 }
 
-// Shared form styling so the Settings forms stay consistent (inputs + primary/ghost buttons).
+// Shared form styling. NOTE: the dark theme auto-inverts the gray ramp via CSS variables
+// (see main.css), so use light-mode gray classes only — adding dark: gray variants double-inverts
+// (dark text on dark bg). Non-gray accents (indigo/emerald) still need their own dark: variants.
 const FIELD_INPUT =
-  'w-full min-w-0 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100';
+  'w-full min-w-0 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30';
 const BTN_PRIMARY =
   'shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-40';
 const BTN_GHOST =
-  'shrink-0 rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800';
+  'shrink-0 rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-not-allowed disabled:opacity-40';
 
 function AgentsTab() {
   return (
@@ -524,7 +526,7 @@ function FoundryAgentCard() {
         </button>
       </div>
 
-      <label className="mb-3 flex max-w-lg items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+      <label className="mb-3 flex max-w-lg items-center gap-2 text-sm text-gray-600">
         <input
           type="checkbox"
           checked={demo}
