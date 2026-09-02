@@ -267,21 +267,24 @@ export function FraudIQ() {
       {/* The three IQ surfaces */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {IQS.filter((iq) => iq.id === 'fabric' || iq.id === 'work').map((iq) => (
-          <section key={iq.id} className="ffi-card p-4 border-t-4" style={{ borderTopColor: iq.color }}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold" style={{ color: iq.color }}>
-                {iq.name}
-              </h3>
-              <Badge live={isLive(iq.id)} />
+          <section key={iq.id} className="ffi-card overflow-hidden p-0">
+            <div className="h-1.5" style={{ backgroundColor: iq.color }} />
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold" style={{ color: iq.color }}>
+                  {iq.name}
+                </h3>
+                <Badge live={isLive(iq.id)} />
+              </div>
+              <p className="text-xs font-medium text-gray-500">{t(`fraudIqPage.iq.${iq.id}.tagline`)}</p>
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                {t(`fraudIqPage.iq.${iq.id}.description`)}
+              </p>
             </div>
-            <p className="text-xs font-medium text-gray-500">{t(`fraudIqPage.iq.${iq.id}.tagline`)}</p>
-            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
-              {t(`fraudIqPage.iq.${iq.id}.description`)}
-            </p>
           </section>
         ))}
         <section className="ffi-card overflow-hidden p-0">
-          <div className="h-1 bg-gradient-to-r from-[#7c3aed] to-[#ea580c]" />
+          <div className="h-1.5 bg-gradient-to-r from-[#7c3aed] to-[#ea580c]" />
           <div className="p-4">
             <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <h3 className="text-sm font-bold">
