@@ -114,6 +114,25 @@ export const flavor = (q: string): IqFlavor => {
 
 const euro = (n: number) => `€${Math.round(n).toLocaleString('en-US')}`;
 
+// Canonical official-source portals for Web IQ citations → real links that open in a new tab.
+const OFFICIAL_SOURCES: Record<string, string> = {
+  'EUR-Lex': 'https://eur-lex.europa.eu',
+  'Legifrance': 'https://www.legifrance.gouv.fr',
+  'EBA': 'https://www.eba.europa.eu',
+  'ACPR': 'https://acpr.banque-france.fr/en',
+  'AMF': 'https://www.amf-france.org/en',
+  'FATF': 'https://www.fatf-gafi.org',
+  'TRACFIN': 'https://www.economie.gouv.fr/tracfin',
+};
+const SOURCE_ORDER = ['EUR-Lex', 'Legifrance', 'EBA', 'ACPR', 'AMF', 'FATF', 'TRACFIN'] as const;
+
+// Append the official source URL so IqColumn renders the citation as a new-tab link.
+function withOfficialLink(item: string): string {
+  if (/https?:\/\/\S+$/.test(item)) return item;
+  const key = SOURCE_ORDER.find((k) => item.includes(k));
+  return key ? `${item} ${OFFICIAL_SOURCES[key]}` : item;
+}
+
 /**
  * LIVE Fabric IQ grounding — computed from the actual dataset that is
  * materialized in fraud_lakehouse and bound to the fraud_ontology. Resolves an
@@ -213,7 +232,7 @@ export async function askMicrosoftIq(question: string): Promise<IqResult> {
     fabric: fabricIqLive(question),
     work: t(`work.${f}`, { returnObjects: true }) as string[],
     foundry: foundryItems,
-    web: t(`web.${f}`, { returnObjects: true }) as string[],
+    web: (t(`web.${f}`, { returnObjects: true }) as string[]).map(withOfficialLink),
     degraded: foundry.degraded,
     synthesis: {
       ...synthesis,
@@ -282,7 +301,7 @@ export function cardFraudScenario(): CardFraudScenario {
     work: t('scenario.work', { returnObjects: true }) as string[],
     fabric,
     foundry: t('scenario.foundry', { returnObjects: true }) as string[],
-    web: t('scenario.web', { returnObjects: true }) as string[],
+    web: (t('scenario.web', { returnObjects: true }) as string[]).map(withOfficialLink),
     recommendation: {
       confidence: 0.92,
       actions: t('scenario.recommendationActions', { returnObjects: true }) as string[],
