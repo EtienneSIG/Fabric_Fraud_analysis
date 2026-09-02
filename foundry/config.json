@@ -2,6 +2,9 @@
   "agentName": "fraud-iq-orchestrator",
   "fabricConnectionName": "fraud-fabric-data-agent",
   "modelDeploymentName": "gpt-5.6-terra",
+  "webIqConnectionName": "conn-web-iq",
+  "webIqMcpUrl": "https://api.microsoft.ai/v3/mcp",
+  "webIqSecretName": "webiq-api-key",
   "regulatoryDomains": [
     "acpr.banque-france.fr",
     "amf-france.org",

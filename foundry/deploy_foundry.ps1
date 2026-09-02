@@ -9,7 +9,12 @@ param(
   [switch]$ReplaceAgent,
   [switch]$SkipInfrastructure,
   [switch]$SkipModels,
-  [switch]$SkipValidation
+  [switch]$SkipValidation,
+  # --- Web IQ (regulatory MCP grounding). Off by default: skipped gracefully until the real
+  # Web IQ API key is stored in Key Vault. See foundry/README.md for the one-time setup.
+  [string]$KeyVaultName = "kv-esigfoundry",
+  [switch]$SkipKeyVault,
+  [string]$KeyVaultAdminPrincipalId = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,6 +33,7 @@ if (-not $SkipInfrastructure) {
     az group create --name $ResourceGroup --location $Location --output none
   }
 
+  $deployKeyVaultFlag = if ($SkipKeyVault) { "false" } else { "true" }
   az deployment group create `
     --name "fraud-iq-foundry" `
     --resource-group $ResourceGroup `
@@ -36,6 +42,9 @@ if (-not $SkipInfrastructure) {
       foundryAccountName=$FoundryAccountName `
       foundryProjectName=$FoundryProjectName `
       location=$Location `
+      deployKeyVault=$deployKeyVaultFlag `
+      keyVaultName=$KeyVaultName `
+      keyVaultAdminPrincipalId=$KeyVaultAdminPrincipalId `
     --output none
 }
 
@@ -71,6 +80,45 @@ try {
   Remove-Item $bodyFile -ErrorAction SilentlyContinue
 }
 
+# Optional Web IQ (regulatory MCP) connection. Stays off (mock/web-search-only agent) until the
+# real key is stored in Key Vault; nothing here fails the deployment when it's missing yet.
+$webIqConfig = Get-Content $configPath -Raw | ConvertFrom-Json
+$webIqConnectionName = $webIqConfig.webIqConnectionName
+$webIqMcpUrl = $webIqConfig.webIqMcpUrl
+$webIqSecretName = $webIqConfig.webIqSecretName
+$webIqConnectionId = $null
+
+if (-not $SkipKeyVault) {
+  $webIqKey = az keyvault secret show --vault-name $KeyVaultName --name $webIqSecretName --query value -o tsv 2>$null
+  if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($webIqKey)) {
+    Write-Host "Ensuring connection $webIqConnectionName ..."
+    $webIqConnectionId = "$projectId/connections/$webIqConnectionName"
+    $webIqConnectionUri = "https://management.azure.com$webIqConnectionId" + "?api-version=2025-10-01-preview"
+    $webIqConnectionBody = @{
+      properties = @{
+        category    = "CustomKeys"
+        authType    = "ApiKey"
+        target      = $webIqMcpUrl
+        credentials = @{ keys = @{ "x-apikey" = $webIqKey } }
+        isSharedToAll = $true
+      }
+    } | ConvertTo-Json -Depth 10
+
+    $webIqBodyFile = Join-Path ([IO.Path]::GetTempPath()) "fraud-iq-webiq-connection.json"
+    try {
+      Set-Content -Path $webIqBodyFile -Value $webIqConnectionBody -Encoding utf8NoBOM
+      az rest --method put --uri $webIqConnectionUri --body "@$webIqBodyFile" --output none
+    } finally {
+      Remove-Item $webIqBodyFile -ErrorAction SilentlyContinue
+      # Clear the secret from memory as soon as it's no longer needed.
+      $webIqKey = $null
+      $webIqConnectionBody = $null
+    }
+  } else {
+    Write-Warning "Web IQ secret '$webIqSecretName' not found in Key Vault '$KeyVaultName'. Deploying fraud-iq-orchestrator with web search only; see foundry/README.md to enable Web IQ."
+  }
+}
+
 if (-not (Test-Path $pythonPath)) {
   python -m venv $venvPath
 }
@@ -82,6 +130,7 @@ $agentArgs = @(
   "--config", $configPath
 )
 if ($ReplaceAgent) { $agentArgs += "--replace" }
+if ($webIqConnectionId) { $agentArgs += @("--webiq-connection-id", $webIqConnectionId, "--webiq-mcp-url", $webIqMcpUrl) }
 & $pythonPath @agentArgs
 if ($LASTEXITCODE -ne 0) { throw "Foundry agent deployment failed." }
 
@@ -97,3 +146,4 @@ if (-not $SkipValidation) {
 "FABRIC_CONNECTION_ID=$connectionId"
 "FABRIC_DATA_AGENT_ENDPOINT=$fabricEndpoint"
 "TENANT_ID=$tenantId"
+if ($webIqConnectionId) { "WEBIQ_CONNECTION_ID=$webIqConnectionId" }
