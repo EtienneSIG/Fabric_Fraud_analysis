@@ -65,6 +65,30 @@ deployed by PowerShell + REST, and an Azure support layer provisioned by Terrafo
 - PowerShell deploy scripts: mind the pitfalls recorded in user memory (`-var=$x` no expansion,
   `az` errors via `$LASTEXITCODE`, HTTP error body in `$_.ErrorDetails.Message`).
 
+## Gotchas — don't re-learn these
+- **Two Foundry clients, don't confuse them.** `src/backend/services/FoundryAgentClient.ts` is the
+  backend-proxy path (`isFoundryEnabled()` → `/api/agents/run`, needs `VITE_FOUNDRY_ENABLED` + a
+  reachable backend). `src/services/FoundryAgentClient.ts` is the **direct SPA** path (MSAL popup +
+  `askFoundryAgent`, gated by `foundryDirectConfigured()` reading the tenant/client/endpoint the
+  analyst types in **Settings › Agents**). A Settings "Test connection" probe MUST hit the same path
+  the tab configures (direct → `probeFoundryDirect()`, else the backend `foundryAgent.probe()`),
+  otherwise it always reports mock.
+- **Simulated/staggered loaders must advance monotonically.** Phase timers scheduled *before* an
+  awaited call (e.g. `setTimeout(setPhase(1), 600)`) roll the phase **backward** when the mock
+  resolves in ~0 ms, so later columns never reveal (stuck loader). Use `setPhase(p => Math.max(p, n))`.
+- **RBAC stays coupled.** The Function-MI storage role in `infra/terraform/main.tf`
+  (`azurerm_role_assignment.func_storage`, now `Storage Blob Data Contributor`) and the
+  `Test-IdentitiesAndRbac` check in `deploy.ps1` must change **together**, or the self-heal flags a
+  false "MISSING" and re-creates the old role.
+- **No root-level Node manifest.** The Rayfin CLI runs via `npx` from `fabric-fraud-intelligence/`.
+  A `package.json`/`package-lock.json` at the repo **root** is a stray `npm`-at-root artifact —
+  gitignored (`/package.json`, `/package-lock.json`), never commit it.
+- **Run the SPA from its folder.** `npm run dev` / `rayfin up` only work from
+  `fabric-fraud-intelligence/`, never the repo root (root vite runs fail).
+- **Build-time vs runtime config.** SPA `VITE_*` (incl. `VITE_APPINSIGHTS_CONNECTION_STRING`,
+  `VITE_FOUNDRY_*`) are wired by `deploy.ps1 Set-PublicEnv` into `.env.public.local`; the same knobs
+  have a no-rebuild runtime twin in **Settings › Général / Agents** (localStorage). Keep both paths.
+
 ## Demo assets — keep screenshots & slide deck in sync (MANDATORY)
 When a change adds, removes, or visibly alters a UI screen/feature, you MUST update the demo
 assets in the same change so the guided demo stays accurate:
