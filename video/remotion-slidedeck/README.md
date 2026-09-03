@@ -11,12 +11,12 @@ Fraud Intelligence guided demo using the README screenshots, with a presenter cu
 - `architecture.mmd` + `public/architecture.png` — the real deployed architecture (Mermaid source +
   rendered image). Regenerate with `cd ../../fabric-fraud-intelligence && npm run render:architecture`
   (Playwright + Mermaid). Edit `architecture.mmd` in [mermaid.live](https://mermaid.live) or draw.io.
-- `public/fraud-iq-run.mp4` — a real screen capture of the Fraud IQ agentic run (see below).
-- `public/fraud-iq-live.mp4` — **placeholder** (static poster) for the live Foundry answer; replace
-  it with your Scout recording (same filename) — the slide shows a `● REC · Scout à venir` badge until then.
+- `public/fraud-iq-run.mp4` — a screen capture of the Fraud IQ agentic run (demo mode).
+- `public/fraud-iq-live.mp4` — a real signed-in live capture (window chrome cropped, grounding wait
+  sped up) ending on the Foundry IQ + Web IQ **Live** answer with cited EU obligations.
 
 A slide plays a clip instead of a still when its `slides.ts` entry has a `video:` field
-(`placeholder: true` marks a Scout stand-in; `frames:` gives the clip room to play).
+(`frames:` gives the clip room to play; `placeholder: true` would mark a stand-in awaiting a recording).
 
 ## Prerequisites
 - Node.js 18+ and npm.
