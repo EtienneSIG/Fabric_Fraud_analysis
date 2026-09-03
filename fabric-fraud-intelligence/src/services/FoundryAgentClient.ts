@@ -37,6 +37,9 @@ const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 const MAX_AGENT_ATTEMPTS = 3;
 const RETRY_BASE_MS = 750;
 const RETRY_MAX_MS = 8_000;
+// Web IQ is an approval-gated MCP tool (default require_approval=always): the first response is an
+// mcp_approval_request with no message, so we auto-approve and continue the turn up to this many rounds.
+const MAX_MCP_ROUNDS = 3;
 // gpt-5.6-terra is a reasoning model: reasoning + web_search tokens count against this budget, so it
 // must be large enough to leave room for the final message (1200 left the response `incomplete`).
 const OUTPUT_TOKEN_LIMIT = 6000;
@@ -95,10 +98,14 @@ interface FoundryContent {
 
 interface FoundryOutput {
   type?: string;
+  id?: string;
+  server_label?: string;
+  name?: string;
   content?: FoundryContent[];
 }
 
 interface FoundryResponse {
+  id?: string;
   output?: FoundryOutput[];
   output_text?: string;
 }
@@ -254,7 +261,7 @@ async function getAccessToken(client: PublicClientApplication): Promise<string> 
   }
 }
 
-export function parseFoundryResponse(response: FoundryResponse): FoundryAgentResult {
+export function extractFoundryAnswer(response: FoundryResponse): FoundryAgentResult {
   const contents = (response.output ?? []).flatMap((item) => item.content ?? []);
   const answer = response.output_text?.trim() || contents
     .filter((content) => content.type === 'output_text' && content.text)
@@ -272,8 +279,13 @@ export function parseFoundryResponse(response: FoundryResponse): FoundryAgentRes
     }))
     .filter((citation, index, all) => all.findIndex((item) => item.url === citation.url) === index);
 
-  if (!answer) throw new Error('Foundry IQ returned an empty response.');
   return { answer, citations };
+}
+
+export function parseFoundryResponse(response: FoundryResponse): FoundryAgentResult {
+  const result = extractFoundryAnswer(response);
+  if (!result.answer) throw new Error('Foundry IQ returned an empty response.');
+  return result;
 }
 
 class AgentTimeoutError extends Error {}
@@ -297,14 +309,10 @@ async function acquireAgentToken(): Promise<string> {
   return getAccessToken(getApplication());
 }
 
-// The agent HTTP round-trip only — safe to cap with a timeout. Retries transient statuses (incl. 429)
-// with jittered backoff + Retry-After, bounded by the withTimeout cap.
-async function callAgent(question: string, accessToken: string, language?: string): Promise<FoundryAgentResult> {
-  const endpoint = getVersionedAgentEndpoint(effectiveAgentEndpoint());
-  const host = new URL(endpoint).host;
-  diag('foundryiq', `direct agent call → ${host} (agent ${effectiveAgentName()})`, undefined, 'info');
-  const body = JSON.stringify(buildFoundryRequest(question, language));
-
+// One POST to the responses endpoint, retrying transient statuses (incl. 429) with jittered backoff
+// + Retry-After. Bounded by the withTimeout cap around callAgent.
+async function sendResponses(endpoint: string, accessToken: string, payload: unknown): Promise<FoundryResponse> {
+  const body = JSON.stringify(payload);
   for (let attempt = 0; attempt < MAX_AGENT_ATTEMPTS; attempt++) {
     const fetchElapsed = startTimer();
     const response = await fetch(endpoint, {
@@ -316,12 +324,7 @@ async function callAgent(question: string, accessToken: string, language?: strin
       body,
     });
     diag('foundryiq', `agent HTTP ${response.status} in ${fetchElapsed()}ms`, undefined, response.ok ? 'info' : 'error');
-
-    if (response.ok) {
-      const result = parseFoundryResponse(await response.json() as FoundryResponse);
-      diag('foundryiq', `parsed answer (${result.answer.length} chars, ${result.citations.length} citations)`, undefined, 'info');
-      return result;
-    }
+    if (response.ok) return await response.json() as FoundryResponse;
     if (attempt < MAX_AGENT_ATTEMPTS - 1 && shouldRetryFoundryRequest(response.status)) {
       const wait = foundryRetryDelayMs(response.headers.get('retry-after'), attempt);
       diag('foundryiq', `HTTP ${response.status} → retry ${attempt + 1}/${MAX_AGENT_ATTEMPTS - 1} in ${Math.round(wait)}ms`, undefined, 'warn');
@@ -332,6 +335,37 @@ async function callAgent(question: string, accessToken: string, language?: strin
     throw new Error(details?.error?.message || `Foundry IQ request failed (${response.status}).`);
   }
   throw new Error('Foundry IQ request failed.');
+}
+
+// The agent round-trip — safe to cap with a timeout. Auto-approves the approval-gated Web IQ MCP
+// tool: an mcp_approval_request (no message) is answered with an mcp_approval_response so the agent
+// runs the tool and returns the final answer, all within the same withTimeout cap.
+async function callAgent(question: string, accessToken: string, language?: string): Promise<FoundryAgentResult> {
+  const endpoint = getVersionedAgentEndpoint(effectiveAgentEndpoint());
+  const host = new URL(endpoint).host;
+  diag('foundryiq', `direct agent call → ${host} (agent ${effectiveAgentName()})`, undefined, 'info');
+
+  let payload: Record<string, unknown> = buildFoundryRequest(question, language);
+  for (let round = 0; round < MAX_MCP_ROUNDS; round++) {
+    const raw = await sendResponses(endpoint, accessToken, payload);
+    const result = extractFoundryAnswer(raw);
+    if (result.answer) {
+      diag('foundryiq', `parsed answer (${result.answer.length} chars, ${result.citations.length} citations)`, undefined, 'info');
+      return result;
+    }
+    const approvals = (raw.output ?? []).filter((o) => o.type === 'mcp_approval_request' && o.id);
+    if (approvals.length && raw.id) {
+      diag('foundryiq', `auto-approving ${approvals.length} MCP call(s): ${approvals.map((a) => `${a.server_label ?? '?'}/${a.name ?? '?'}`).join(', ')}`, undefined, 'info');
+      payload = {
+        previous_response_id: raw.id,
+        input: approvals.map((a) => ({ type: 'mcp_approval_response', approval_request_id: a.id, approve: true })),
+        max_output_tokens: OUTPUT_TOKEN_LIMIT,
+      };
+      continue;
+    }
+    break; // completed with no message and nothing to approve
+  }
+  throw new Error('Foundry IQ returned an empty response.');
 }
 
 export async function askFoundryAgent(question: string, language?: string): Promise<FoundryAgentResult> {
