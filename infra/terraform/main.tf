@@ -400,6 +400,18 @@ resource "azuread_application" "fraudiq_spa" {
   single_page_application {
     redirect_uris = var.fraudiq_spa_redirect_uris
   }
+
+  # Delegated permission so the signed-in analyst can call the Foundry agent responses API
+  # (aud https://ai.azure.com). Without it the token request fails AADSTS650057 (invalid resource).
+  # Consent is interactive: the SPA requests the specific user_impersonation scope (not .default),
+  # so the analyst consents at sign-in — the deploying principal usually can't admin-consent for the org.
+  required_resource_access {
+    resource_app_id = "18a66f5f-dbdf-4c17-9dd7-1634712a9cbe" # Azure Machine Learning Services (https://ai.azure.com)
+    resource_access {
+      id   = "1a7925b5-f871-417a-9b8b-303f9f29fa10" # user_impersonation (delegated)
+      type = "Scope"
+    }
+  }
 }
 
 resource "azuread_service_principal" "fraudiq_spa" {
