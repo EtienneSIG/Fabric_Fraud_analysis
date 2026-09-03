@@ -1,4 +1,4 @@
-import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Img, OffthreadVideo, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { SlideData, THEME, BRAND } from './slides';
 
 export const Slide: React.FC<{ data: SlideData; index: number; total: number }> = ({ data, index, total }) => {
@@ -49,10 +49,11 @@ export const Slide: React.FC<{ data: SlideData; index: number; total: number }> 
           </div>
         </div>
 
-        {/* Right: screenshot */}
+        {/* Right: screenshot or live capture */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div
             style={{
+              position: 'relative',
               width: '100%',
               borderRadius: 18,
               overflow: 'hidden',
@@ -61,10 +62,21 @@ export const Slide: React.FC<{ data: SlideData; index: number; total: number }> 
               background: THEME.panel,
             }}
           >
-            <Img
-              src={staticFile(data.image)}
-              style={{ width: '100%', display: 'block', transform: `scale(${zoom})`, transformOrigin: 'center' }}
-            />
+            {data.video ? (
+              <>
+                {/* Poster behind the clip so the first frame is never black. */}
+                <Img src={staticFile(data.image)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.5)' }} />
+                <OffthreadVideo src={staticFile(data.video)} muted style={{ position: 'relative', width: '100%', display: 'block' }} />
+                <span style={{ ...capsule, backgroundColor: data.placeholder ? 'rgba(245,158,11,0.92)' : 'rgba(16,185,129,0.92)' }}>
+                  {data.placeholder ? '● REC · Scout à venir' : '▶ Capture live'}
+                </span>
+              </>
+            ) : (
+              <Img
+                src={staticFile(data.image)}
+                style={{ width: '100%', display: 'block', transform: `scale(${zoom})`, transformOrigin: 'center' }}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -82,5 +94,17 @@ const chip: React.CSSProperties = {
   fontWeight: 700,
   letterSpacing: 1,
   padding: '8px 14px',
+  borderRadius: 999,
+};
+
+const capsule: React.CSSProperties = {
+  position: 'absolute',
+  top: 16,
+  right: 16,
+  fontSize: 15,
+  fontWeight: 800,
+  letterSpacing: 0.5,
+  color: '#0b1220',
+  padding: '7px 13px',
   borderRadius: 999,
 };

@@ -2,7 +2,10 @@
 // Each slide maps to a README screenshot in ./public and a presenter cue.
 
 export type SlideData = {
-  image: string; // filename in public/
+  image: string; // filename in public/ — the still, and the poster behind a video
+  video?: string; // filename in public/ — when set, the slide plays this clip instead of the still
+  placeholder?: boolean; // true = the clip is a stand-in awaiting a Scout recording (shows a REC badge)
+  frames?: number; // per-slide duration override (defaults to SLIDE_FRAMES); give video slides room to play
   screen: string; // product screen name
   title: string;
   caption: string; // what the screen shows
@@ -87,6 +90,25 @@ export const slides: SlideData[] = [
     say: "Le clou : le scénario temps réel 90 min → 30 s. Un seul prompt agentique combine Fabric IQ, Work IQ, Foundry IQ et Web IQ (obligations réglementaires citées).",
   },
   {
+    image: 'fraud-iq.png',
+    video: 'fraud-iq-run.mp4',
+    frames: 10 * FPS,
+    screen: 'Fraud IQ · live run',
+    title: 'Watch the four IQs resolve',
+    caption: 'The agentic scenario runs end to end — Work IQ, Fabric IQ, Foundry IQ & Web IQ reveal in sequence; each column is badged Live or Simulated only once it resolves.',
+    say: "En direct : je lance l'investigation agentique. Les colonnes se révèlent une à une — le badge Live/Simulated n'apparaît qu'à la fin de chaque IQ.",
+  },
+  {
+    image: 'fraud-iq.png',
+    video: 'fraud-iq-live.mp4',
+    placeholder: true,
+    frames: 8 * FPS,
+    screen: 'Fraud IQ · Foundry live',
+    title: 'Foundry IQ — live agent answer',
+    caption: 'Placeholder — Scout recording in progress: the real Foundry agent, grounded on Fabric + official regulatory sources, returns a cited, human-approvable answer.',
+    say: "(À enregistrer via Scout) La réponse live de l'agent Foundry, ancrée sur Fabric et les sources réglementaires officielles, avec citations et validation humaine.",
+  },
+  {
     image: 'settings.png',
     screen: 'Settings & Governance',
     title: 'Roles, audit trail & agents',
@@ -95,4 +117,5 @@ export const slides: SlideData[] = [
   },
 ];
 
-export const totalFrames = TITLE_FRAMES + slides.length * SLIDE_FRAMES + END_FRAMES;
+export const totalFrames =
+  TITLE_FRAMES + slides.reduce((n, s) => n + (s.frames ?? SLIDE_FRAMES), 0) + END_FRAMES;

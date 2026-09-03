@@ -8,6 +8,12 @@ Fraud Intelligence guided demo using the README screenshots, with a presenter cu
 - `src/slides.ts` — the demo flow (order, titles, captions, presenter cues) and timing.
 - `src/Slide.tsx`, `src/Chrome.tsx`, `src/Deck.tsx` — the deck rendering (fade + Ken Burns + progress bar).
 - `public/*.png` — the 9 product screenshots (copied from `docs/images/`).
+- `public/fraud-iq-run.mp4` — a real screen capture of the Fraud IQ agentic run (see below).
+- `public/fraud-iq-live.mp4` — **placeholder** (static poster) for the live Foundry answer; replace
+  it with your Scout recording (same filename) — the slide shows a `● REC · Scout à venir` badge until then.
+
+A slide plays a clip instead of a still when its `slides.ts` entry has a `video:` field
+(`placeholder: true` marks a Scout stand-in; `frames:` gives the clip room to play).
 
 ## Prerequisites
 - Node.js 18+ and npm.
@@ -73,3 +79,23 @@ Copy-Item docs\images\*.png video\remotion-slidedeck\public\ -Force
 
 > Downloadable & portable: the `public/` folder already contains the images, so the
 > whole `remotion-slidedeck/` folder works on its own (just `npm install`).
+
+## Record the Fraud IQ run (self-contained, no Scout needed)
+`public/fraud-iq-run.mp4` is captured from the demo app with Playwright + ffmpeg, the same way as
+the screenshots. It records the agentic scenario revealing the four IQ columns (the Live/Simulated
+pill lands at the end of each):
+```powershell
+# 1. Start the demo app (shell A)
+cd ..\..\fabric-fraud-intelligence
+npm run dev:demo                                   # http://localhost:5173
+
+# 2. Record + transcode (shell B) — writes public/fraud-iq-run.mp4
+cd ..\..\fabric-fraud-intelligence
+npm run capture:fraud-iq -- http://localhost:5173
+```
+The capture script is `fabric-fraud-intelligence/scripts/capture-fraud-iq-video.mjs`.
+
+## Drop in a Scout recording (the live Foundry answer)
+Record the **live** Foundry IQ answer with Scout, export it to MP4 (H.264, 1600×1000), and save it as
+`public/fraud-iq-live.mp4` (overwrite the placeholder). Then flip its slide off placeholder mode in
+`src/slides.ts` by removing `placeholder: true` so the `▶ Capture live` badge shows.

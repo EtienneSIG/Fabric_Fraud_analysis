@@ -11,7 +11,7 @@ export const Deck: React.FC = () => {
           <TitleSlide />
         </Series.Sequence>
         {slides.map((s, i) => (
-          <Series.Sequence key={s.image} durationInFrames={SLIDE_FRAMES}>
+          <Series.Sequence key={i} durationInFrames={s.frames ?? SLIDE_FRAMES}>
             <Slide data={s} index={i} total={slides.length} />
           </Series.Sequence>
         ))}
