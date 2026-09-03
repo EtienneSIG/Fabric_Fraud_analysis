@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildFoundryRequest,
+  foundryRetryDelayMs,
   getVersionedAgentEndpoint,
   normalizeFoundryLocale,
   parseFoundryResponse,
@@ -34,6 +35,21 @@ describe('shouldRetryFoundryRequest', () => {
 
   it('does not retry authentication or validation failures', () => {
     expect([400, 401, 403, 404].some(shouldRetryFoundryRequest)).toBe(false);
+  });
+});
+
+describe('foundryRetryDelayMs', () => {
+  it('honors a numeric Retry-After (seconds), capped at 8s', () => {
+    expect(foundryRetryDelayMs('2', 0)).toBe(2000);
+    expect(foundryRetryDelayMs('30', 0)).toBe(8000); // capped
+  });
+
+  it('falls back to bounded jittered backoff when no Retry-After is present', () => {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const d = foundryRetryDelayMs(null, attempt);
+      expect(d).toBeGreaterThan(0);
+      expect(d).toBeLessThanOrEqual(8000);
+    }
   });
 });
 

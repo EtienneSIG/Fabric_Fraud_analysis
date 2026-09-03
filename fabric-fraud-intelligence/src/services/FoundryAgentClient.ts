@@ -31,6 +31,12 @@ const AGENT_API_VERSION = '2025-11-15-preview';
 // admin consent is pre-granted for the SPA. Yields aud=https://ai.azure.com; RBAC gates the call.
 const SCOPES = ['https://ai.azure.com/user_impersonation'];
 const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+// Web IQ runs the model's web_search tool and the account's model deployment is throttled (429s
+// dominate under load), so the agent call retries transient statuses with jittered exponential
+// backoff and honors a Retry-After header. Total wait stays bounded by the withTimeout cap.
+const MAX_AGENT_ATTEMPTS = 3;
+const RETRY_BASE_MS = 750;
+const RETRY_MAX_MS = 8_000;
 // gpt-5.6-terra is a reasoning model: reasoning + web_search tokens count against this budget, so it
 // must be large enough to leave room for the final message (1200 left the response `incomplete`).
 const OUTPUT_TOKEN_LIMIT = 6000;
@@ -119,6 +125,19 @@ export type FoundryLocale = 'en' | 'fr' | 'es';
 
 export function shouldRetryFoundryRequest(status: number): boolean {
   return RETRYABLE_STATUSES.has(status);
+}
+
+// Delay before the next attempt: honor Retry-After (seconds or HTTP-date) when the service sends it,
+// else jittered exponential backoff. Capped so a burst of 429s can't blow past the request timeout.
+export function foundryRetryDelayMs(retryAfter: string | null, attempt: number): number {
+  if (retryAfter) {
+    const seconds = Number(retryAfter);
+    if (Number.isFinite(seconds)) return Math.min(Math.max(0, seconds) * 1000, RETRY_MAX_MS);
+    const at = Date.parse(retryAfter);
+    if (!Number.isNaN(at)) return Math.min(Math.max(0, at - Date.now()), RETRY_MAX_MS);
+  }
+  const backoff = Math.min(RETRY_BASE_MS * 2 ** attempt, RETRY_MAX_MS);
+  return backoff / 2 + Math.random() * (backoff / 2); // full-ish jitter
 }
 
 export function normalizeFoundryLocale(language?: string): FoundryLocale {
@@ -278,14 +297,15 @@ async function acquireAgentToken(): Promise<string> {
   return getAccessToken(getApplication());
 }
 
-// The agent HTTP round-trip only — safe to cap with a timeout. Retries once on a transient status.
+// The agent HTTP round-trip only — safe to cap with a timeout. Retries transient statuses (incl. 429)
+// with jittered backoff + Retry-After, bounded by the withTimeout cap.
 async function callAgent(question: string, accessToken: string, language?: string): Promise<FoundryAgentResult> {
   const endpoint = getVersionedAgentEndpoint(effectiveAgentEndpoint());
   const host = new URL(endpoint).host;
   diag('foundryiq', `direct agent call → ${host} (agent ${effectiveAgentName()})`, undefined, 'info');
   const body = JSON.stringify(buildFoundryRequest(question, language));
 
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < MAX_AGENT_ATTEMPTS; attempt++) {
     const fetchElapsed = startTimer();
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -302,8 +322,10 @@ async function callAgent(question: string, accessToken: string, language?: strin
       diag('foundryiq', `parsed answer (${result.answer.length} chars, ${result.citations.length} citations)`, undefined, 'info');
       return result;
     }
-    if (attempt === 0 && shouldRetryFoundryRequest(response.status)) {
-      await new Promise((resolve) => window.setTimeout(resolve, 750));
+    if (attempt < MAX_AGENT_ATTEMPTS - 1 && shouldRetryFoundryRequest(response.status)) {
+      const wait = foundryRetryDelayMs(response.headers.get('retry-after'), attempt);
+      diag('foundryiq', `HTTP ${response.status} → retry ${attempt + 1}/${MAX_AGENT_ATTEMPTS - 1} in ${Math.round(wait)}ms`, undefined, 'warn');
+      await new Promise((resolve) => window.setTimeout(resolve, wait));
       continue;
     }
     const details = await response.json().catch(() => undefined) as { error?: { message?: string } } | undefined;
