@@ -143,20 +143,22 @@ function getApplication(): PublicClientApplication {
   }
   const signature = `${clientId}|${tenantId}`;
   if (!application || appSignature !== signature) {
+    // The popup relay bridge is only needed when embedded in a cross-origin iframe (Fabric portal),
+    // where COOP severs window.opener. In a standalone tab a plain synchronous popup is correct — the
+    // relay there closes early and loses the response. Detect the context and configure accordingly.
+    const embedded = window.self !== window.top;
     application = new PublicClientApplication({
       auth: {
         clientId,
         authority: `https://login.microsoftonline.com/${tenantId}`,
         redirectUri: AUTH_REDIRECT_URI,
-        // Popup relay: MSAL opens a top-level relay popup (popup-relay.html) whose window.opener
-        // survives COOP, so the auth response is broadcast back to the embedded Fabric iframe.
-        popupRelayUri: POPUP_RELAY_URI,
+        ...(embedded ? { popupRelayUri: POPUP_RELAY_URI } : {}),
       },
       cache: { cacheLocation: 'localStorage' },
       system: {
-        popupBridgeTimeout: 180_000,
-        iframeBridgeTimeout: 30_000,
+        // Synchronous popup: opens straight to the IdP in one window (also dodges popup blockers).
         navigatePopups: true,
+        ...(embedded ? { popupBridgeTimeout: 180_000, iframeBridgeTimeout: 30_000 } : {}),
       },
     });
     initialization = application.initialize();
