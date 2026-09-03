@@ -357,16 +357,16 @@ export function FraudIQ() {
         </div>
 
         {/* Alert context */}
-        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4">
+        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/40">
           <div className="flex items-center gap-2">
             <span aria-hidden>🚨</span>
-            <span className="text-sm font-semibold text-red-700">
+            <span className="text-sm font-semibold text-red-700 dark:text-red-300">
               {t('fraudIqPage.alertLine', { alertId: scenario.alertId, name: scenario.customerName, customerId: scenario.customerId })}
             </span>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {scenario.context.map((ctx) => (
-              <span key={ctx} className="rounded-full bg-white border border-red-200 text-red-700 text-xs px-2.5 py-1">
+              <span key={ctx} className="rounded-full bg-white border border-red-200 text-red-700 text-xs px-2.5 py-1 dark:bg-red-950/60 dark:border-red-800/70 dark:text-red-200">
                 {ctx}
               </span>
             ))}
@@ -432,7 +432,7 @@ export function FraudIQ() {
             </div>
 
             {scenarioError && (
-              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
                 Foundry IQ indisponible : {scenarioError}
               </p>
             )}
@@ -459,7 +459,7 @@ export function FraudIQ() {
                         style={{ width: `${Math.round(scenario.recommendation.confidence * 100)}%` }}
                       />
                     </div>
-                    <span className="text-sm font-bold text-red-700">
+                    <span className="text-sm font-bold text-red-700 dark:text-red-300">
                       {Math.round(scenario.recommendation.confidence * 100)}%
                     </span>
                   </div>
@@ -521,7 +521,7 @@ export function FraudIQ() {
           </button>
         </div>
         {askError && (
-          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
             Foundry IQ indisponible : {askError}
           </p>
         )}
