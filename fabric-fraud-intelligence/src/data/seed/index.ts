@@ -397,7 +397,7 @@ export function buildDataset(): Dataset {
   const BRANCH: Stage = { event: 'Branch visit', channels: ['In-branch'], desc: 'Visited local branch', optional: true };
 
   const archetypes: Archetype[] = [
-    { terminal: 'Fraud: Card Fraud', weight: 22, stages: [
+    { terminal: 'Fraud: Card Fraud', weight: 8, stages: [
       CONSULT, LOGIN,
       { event: 'New device', channels: ONLINE, foreign: true, desc: 'New device fingerprint' },
       { event: 'Debit card', channels: ['Web'], foreign: true, amount: [5, 30], desc: 'Online payment' },
@@ -405,7 +405,23 @@ export function buildDataset(): Dataset {
       { event: 'Debit card', channels: ['Web'], foreign: true, amount: [150, 900], desc: 'Online payment' },
       { event: 'Fraud: Card Fraud', channels: ['—'], foreign: true, desc: 'Fraud detected — card fraud, impossible travel / location' },
     ] },
-    { terminal: 'Fraud: Account Takeover', weight: 16, stages: [
+    { terminal: 'Fraud: Card Fraud', weight: 7, stages: [
+      LOGIN,
+      { event: 'Address change', channels: ONLINE, foreign: true, desc: 'Billing address changed' },
+      { event: 'Debit card', channels: ['Mobile'], foreign: true, amount: [10, 60], desc: 'Card verification payment' },
+      { event: 'ATM withdrawal', channels: ['ATM'], foreign: true, amount: [200, 800], desc: 'Unexpected cash withdrawal' },
+      { event: 'Debit card', channels: ['Web'], foreign: true, amount: [600, 1800], desc: 'High-value online purchase' },
+      { event: 'Fraud: Card Fraud', channels: ['—'], foreign: true, desc: 'Fraud detected — card testing and cash-out' },
+    ] },
+    { terminal: 'Fraud: Card Fraud', weight: 7, stages: [
+      BRANCH,
+      { event: 'Card issued', channels: ['In-branch'], desc: 'Replacement card issued' },
+      { event: 'Debit card', channels: ['In-branch'], amount: [20, 120], desc: 'Local card purchase' },
+      { event: 'Debit card', channels: ['Web'], foreign: true, amount: [300, 900], desc: 'Cross-border online purchase' },
+      { event: 'ATM withdrawal', channels: ['ATM'], foreign: true, amount: [400, 1200], desc: 'Foreign cash withdrawal' },
+      { event: 'Fraud: Card Fraud', channels: ['—'], foreign: true, desc: 'Fraud detected — cloned card activity' },
+    ] },
+    { terminal: 'Fraud: Account Takeover', weight: 6, stages: [
       CONSULT,
       { event: 'Password reset', channels: ONLINE, foreign: true, desc: 'Password reset from new IP' },
       { event: 'New device', channels: ['Mobile'], foreign: true, desc: 'Unrecognized device enrolled' },
@@ -413,7 +429,23 @@ export function buildDataset(): Dataset {
       { event: 'Wire transfer', channels: ['Web'], foreign: true, amount: [2500, 6000], desc: 'Outbound wire to new beneficiary' },
       { event: 'Fraud: Account Takeover', channels: ['—'], foreign: true, desc: 'Fraud detected — account takeover' },
     ] },
-    { terminal: 'Fraud: Money Mule', weight: 14, stages: [
+    { terminal: 'Fraud: Account Takeover', weight: 5, stages: [
+      LOGIN,
+      { event: 'New device', channels: ['Mobile'], foreign: true, desc: 'New mobile device enrolled' },
+      { event: 'KYC update', channels: ['Web'], foreign: true, desc: 'Contact details replaced' },
+      { event: 'Add beneficiary', channels: ['Mobile'], foreign: true, desc: 'External beneficiary added' },
+      { event: 'Wire transfer', channels: ['Mobile'], foreign: true, amount: [1800, 5000], desc: 'Mobile transfer to new beneficiary' },
+      { event: 'Fraud: Account Takeover', channels: ['—'], foreign: true, desc: 'Fraud detected — mobile account takeover' },
+    ] },
+    { terminal: 'Fraud: Account Takeover', weight: 5, stages: [
+      { event: 'Password reset', channels: ['Web'], foreign: true, desc: 'Password reset after failed logins' },
+      { event: 'Address change', channels: ['Web'], foreign: true, desc: 'Mailing address replaced' },
+      { event: 'Mobile login', channels: ['Mobile'], foreign: true, desc: 'Login from an unrecognized location' },
+      { event: 'Add beneficiary', channels: ['Web'], foreign: true, desc: 'New beneficiary added' },
+      { event: 'ATM withdrawal', channels: ['ATM'], foreign: true, amount: [1000, 3000], desc: 'Emergency cash-out' },
+      { event: 'Fraud: Account Takeover', channels: ['—'], foreign: true, desc: 'Fraud detected — profile hijack and cash-out' },
+    ] },
+    { terminal: 'Fraud: Money Mule', weight: 5, stages: [
       { event: 'Incoming wire', channels: ['Web'], amount: [5000, 12000], desc: 'Large inbound transfer' },
       LOGIN,
       { event: 'Wire transfer', channels: ['Web', 'In-branch'], amount: [2000, 4000], desc: 'Outbound wire (layering)' },
@@ -421,12 +453,44 @@ export function buildDataset(): Dataset {
       { event: 'ATM withdrawal', channels: ['ATM'], amount: [500, 2000], desc: 'Cash-out' },
       { event: 'Fraud: Money Mule', channels: ['—'], desc: 'Fraud detected — mule account, layering & cash-out' },
     ] },
-    { terminal: 'Fraud: Identity Fraud', weight: 12, stages: [
+    { terminal: 'Fraud: Money Mule', weight: 5, stages: [
+      LOGIN,
+      { event: 'Incoming wire', channels: ['Web'], foreign: true, amount: [8000, 16000], desc: 'Inbound transfer from a high-risk counterparty' },
+      { event: 'Add beneficiary', channels: ['Web'], desc: 'Several beneficiaries added' },
+      { event: 'Wire transfer', channels: ['Web'], amount: [3000, 6000], desc: 'Funds split across beneficiaries' },
+      { event: 'Wire transfer', channels: ['Mobile'], amount: [2000, 5000], desc: 'Rapid onward transfer' },
+      { event: 'Fraud: Money Mule', channels: ['—'], desc: 'Fraud detected — rapid pass-through activity' },
+    ] },
+    { terminal: 'Fraud: Money Mule', weight: 4, stages: [
+      BRANCH,
+      { event: 'Incoming wire', channels: ['In-branch'], amount: [6000, 14000], desc: 'Large third-party credit' },
+      { event: 'Statement download', channels: ['Web'], desc: 'Statement checked after inbound credit' },
+      { event: 'ATM withdrawal', channels: ['ATM'], amount: [800, 2500], desc: 'First cash withdrawal' },
+      { event: 'ATM withdrawal', channels: ['ATM'], amount: [800, 2500], desc: 'Second cash withdrawal' },
+      { event: 'Fraud: Money Mule', channels: ['—'], desc: 'Fraud detected — structured cash withdrawals' },
+    ] },
+    { terminal: 'Fraud: Identity Fraud', weight: 4, stages: [
       { event: 'New device', channels: ['Mobile'], foreign: true, desc: 'Onboarding on new device' },
       { event: 'KYC update', channels: ONLINE, foreign: true, desc: 'Identity documents updated' },
       { event: 'Address change', channels: ONLINE, foreign: true, desc: 'Address changed' },
       { event: 'Card issued', channels: ['In-branch'], foreign: true, desc: 'New card requested' },
       { event: 'Fraud: Identity Fraud', channels: ['—'], foreign: true, desc: 'Fraud detected — synthetic identity' },
+    ] },
+    { terminal: 'Fraud: Identity Fraud', weight: 4, stages: [
+      BRANCH,
+      { event: 'KYC update', channels: ['In-branch'], foreign: true, desc: 'Identity document replaced' },
+      { event: 'Address change', channels: ['Web'], foreign: true, desc: 'Residential address changed' },
+      { event: 'Loan application', channels: ['Web'], foreign: true, desc: 'Credit application submitted' },
+      { event: 'Loan approved', channels: ['Web'], foreign: true, desc: 'Credit approved using synthetic profile' },
+      { event: 'Fraud: Identity Fraud', channels: ['—'], foreign: true, desc: 'Fraud detected — fraudulent credit application' },
+    ] },
+    { terminal: 'Fraud: Identity Fraud', weight: 4, stages: [
+      { event: 'New device', channels: ['Mobile'], foreign: true, desc: 'New identity enrolled from mobile' },
+      { event: 'Password reset', channels: ['Mobile'], foreign: true, desc: 'Credentials established' },
+      { event: 'Address change', channels: ['Mobile'], foreign: true, desc: 'Drop address registered' },
+      { event: 'Add beneficiary', channels: ['Mobile'], foreign: true, desc: 'Related beneficiary registered' },
+      { event: 'Card issued', channels: ['In-branch'], foreign: true, desc: 'Card issued to synthetic identity' },
+      { event: 'Fraud: Identity Fraud', channels: ['—'], foreign: true, desc: 'Fraud detected — fabricated customer profile' },
     ] },
     { terminal: 'Card renewal', weight: 9, stages: [
       CONSULT, LOGIN,
