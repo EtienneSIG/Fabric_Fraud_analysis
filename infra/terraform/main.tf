@@ -126,6 +126,44 @@ resource "azapi_resource" "foundry_project" {
   depends_on                = [azapi_update_resource.enable_project_mgmt]
 }
 
+# --------------------------------------------------------------------------
+# Foundry observability: connect Application Insights to the project so the
+# Agent Service emits server-side agent traces (latency, tool calls, prompts).
+# Auth = Project Managed Identity (AAD) — matches the account's local_auth_enabled=false;
+# Entra ingestion requires the project MI to hold "Monitoring Metrics Publisher" on the AI resource.
+# --------------------------------------------------------------------------
+resource "azapi_resource" "foundry_appinsights_connection" {
+  count     = var.existing_foundry_project_endpoint == "" && var.enable_foundry_appinsights ? 1 : 0
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
+  name      = "appinsights"
+  parent_id = azapi_resource.foundry_project[0].id
+
+  body = {
+    properties = {
+      category      = "AppInsights"
+      target        = azurerm_application_insights.this.id
+      authType      = "AAD"
+      isSharedToAll = true
+      metadata = {
+        ApiType    = "Azure"
+        ResourceId = azurerm_application_insights.this.id
+      }
+    }
+  }
+
+  schema_validation_enabled = false
+  depends_on                = [azapi_resource.foundry_project]
+}
+
+# The Foundry project managed identity ingests agent traces into Application Insights (the portal
+# grants this automatically when you pick "Project managed identity"; Terraform grants it explicitly).
+resource "azurerm_role_assignment" "foundry_mi_metrics_publisher" {
+  count                = var.existing_foundry_project_endpoint == "" && var.enable_foundry_appinsights ? 1 : 0
+  scope                = azurerm_application_insights.this.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azapi_resource.foundry_project[0].identity[0].principal_id
+}
+
 resource "azurerm_cognitive_deployment" "models" {
   for_each = local.model_deployments
 

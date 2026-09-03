@@ -8,6 +8,8 @@ under [`../../fabric/`](../../fabric/); this stack only covers Azure-side resour
 - Resource group (unless an existing one is selected), Log Analytics workspace + Application Insights
 - Key Vault (RBAC data plane) holding the Graph OBO and Bot secrets
 - **Microsoft Foundry** AI Services account + model deployments (orchestrator / reasoning / extraction / embeddings)
+- **Foundry project → Application Insights connection** (Project Managed Identity ingestion) so the
+  Agent Service emits server-side agent traces — toggle with `enable_foundry_appinsights` (default on)
 - Event Hub namespace + `fraud-transactions` hub (real-time source)
 - Storage + **Azure Function (Flex Consumption)** hosting the Teams Bot `/api/messages` endpoint
 - **Azure Bot** + Teams channel (own app identity)

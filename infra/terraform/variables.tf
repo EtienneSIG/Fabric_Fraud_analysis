@@ -143,6 +143,12 @@ variable "foundry_project_name" {
   default     = "fraud-intelligence"
 }
 
+variable "enable_foundry_appinsights" {
+  type        = bool
+  description = "Connect Application Insights to the Foundry project (AppInsights connection + Project Managed Identity ingestion role). Turns on server-side agent tracing for the Agent Service. Only applies to the Terraform-managed project (existing_foundry_project_endpoint empty)."
+  default     = true
+}
+
 variable "eventhub_partition_count" {
   type        = number
   description = "Partitions for the real-time transactions event hub."
