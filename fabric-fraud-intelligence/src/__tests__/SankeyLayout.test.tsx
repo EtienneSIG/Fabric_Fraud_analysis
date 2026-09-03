@@ -28,12 +28,15 @@ describe('Sankey layout', () => {
     expect(fills.every((fill) => /^#[0-9a-f]{6}$/i.test(fill))).toBe(true);
   });
 
-  it('draws bounded centerlines instead of background-like closed ribbons', () => {
+  it('draws value-scaled centerlines instead of background-like closed ribbons', () => {
     const markup = renderSankey();
     const paths = [...markup.matchAll(/<path[^>]*d="([^"]*)"[^>]*fill="([^"]*)"[^>]*stroke-width="([^"]*)"/g)];
     expect(paths.length).toBeGreaterThan(0);
     expect(paths.every((match) => !match[1].includes(' Z') && match[2] === 'none')).toBe(true);
-    expect(Math.max(...paths.map((match) => Number(match[3])))).toBeLessThanOrEqual(2.5);
+    const widths = paths.map((match) => Number(match[3]));
+    expect(new Set(widths.map((width) => width.toFixed(2))).size).toBeGreaterThan(1);
+    expect(Math.min(...widths)).toBeGreaterThanOrEqual(1.25);
+    expect(Math.max(...widths)).toBeLessThanOrEqual(8);
   });
 
   it('chains ribbons across columns without gaps', () => {
