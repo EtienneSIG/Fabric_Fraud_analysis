@@ -46,13 +46,14 @@ export function AMLCopilot() {
   };
 
   const [scenario, setScenario] = useState<RaftScenario>('layering');
-  const [modelView, setModelView] = useState<AbView>('baseline');
-  const compare = async (sc: RaftScenario) => {
+  const [modelView, setModelView] = useState<AbView>('both');
+  const [question, setQuestion] = useState<string>(RAFT_QUESTIONS.layering);
+  const compare = async (sc: RaftScenario, customPrompt?: string) => {
     setScenario(sc);
     setAbBusy(true);
     setAb(
       await raftModel.compare({
-        prompt: RAFT_QUESTIONS[sc],
+        prompt: (customPrompt ?? question) || RAFT_QUESTIONS[sc],
         subject: bundle?.customer?.name ?? bundle?.account?.id ?? caseId,
         context: { caseId, alertId: bundle?.alert?.id, role: user },
         locale: 'en',
@@ -109,7 +110,11 @@ export function AMLCopilot() {
                 <div className="flex items-center gap-2">
                   <select
                     value={scenario}
-                    onChange={(e) => setScenario(e.target.value as RaftScenario)}
+                    onChange={(e) => {
+                      const sc = e.target.value as RaftScenario;
+                      setScenario(sc);
+                      setQuestion(RAFT_QUESTIONS[sc]);
+                    }}
                     disabled={abBusy}
                     title={t('pages.aml.abScenario')}
                     className="rounded-lg border border-gray-200 bg-white px-2 py-2 text-xs text-gray-700 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
@@ -130,20 +135,6 @@ export function AMLCopilot() {
                     <option value="both">{t('pages.aml.abModelBoth')}</option>
                   </select>
                   <button
-                    disabled={abBusy}
-                    onClick={() => void compare(scenario)}
-                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3.5 py-2 text-xs font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50 disabled:opacity-50"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={abBusy ? 'animate-spin' : ''}>
-                      {abBusy ? (
-                        <path d="M12 2a10 10 0 00-9.95 9h2.02A8 8 0 1112 20v2a10 10 0 000-20z" />
-                      ) : (
-                        <path d="M9 3H3v6h2V5h4zm12 0h-6v2h4v4h2zM5 15H3v6h6v-2H5zm16 0h-2v4h-4v2h6z" />
-                      )}
-                    </svg>
-                    {abBusy ? t('pages.aml.abComparing') : t('pages.aml.abCompare')}
-                  </button>
-                  <button
                     disabled={busy}
                     onClick={() => void generate()}
                     className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50"
@@ -156,6 +147,56 @@ export function AMLCopilot() {
                       )}
                     </svg>
                     {busy ? t('pages.aml.generating') : t('pages.aml.generate')}
+                  </button>
+                </div>
+              </div>
+
+              {/* Ask both models (chatbot A/B): baseline vs the fine-tuned RAFT student */}
+              <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-3 dark:bg-violet-500/10">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span aria-hidden>🧪</span>
+                  <p className="text-xs font-semibold text-gray-700">{t('pages.aml.abAsk')}</p>
+                  <span className="text-[11px] text-gray-400">{t('pages.aml.abAskHint')}</span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(['structuring', 'smurfing', 'layering', 'not-aml'] as RaftScenario[]).map((sc) => (
+                    <button
+                      key={sc}
+                      onClick={() => {
+                        setScenario(sc);
+                        setQuestion(RAFT_QUESTIONS[sc]);
+                      }}
+                      className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                        scenario === sc
+                          ? 'border-violet-600 bg-violet-600 text-white'
+                          : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {t(`pages.aml.sc${sc === 'not-aml' ? 'NotAml' : sc.charAt(0).toUpperCase() + sc.slice(1)}`)}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && !abBusy && void compare(scenario, question)}
+                    placeholder={t('pages.aml.abAskPlaceholder')}
+                    className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-violet-500 focus:outline-none"
+                  />
+                  <button
+                    disabled={abBusy}
+                    onClick={() => void compare(scenario, question)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-violet-700 disabled:opacity-50"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={abBusy ? 'animate-spin' : ''}>
+                      {abBusy ? (
+                        <path d="M12 2a10 10 0 00-9.95 9h2.02A8 8 0 1112 20v2a10 10 0 000-20z" />
+                      ) : (
+                        <path d="M9 3H3v6h2V5h4zm12 0h-6v2h4v4h2zM5 15H3v6h6v-2H5zm16 0h-2v4h-4v2h6z" />
+                      )}
+                    </svg>
+                    {abBusy ? t('pages.aml.abComparing') : t('pages.aml.abCompare')}
                   </button>
                 </div>
               </div>

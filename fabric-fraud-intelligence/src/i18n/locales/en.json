@@ -238,7 +238,10 @@
       "abModelBaseline": "Baseline model",
       "abModelRaft": "Fine-tuned (RAFT)",
       "abModelBoth": "Both (side by side)",
-      "abSystemPrompt": "System prompt · identical for both models · read-only"
+      "abSystemPrompt": "System prompt · identical for both models · read-only",
+      "abAsk": "Ask both models",
+      "abAskHint": "Type any AML question — compare the baseline vs the fine-tuned RAFT student",
+      "abAskPlaceholder": "e.g. Five deposits just under €10,000 in two days — typology and rule?"
     },
     "claims": {
       "title": "Claims Fraud",

@@ -238,7 +238,10 @@
       "abModelBaseline": "Modèle de base",
       "abModelRaft": "Affiné (RAFT)",
       "abModelBoth": "Les deux (côte à côte)",
-      "abSystemPrompt": "Prompt système · identique pour les deux modèles · lecture seule"
+      "abSystemPrompt": "Prompt système · identique pour les deux modèles · lecture seule",
+      "abAsk": "Interroger les deux modèles",
+      "abAskHint": "Posez une question LCB-FT — comparez le modèle de base et l'étudiant RAFT fine-tuné",
+      "abAskPlaceholder": "ex. Cinq dépôts juste sous 10 000 € en deux jours — typologie et règle ?"
     },
     "claims": {
       "title": "Fraude aux sinistres",

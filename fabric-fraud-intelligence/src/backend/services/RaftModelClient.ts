@@ -78,7 +78,7 @@ export class RaftModelClient {
     return {
       mode: 'mock',
       scenario: key,
-      question: RAFT_QUESTIONS[key],
+      question: req.prompt || RAFT_QUESTIONS[key],
       baseline: { label: 'baseline', ...s.baseline },
       raft: { label: 'raft', ...s.raft, text: s.raft.text.replace('{subject}', subject) },
     };

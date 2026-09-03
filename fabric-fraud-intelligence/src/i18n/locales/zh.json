@@ -238,7 +238,10 @@
       "abModelBaseline": "基準模型",
       "abModelRaft": "已微調（RAFT）",
       "abModelBoth": "兩者（並排）",
-      "abSystemPrompt": "系統提示 · 兩個模型相同 · 唯讀"
+      "abSystemPrompt": "系統提示 · 兩個模型相同 · 唯讀",
+      "abAsk": "向兩個模型提問",
+      "abAskHint": "輸入任意反洗錢問題 — 比較基線模型與微調後的 RAFT 學生模型",
+      "abAskPlaceholder": "例如：兩天內五筆略低於 10,000 的存款 — 類型與規則？"
     },
     "claims": {
       "title": "理賠詐騙",

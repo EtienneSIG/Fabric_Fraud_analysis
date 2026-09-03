@@ -238,7 +238,10 @@
       "abModelBaseline": "Modelo base",
       "abModelRaft": "Ajustado (RAFT)",
       "abModelBoth": "Ambos (lado a lado)",
-      "abSystemPrompt": "Prompt de sistema · idéntico para ambos modelos · solo lectura"
+      "abSystemPrompt": "Prompt de sistema · idéntico para ambos modelos · solo lectura",
+      "abAsk": "Preguntar a ambos modelos",
+      "abAskHint": "Escribe cualquier pregunta AML — compara el modelo base y el estudiante RAFT ajustado",
+      "abAskPlaceholder": "p. ej. Cinco depósitos justo por debajo de 10 000 € en dos días — ¿tipología y norma?"
     },
     "claims": {
       "title": "Fraude en siniestros",
