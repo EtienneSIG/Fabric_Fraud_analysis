@@ -27,7 +27,9 @@ const ENV_FOUNDRY_PROJECT = import.meta.env.VITE_FOUNDRY_PROJECT || '';
 const ENV_AGENT_NAME = import.meta.env.VITE_FOUNDRY_AGENT_NAME || 'fraud-iq-orchestrator';
 const ENV_AGENT_ENDPOINT = import.meta.env.VITE_FOUNDRY_AGENT_ENDPOINT || '';
 const AGENT_API_VERSION = '2025-11-15-preview';
-const SCOPES = ['https://ai.azure.com/.default'];
+// Specific delegated scope (not .default) so the analyst can consent interactively at sign-in when no
+// admin consent is pre-granted for the SPA. Yields aud=https://ai.azure.com; RBAC gates the call.
+const SCOPES = ['https://ai.azure.com/user_impersonation'];
 const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 // gpt-5.6-terra is a reasoning model: reasoning + web_search tokens count against this budget, so it
 // must be large enough to leave room for the final message (1200 left the response `incomplete`).
