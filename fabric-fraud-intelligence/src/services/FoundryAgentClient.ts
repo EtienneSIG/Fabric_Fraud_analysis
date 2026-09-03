@@ -158,6 +158,13 @@ function getApplication(): PublicClientApplication {
       system: {
         // Synchronous popup: opens straight to the IdP in one window (also dodges popup blockers).
         navigatePopups: true,
+        // Forward MSAL's own logs to the diag sink (console + App Insights) for span/telemetry deep-dive.
+        loggerOptions: {
+          piiLoggingEnabled: false,
+          logLevel: 3,
+          loggerCallback: (level: number, message: string) =>
+            diag('msal', message, undefined, level === 0 ? 'error' : level === 1 ? 'warn' : 'info'),
+        },
         ...(embedded ? { popupBridgeTimeout: 180_000, iframeBridgeTimeout: 30_000 } : {}),
       },
     });
