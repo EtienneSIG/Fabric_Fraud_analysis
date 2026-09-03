@@ -98,6 +98,21 @@ npm run capture:fraud-iq -- http://localhost:5173
 ```
 The capture script is `fabric-fraud-intelligence/scripts/capture-fraud-iq-video.mjs`.
 
+### Capture the REAL Foundry IQ + Web IQ answer (live), time-lapsed
+The live agent takes ~20-60 s (reasoning + web search). Capture the real answer, then the script
+**speeds up the grounding wait** so the clip is short while the answer plays at normal speed. Live
+needs a signed-in MSAL session automation can reuse, so it uses a persistent browser profile:
+```powershell
+cd ..\..\fabric-fraud-intelligence
+# 1. Sign in ONCE (a real browser opens — complete Microsoft sign-in + consent, then it closes)
+npm run capture:fraud-iq -- --login https://mild-falls-763438f7b8-swedencentral.webapp.fabricapps.net
+# 2. Record the real run, time-lapsing the wait (default 6×)
+npm run capture:fraud-iq -- --live --speed 6 https://mild-falls-763438f7b8-swedencentral.webapp.fabricapps.net
+```
+Wire the agent via **Settings › Agents** during the `--login` step, or pass env
+`FFI_FOUNDRY_ENDPOINT` / `FFI_FOUNDRY_TENANT` / `FFI_FOUNDRY_CLIENT` / `FFI_FOUNDRY_AGENT`.
+The persistent profile lives in `fabric-fraud-intelligence/.cache/` (gitignored — it holds tokens).
+
 ## Drop in a Scout recording (the live Foundry answer)
 Record the **live** Foundry IQ answer with Scout, export it to MP4 (H.264, 1600×1000), and save it as
 `public/fraud-iq-live.mp4` (overwrite the placeholder). Then flip its slide off placeholder mode in
