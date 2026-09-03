@@ -8,6 +8,9 @@ Fraud Intelligence guided demo using the README screenshots, with a presenter cu
 - `src/slides.ts` — the demo flow (order, titles, captions, presenter cues) and timing.
 - `src/Slide.tsx`, `src/Chrome.tsx`, `src/Deck.tsx` — the deck rendering (fade + Ken Burns + progress bar).
 - `public/*.png` — the 9 product screenshots (copied from `docs/images/`).
+- `architecture.mmd` + `public/architecture.png` — the real deployed architecture (Mermaid source +
+  rendered image). Regenerate with `cd ../../fabric-fraud-intelligence && npm run render:architecture`
+  (Playwright + Mermaid). Edit `architecture.mmd` in [mermaid.live](https://mermaid.live) or draw.io.
 - `public/fraud-iq-run.mp4` — a real screen capture of the Fraud IQ agentic run (see below).
 - `public/fraud-iq-live.mp4` — **placeholder** (static poster) for the live Foundry answer; replace
   it with your Scout recording (same filename) — the slide shows a `● REC · Scout à venir` badge until then.
