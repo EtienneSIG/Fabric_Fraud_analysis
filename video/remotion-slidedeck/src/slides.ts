@@ -109,7 +109,7 @@ export const slides: SlideData[] = [
   {
     image: 'fraud-iq.png',
     video: 'fraud-iq-live.mp4',
-    frames: 15 * FPS,
+    frames: 16 * FPS,
     screen: 'Fraud IQ · live capture',
     title: 'Live agentic run — the four IQs',
     caption: 'A real end-to-end run: launch the agentic investigation, the four IQs reveal, and Foundry IQ returns a 92% fraud-confidence recommendation with an auto-created case.',
