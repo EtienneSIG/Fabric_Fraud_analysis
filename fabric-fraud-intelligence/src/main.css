@@ -72,6 +72,24 @@
   background-color: #0b1220;
 }
 
+/* Light accent surfaces (bg-*-50) aren't token-inverted, so neutral text on them (which IS
+   inverted to light) turns invisible in dark mode. Give them a subtle dark tint instead. */
+.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.12); }
+.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.12); }
+.dark .bg-yellow-50 { background-color: rgba(234, 179, 8, 0.12); }
+.dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.12); }
+.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.12); }
+.dark .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.12); }
+.dark .bg-violet-50 { background-color: rgba(124, 58, 237, 0.12); }
+
+/* 700-weight accent text is too dark on dark surfaces; lift it to the readable 300 weight. */
+.dark .text-red-700 { color: #fca5a5; }
+.dark .text-amber-700 { color: #fcd34d; }
+.dark .text-green-700 { color: #86efac; }
+.dark .text-emerald-700 { color: #6ee7b7; }
+.dark .text-indigo-700 { color: #a5b4fc; }
+.dark .text-violet-700 { color: #c4b5fd; }
+
 /* ---- Motion: page-load fade-in + indeterminate progress bar -------------- */
 @keyframes ffi-fade-in {
   from {
