@@ -109,12 +109,11 @@ export const slides: SlideData[] = [
   {
     image: 'fraud-iq.png',
     video: 'fraud-iq-live.mp4',
-    placeholder: true,
-    frames: 8 * FPS,
-    screen: 'Fraud IQ · Foundry live',
-    title: 'Foundry IQ — live agent answer',
-    caption: 'Placeholder — Scout recording in progress: the real Foundry agent, grounded on Fabric + official regulatory sources, returns a cited, human-approvable answer.',
-    say: "(À enregistrer via Scout) La réponse live de l'agent Foundry, ancrée sur Fabric et les sources réglementaires officielles, avec citations et validation humaine.",
+    frames: 15 * FPS,
+    screen: 'Fraud IQ · live capture',
+    title: 'Live agentic run — the four IQs',
+    caption: 'A real end-to-end run: launch the agentic investigation, the four IQs reveal, and Foundry IQ returns a 92% fraud-confidence recommendation with an auto-created case.',
+    say: "Capture live : je lance l'investigation agentique. Les quatre IQ se révèlent et Foundry IQ rend une recommandation à 92% de confiance fraude, dossier créé automatiquement — décision explicable, validée par un humain.",
   },
   {
     image: 'settings.png',

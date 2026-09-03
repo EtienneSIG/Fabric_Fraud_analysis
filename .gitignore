@@ -39,3 +39,6 @@ fabric/ontology/parts/
 # OS / editor
 .DS_Store
 .idea/
+
+# Large raw screen recordings (source for deck clips; keep only the processed public/*.mp4)
+video/*.mp4
