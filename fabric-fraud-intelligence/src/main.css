@@ -72,6 +72,17 @@
   background-color: #0b1220;
 }
 
+/* Native <select> popups: <option> elements don't inherit the utility text color,
+   so the dark color-scheme popup renders dark-on-dark. Force readable colors both ways. */
+select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+.dark select option {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
 /* Light accent surfaces (bg-*-50) aren't token-inverted, so neutral text on them (which IS
    inverted to light) turns invisible in dark mode. Give them a subtle dark tint instead. */
 .dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.12); }
