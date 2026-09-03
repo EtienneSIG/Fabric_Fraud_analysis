@@ -104,7 +104,8 @@ function IqColumn({
         <h4 className="text-sm font-semibold" style={{ color: COLOR[id] }}>
           {iq.name}
         </h4>
-        <Badge live={live ?? isLive(id)} />
+        {/* Resolve the Live/Simulated pill only once the column reveals, so it can't flash "Simulated" while auth/grounding is still running. */}
+        {revealed && <Badge live={live ?? isLive(id)} />}
       </div>
       <p className="text-[11px] text-gray-400">{t(`fraudIqPage.iq.${id}.grounds`)}</p>
       {revealed ? (
