@@ -69,12 +69,13 @@ if (LOGIN) {
   const page = ctx.pages()[0] || (await ctx.newPage());
   await page.goto(`${baseUrl}/fraud-iq`, { waitUntil: 'networkidle' });
   console.log('\nSign in with the demo-tenant analyst in the opened window (you have 3 min)…');
-  // Wait until MSAL has cached a token in this profile.
+  // Wait until MSAL has cached a real token (id/access token key), not just its init bookkeeping.
   await page
-    .waitForFunction(() => Object.keys(localStorage).some((k) => /login\.windows|msal|accesstoken/i.test(k)), {
+    .waitForFunction(() => Object.keys(localStorage).some((k) => /-(id|access)token-/i.test(k)), {
       timeout: 180000,
     })
-    .catch(() => console.log('(!) No MSAL cache detected — you can still run --live if Settings are configured.'));
+    .then(() => console.log('\u2713 signed in — token cached'))
+    .catch(() => console.log('(!) No token cached — sign-in not completed; --live will fall back to mock.'));
   await page.waitForTimeout(1500);
   await ctx.close();
   console.log('\u2713 profile saved:', profileDir, '\nNow run:  npm run capture:fraud-iq -- --live', baseUrl);

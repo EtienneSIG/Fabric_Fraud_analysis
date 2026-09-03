@@ -24,6 +24,8 @@ export default defineConfig({
       '@': resolve(import.meta.dirname, 'src'),
     },
   },
+  // The Playwright capture profile (.cache) holds locked Chromium files that crash the dev watcher.
+  server: { watch: { ignored: ['**/.cache/**'] } },
   build: {
     target: 'es2022',
     rollupOptions: {
