@@ -68,7 +68,9 @@ export function ClaimsFraud() {
                   <span className="text-sm font-medium text-gray-800">{a.id}</span>
                   <RiskScoreBadge score={a.riskScore} severity={a.severity} size="sm" />
                 </div>
-                <p className="text-xs text-gray-500">{a.alertType}</p>
+                <p className={`text-xs ${a.caseId === caseId ? 'text-gray-600' : 'text-gray-500'}`}>
+                  {a.alertType}
+                </p>
               </li>
             ))}
           </ul>

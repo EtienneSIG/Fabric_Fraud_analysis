@@ -116,3 +116,13 @@
   background-color: rgba(6, 78, 59, 0.45);
   border-color: #34d399;
 }
+.ffi-aml-recommendation {
+  color: #374151;
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+}
+.dark .ffi-aml-recommendation {
+  color: #fef3c7;
+  background-color: rgba(120, 53, 15, 0.38);
+  border-color: #f59e0b;
+}
