@@ -24,6 +24,7 @@ const PAD_Y = 18;
 const GAP = 7;
 const MIN_LINK_WIDTH = 1.25;
 const MAX_LINK_WIDTH = 8;
+const LINK_VOLUME_MULTIPLIER = 1.5;
 
 export function Sankey({ nodes, links, columns, height = 520 }: Props) {
   const { t: tr } = useTranslation();
@@ -93,7 +94,8 @@ export function Sankey({ nodes, links, columns, height = 520 }: Props) {
       const sy = s.y0 + so + thick / 2;
       const ty = t.y0 + to + thick / 2;
       const d = `M${x0},${sy} C${xm},${sy} ${xm},${ty} ${x1},${ty}`;
-      const width = MIN_LINK_WIDTH + Math.sqrt(lk.value / maxLinkValue) * (MAX_LINK_WIDTH - MIN_LINK_WIDTH);
+      const volumeWidth = Math.sqrt(lk.value / maxLinkValue) * (MAX_LINK_WIDTH - MIN_LINK_WIDTH);
+      const width = Math.min(MIN_LINK_WIDTH + volumeWidth * LINK_VOLUME_MULTIPLIER, MAX_LINK_WIDTH * LINK_VOLUME_MULTIPLIER);
       out.push({ id: `${lk.key}:${lk.source}>${lk.target}`, key: lk.key, d, color: lk.color, width, value: lk.value, sLabel: s.node.label, tLabel: t.node.label });
     }
     return out;

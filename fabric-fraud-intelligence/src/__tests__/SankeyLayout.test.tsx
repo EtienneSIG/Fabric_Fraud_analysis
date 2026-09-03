@@ -36,7 +36,8 @@ describe('Sankey layout', () => {
     const widths = paths.map((match) => Number(match[3]));
     expect(new Set(widths.map((width) => width.toFixed(2))).size).toBeGreaterThan(1);
     expect(Math.min(...widths)).toBeGreaterThanOrEqual(1.25);
-    expect(Math.max(...widths)).toBeLessThanOrEqual(8);
+    expect(Math.max(...widths)).toBe(11.375);
+    expect(Math.max(...widths)).toBeLessThanOrEqual(12);
   });
 
   it('chains ribbons across columns without gaps', () => {
