@@ -33,7 +33,6 @@ const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 // must be large enough to leave room for the final message (1200 left the response `incomplete`).
 const OUTPUT_TOKEN_LIMIT = 6000;
 const AUTH_REDIRECT_URI = `${window.location.origin}/msal-redirect.html`;
-const POPUP_RELAY_URI = `${window.location.origin}/popup-relay.html`;
 
 // Effective values: browser override (Settings) first, then build-time env.
 const effectiveTenantId = (): string => getFoundryTenantId() || ENV_TENANT_ID;
@@ -148,14 +147,8 @@ function getApplication(): PublicClientApplication {
         clientId,
         authority: `https://login.microsoftonline.com/${tenantId}`,
         redirectUri: AUTH_REDIRECT_URI,
-        popupRelayUri: POPUP_RELAY_URI,
       },
       cache: { cacheLocation: 'localStorage' },
-      system: {
-        popupBridgeTimeout: 180_000,
-        iframeBridgeTimeout: 30_000,
-        navigatePopups: true,
-      },
     });
     initialization = application.initialize();
     appSignature = signature;
