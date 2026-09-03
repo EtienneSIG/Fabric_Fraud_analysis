@@ -109,7 +109,7 @@ export const slides: SlideData[] = [
   {
     image: 'fraud-iq.png',
     video: 'fraud-iq-live.mp4',
-    frames: 43 * FPS,
+    frames: 32 * FPS,
     screen: 'Fraud IQ · live capture',
     title: 'Live capture — the four IQs, for real',
     caption: 'A real signed-in run ending on the grounded multi-IQ answer: Fabric IQ (Live) and Foundry IQ + Web IQ (Live) with cited EU obligations (EUR-Lex, ACPR) and a 92% recommendation.',
