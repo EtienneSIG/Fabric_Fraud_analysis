@@ -100,11 +100,11 @@ export const slides: SlideData[] = [
   {
     image: 'fraud-iq.png',
     video: 'fraud-iq-run.mp4',
-    frames: 10 * FPS,
+    frames: 12 * FPS,
     screen: 'Fraud IQ · live run',
     title: 'Watch the four IQs resolve',
     caption: 'The agentic scenario runs end to end — Work IQ, Fabric IQ, Foundry IQ & Web IQ reveal in sequence; each column is badged Live or Simulated only once it resolves.',
-    say: "En direct : je lance l'investigation agentique. Les colonnes se révèlent une à une — le badge Live/Simulated n'apparaît qu'à la fin de chaque IQ.",
+    say: "En direct : je lance l'investigation agentique. Les colonnes se révèlent une à une jusqu'à la réponse Foundry IQ + Web IQ (obligations TRACFIN, citation ACPR) et la recommandation — le badge Live/Simulated n'apparaît qu'à la fin de chaque IQ.",
   },
   {
     image: 'fraud-iq.png',

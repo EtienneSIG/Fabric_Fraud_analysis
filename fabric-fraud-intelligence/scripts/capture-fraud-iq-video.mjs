@@ -1,5 +1,7 @@
 // Records the Fraud IQ agentic scenario run as an MP4 for the Remotion deck.
 // Reuses the demo-mode app (auto sign-in, deterministic mock) like capture-screenshots.mjs.
+// The left nav starts collapsed (wider content), the run scrolls down to the Foundry IQ + Web IQ
+// answer, and the non-relevant intro (auto sign-in settle) is trimmed off via a measured offset.
 //
 // Usage (from fabric-fraud-intelligence/, playwright + ffmpeg on PATH):
 //   1. npm run dev:demo                                   # serves http://localhost:5173
@@ -22,23 +24,55 @@ const context = await browser.newContext({
   viewport: { width: 1600, height: 1000 },
   recordVideo: { dir: vdir, size: { width: 1600, height: 1000 } },
 });
+// Start with the left nav collapsed so the four IQ columns get the full width.
+await context.addInitScript(() => {
+  try {
+    localStorage.setItem('ffi.nav.collapsed', '1');
+  } catch {
+    /* ignore */
+  }
+});
+
+const tStart = Date.now(); // ~ recording t=0
 const page = await context.newPage();
 
-// Warm up so the demo auto sign-in settles.
-await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
-await page.waitForTimeout(1200);
-
 await page.goto(`${baseUrl}/fraud-iq`, { waitUntil: 'networkidle' });
-await page.waitForTimeout(1500);
+await page.waitForTimeout(1800); // auto sign-in + entrance settle (intro — trimmed off below)
 
-// Launch the agentic scenario — the button label starts with ▶ in every locale.
+// Smoothly scroll to a fraction of the page's scrollable height (robust to which element scrolls).
+const scroll = async (frac, ms) => {
+  await page.evaluate((f) => {
+    const cands = [
+      document.querySelector('main.ffi-scroll'),
+      document.querySelector('main'),
+      document.scrollingElement,
+      document.documentElement,
+      document.body,
+    ];
+    const el = cands.find((c) => c && c.scrollHeight - c.clientHeight > 40) || document.scrollingElement;
+    const max = el.scrollHeight - el.clientHeight;
+    el.scrollTo({ top: max * f, behavior: 'smooth' });
+  }, frac);
+  await page.waitForTimeout(ms);
+};
+
+// App is open — mark where the relevant footage begins (just before the launch click).
 const launch = page.getByRole('button', { name: /▶/ }).first();
 await launch.scrollIntoViewIfNeeded();
-await page.waitForTimeout(500);
+await page.waitForTimeout(300);
+const tAction = Date.now();
 await launch.click();
 
-// Let the four IQ columns reveal in sequence (the Live/Simulated pill lands at the end).
-await page.waitForTimeout(7000);
+// Show the processing (grounding spinners), then scroll down to reveal Work/Fabric and the
+// Foundry IQ + Web IQ answer at the bottom, holding on the response and its citations.
+await page.waitForTimeout(1600); // grounding visible
+await scroll(0.28, 1700); // Work IQ / Fabric IQ
+await scroll(0.55, 1800); // columns keep revealing
+await scroll(0.82, 2100); // Foundry IQ + Web IQ row
+await page.waitForTimeout(1600); // hold on the answer
+await scroll(1.0, 1700); // citations / bottom
+await page.waitForTimeout(1400);
+await scroll(0.35, 1300); // ease back up
 
 await context.close(); // finalizes the .webm
 await browser.close();
@@ -48,11 +82,12 @@ if (!webm) {
   rmSync(vdir, { recursive: true, force: true });
   throw new Error('Playwright produced no video file');
 }
-// Transcode to H.264 MP4 (Remotion-friendly), keep it silent and 1600x1000.
+// Trim the intro (start ~0.6s before the launch click) and transcode to H.264 MP4.
+const offset = Math.max(0, (tAction - tStart) / 1000 - 0.6);
 execFileSync(
   'ffmpeg',
-  ['-y', '-i', join(vdir, webm), '-vf', 'scale=1600:1000:flags=lanczos', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '23', '-movflags', '+faststart', '-an', outFile],
+  ['-y', '-ss', offset.toFixed(2), '-i', join(vdir, webm), '-vf', 'scale=1600:1000:flags=lanczos', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '23', '-movflags', '+faststart', '-an', outFile],
   { stdio: 'inherit' },
 );
 rmSync(vdir, { recursive: true, force: true });
-console.log('\u2713 wrote', outFile);
+console.log('\u2713 wrote', outFile, `(trimmed ${offset.toFixed(1)}s intro)`);

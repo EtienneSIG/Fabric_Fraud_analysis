@@ -208,8 +208,8 @@ export function FraudIQ() {
     setScenarioError(null);
     setScenarioWeb(scenario.web);
     setScenarioRunning(true);
-    timers.current.push(window.setTimeout(() => setPhase(1), 600));
-    timers.current.push(window.setTimeout(() => setPhase(2), 1200));
+    timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 1)), 600));
+    timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 2)), 1200));
     const configured = foundryConfigured();
     const elapsed = startTimer();
     diag('fraudiq', `scenario run \u2014 foundry ${configured ? 'configured (live path)' : 'not configured (mock)'}`, { alertId: scenario.alertId }, 'info');
@@ -232,8 +232,10 @@ export function FraudIQ() {
         { live, degraded: !!foundry.degraded, configured },
         live ? 'info' : 'warn'
       );
-      setPhase(3);
-      timers.current.push(window.setTimeout(() => setPhase(4), 500));
+      // Reveal Foundry/Web then the recommendation. Monotonic + timed so an instant mock resolve
+      // can't let the 600/1200ms phase timers roll the phase backward (Foundry/Web would never show).
+      timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 3)), 1800));
+      timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 4)), 2400));
     } catch (error) {
       diag('fraudiq', `scenario run failed after ${elapsed()}ms`, error, 'error');
       setScenarioError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
