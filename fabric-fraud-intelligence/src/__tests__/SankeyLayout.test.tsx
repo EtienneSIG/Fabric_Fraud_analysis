@@ -12,6 +12,16 @@ function renderSankey() {
 }
 
 describe('Sankey layout', () => {
+  it('offers multiple distinct paths for every fraud type', () => {
+    const fraudTerminals = terminalEvents().filter((terminal) => terminal.startsWith('Fraud:'));
+
+    expect(fraudTerminals.length).toBeGreaterThan(0);
+    for (const terminal of fraudTerminals) {
+      const { links } = buildJourneyFlow(terminal, 5);
+      expect(new Set(links.map((link) => link.key)).size, terminal).toBeGreaterThanOrEqual(3);
+    }
+  });
+
   it('draws colored node bars for every event', () => {
     const fills = [...renderSankey().matchAll(/<rect[^>]*?fill="([^"]*)"/g)].map((m) => m[1]);
     expect(fills.length).toBeGreaterThan(0);
