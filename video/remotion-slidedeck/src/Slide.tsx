@@ -1,7 +1,7 @@
 import { AbsoluteFill, Img, OffthreadVideo, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
-import { SlideData, THEME, BRAND } from './slides';
+import { SlideData, Callout, THEME, BRAND } from './slides';
 
-export const Slide: React.FC<{ data: SlideData; index: number; total: number }> = ({ data, index, total }) => {
+export const Slide: React.FC<{ data: SlideData; index: number; total: number; subtitles?: boolean }> = ({ data, index, total, subtitles = true }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
 
@@ -10,6 +10,11 @@ export const Slide: React.FC<{ data: SlideData; index: number; total: number }> 
   const textX = interpolate(enter, [0, 1], [-40, 0]);
   // Subtle Ken Burns on the screenshot.
   const zoom = interpolate(frame, [0, durationInFrames], [1.04, 1.09]);
+  // Spotlight: slow zoom into a focal point on a video slide.
+  const spot = data.spotlight;
+  const spotP = spot ? interpolate(frame, [spot.atFrame, spot.atFrame + 24], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 0;
+  const spotScale = spot ? 1 + (spot.scale - 1) * spotP : 1;
+  const kb = data.callouts ? 1 : zoom; // freeze Ken Burns when callouts must stay pinned to the still
   const progress = (index + interpolate(frame, [0, durationInFrames], [0, 1], { extrapolateRight: 'clamp' })) / total;
 
   return (
@@ -30,18 +35,6 @@ export const Slide: React.FC<{ data: SlideData; index: number; total: number }> 
           <p style={{ color: THEME.muted, fontSize: 26, lineHeight: 1.45, margin: '20px 0 0' }}>{data.caption}</p>
 
           <div style={{ height: 1, backgroundColor: THEME.border, margin: '28px 0' }} />
-
-          <div style={{ display: 'flex', gap: 14 }}>
-            <div style={{ width: 4, borderRadius: 4, backgroundColor: THEME.accent }} />
-            <div>
-              <div style={{ color: '#818cf8', fontSize: 15, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
-                À dire
-              </div>
-              <p style={{ color: '#cbd5e1', fontSize: 22, lineHeight: 1.5, margin: '8px 0 0', fontStyle: 'italic' }}>
-                {data.say}
-              </p>
-            </div>
-          </div>
 
           <div style={{ marginTop: 'auto', color: THEME.muted, fontSize: 20, fontWeight: 700 }}>
             <span style={{ color: THEME.text }}>{BRAND.top}</span> {BRAND.bottom}
@@ -66,7 +59,11 @@ export const Slide: React.FC<{ data: SlideData; index: number; total: number }> 
               <>
                 {/* Poster behind the clip so the first frame is never black. */}
                 <Img src={staticFile(data.image)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.5)' }} />
-                <OffthreadVideo src={staticFile(data.video)} muted style={{ position: 'relative', width: '100%', display: 'block' }} />
+                <OffthreadVideo
+                  src={staticFile(data.video)}
+                  muted
+                  style={{ position: 'relative', width: '100%', display: 'block', transform: `scale(${spotScale})`, transformOrigin: `${(data.spotlight?.x ?? 0.5) * 100}% ${(data.spotlight?.y ?? 0.5) * 100}%` }}
+                />
                 <span style={{ ...capsule, backgroundColor: data.placeholder ? 'rgba(245,158,11,0.92)' : 'rgba(16,185,129,0.92)' }}>
                   {data.placeholder ? '● REC · Scout à venir' : '▶ Capture live'}
                 </span>
@@ -74,12 +71,24 @@ export const Slide: React.FC<{ data: SlideData; index: number; total: number }> 
             ) : (
               <Img
                 src={staticFile(data.image)}
-                style={{ width: '100%', display: 'block', transform: `scale(${zoom})`, transformOrigin: 'center' }}
+                style={{ width: '100%', display: 'block', transform: `scale(${kb})`, transformOrigin: 'center' }}
               />
             )}
+            {data.callouts?.map((c, i) => (
+              <CalloutMark key={i} c={c} frame={frame} />
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Spoken caption — toggle with the `subtitles` composition prop. */}
+      {subtitles && (
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 40, display: 'flex', justifyContent: 'center', padding: '0 80px', boxSizing: 'border-box' }}>
+          <div style={{ maxWidth: '82%', background: 'rgba(2,6,23,0.82)', border: `1px solid ${THEME.border}`, color: '#e5e7eb', fontSize: 23, lineHeight: 1.45, padding: '12px 22px', borderRadius: 12, textAlign: 'center' }}>
+            {data.say}
+          </div>
+        </div>
+      )}
 
       {/* Progress bar */}
       <div style={{ position: 'absolute', left: 0, bottom: 0, width: '100%', height: 6, backgroundColor: 'rgba(148,163,184,0.15)' }}>
@@ -95,6 +104,23 @@ const chip: React.CSSProperties = {
   letterSpacing: 1,
   padding: '8px 14px',
   borderRadius: 999,
+};
+
+// Animated marker pinned to a point on the still (x,y in 0..1). Label flips to the left near the edge.
+const CalloutMark: React.FC<{ c: Callout; frame: number }> = ({ c, frame }) => {
+  const at = c.atFrame ?? 0;
+  const appear = interpolate(frame, [at, at + 12], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const pulse = 1 + 0.12 * Math.sin(frame / 5);
+  const color = c.color ?? '#6366f1';
+  const flip = c.x > 0.6;
+  return (
+    <div style={{ position: 'absolute', left: `${c.x * 100}%`, top: `${c.y * 100}%`, transform: 'translate(-50%,-50%)', opacity: appear, pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', left: -22, top: -22, width: 44, height: 44, borderRadius: 999, border: `3px solid ${color}`, transform: `scale(${pulse})`, boxShadow: `0 0 0 6px ${color}22` }} />
+      <div style={{ position: 'absolute', top: -16, ...(flip ? { right: 30 } : { left: 30 }), whiteSpace: 'nowrap', background: color, color: '#fff', fontSize: 18, fontWeight: 800, padding: '6px 12px', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+        {c.label}
+      </div>
+    </div>
+  );
 };
 
 const capsule: React.CSSProperties = {

@@ -1,24 +1,35 @@
-import { AbsoluteFill, Series } from 'remotion';
-import { slides, SLIDE_FRAMES, TITLE_FRAMES, END_FRAMES, THEME } from './slides';
+import { Fragment } from 'react';
+import { AbsoluteFill } from 'remotion';
+import { TransitionSeries, linearTiming } from '@remotion/transitions';
+import { fade } from '@remotion/transitions/fade';
+import { slide as slidePresentation } from '@remotion/transitions/slide';
+import { slides, SLIDE_FRAMES, TITLE_FRAMES, END_FRAMES, TRANSITION_FRAMES, THEME } from './slides';
 import { Slide } from './Slide';
 import { TitleSlide, EndSlide } from './Chrome';
 
-export const Deck: React.FC = () => {
+const timing = linearTiming({ durationInFrames: TRANSITION_FRAMES });
+
+// subtitles is a composition input prop (toggle in Studio's props panel or via --props on render).
+export const Deck: React.FC<{ subtitles?: boolean }> = ({ subtitles = true }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: THEME.bg }}>
-      <Series>
-        <Series.Sequence durationInFrames={TITLE_FRAMES}>
+      <TransitionSeries>
+        <TransitionSeries.Sequence durationInFrames={TITLE_FRAMES}>
           <TitleSlide />
-        </Series.Sequence>
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={timing} />
         {slides.map((s, i) => (
-          <Series.Sequence key={i} durationInFrames={s.frames ?? SLIDE_FRAMES}>
-            <Slide data={s} index={i} total={slides.length} />
-          </Series.Sequence>
+          <Fragment key={i}>
+            <TransitionSeries.Sequence durationInFrames={s.frames ?? SLIDE_FRAMES}>
+              <Slide data={s} index={i} total={slides.length} subtitles={subtitles} />
+            </TransitionSeries.Sequence>
+            <TransitionSeries.Transition presentation={slidePresentation({ direction: 'from-right' })} timing={timing} />
+          </Fragment>
         ))}
-        <Series.Sequence durationInFrames={END_FRAMES}>
+        <TransitionSeries.Sequence durationInFrames={END_FRAMES}>
           <EndSlide />
-        </Series.Sequence>
-      </Series>
+        </TransitionSeries.Sequence>
+      </TransitionSeries>
     </AbsoluteFill>
   );
 };

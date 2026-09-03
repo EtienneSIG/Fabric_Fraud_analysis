@@ -1,11 +1,16 @@
 // Demo flow + timing for the Fraud Intelligence guided slide deck.
 // Each slide maps to a README screenshot in ./public and a presenter cue.
 
+export type Callout = { x: number; y: number; label: string; atFrame?: number; color?: string };
+export type Spotlight = { atFrame: number; scale: number; x: number; y: number };
+
 export type SlideData = {
   image: string; // filename in public/ — the still, and the poster behind a video
   video?: string; // filename in public/ — when set, the slide plays this clip instead of the still
   placeholder?: boolean; // true = the clip is a stand-in awaiting a Scout recording (shows a REC badge)
   frames?: number; // per-slide duration override (defaults to SLIDE_FRAMES); give video slides room to play
+  spotlight?: Spotlight; // slow zoom into a focal point (x,y in 0..1) — for video slides
+  callouts?: Callout[]; // animated markers pinned to the still (x,y in 0..1); freezes Ken Burns
   screen: string; // product screen name
   title: string;
   caption: string; // what the screen shows
@@ -19,6 +24,7 @@ export const FPS = 30;
 export const SLIDE_FRAMES = 6 * FPS;
 export const TITLE_FRAMES = 4 * FPS;
 export const END_FRAMES = 4 * FPS;
+export const TRANSITION_FRAMES = 16; // cross-slide transition length (overlaps adjacent sequences)
 
 export const THEME = {
   bg: '#0b1220',
@@ -96,6 +102,11 @@ export const slides: SlideData[] = [
     title: '90 min → 30 sec — the four IQs',
     caption: 'Fabric IQ · Work IQ · Foundry IQ · Web IQ — one agentic prompt, explainable & human-approvable.',
     say: "Le clou : le scénario temps réel 90 min → 30 s. Un seul prompt agentique combine Fabric IQ, Work IQ, Foundry IQ et Web IQ (obligations réglementaires citées).",
+    callouts: [
+      { x: 0.37, y: 0.395, label: '90 min → 30 sec', atFrame: 18, color: '#ef4444' },
+      { x: 0.775, y: 0.635, label: 'Un seul prompt agentique', atFrame: 48, color: '#6366f1' },
+      { x: 0.41, y: 0.197, label: 'Fabric IQ · en direct', atFrame: 78, color: '#10b981' },
+    ],
   },
   {
     image: 'fraud-iq.png',
@@ -110,6 +121,7 @@ export const slides: SlideData[] = [
     image: 'fraud-iq.png',
     video: 'fraud-iq-live.mp4',
     frames: 32 * FPS,
+    spotlight: { atFrame: 25 * FPS, scale: 1.35, x: 0.5, y: 0.55 },
     screen: 'Fraud IQ · live capture',
     title: 'Live capture — the four IQs, for real',
     caption: 'A real signed-in run ending on the grounded multi-IQ answer: Fabric IQ (Live) and Foundry IQ + Web IQ (Live) with cited EU obligations (EUR-Lex, ACPR) and a 92% recommendation.',
@@ -125,4 +137,7 @@ export const slides: SlideData[] = [
 ];
 
 export const totalFrames =
-  TITLE_FRAMES + slides.reduce((n, s) => n + (s.frames ?? SLIDE_FRAMES), 0) + END_FRAMES;
+  TITLE_FRAMES +
+  slides.reduce((n, s) => n + (s.frames ?? SLIDE_FRAMES), 0) +
+  END_FRAMES -
+  (slides.length + 1) * TRANSITION_FRAMES;
