@@ -91,6 +91,9 @@
                 <mxCell id="gAzure" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3FB;strokeColor=#0078D4;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#0078D4;spacing=8;" value="Azure — couche support (Terraform)" vertex="1">
                     <mxGeometry height="200" width="790" x="300" y="750" as="geometry"/>
                 </mxCell>
+                <mxCell id="nAzureWriteOnly" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEBF9;strokeColor=#0078D4;fontColor=#0078D4;fontStyle=1;fontSize=10;" value="write only · writeback OneLake" vertex="1">
+                    <mxGeometry height="22" width="206" x="876" y="756" as="geometry"/>
+                </mxCell>
                 <mxCell id="nFunc" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=26;imageHeight=26;spacingLeft=38;align=left;fontSize=10;fillColor=#EAF3FB;strokeColor=#0078D4;fontColor=#0B3C5D;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/compute/10029-icon-service-Function-Apps.svg;" value="Azure Function (Flex Consumption)&#xa;endpoint bot Teams + fallback" vertex="1">
                     <mxGeometry height="56" width="240" x="320" y="790" as="geometry"/>
                 </mxCell>
