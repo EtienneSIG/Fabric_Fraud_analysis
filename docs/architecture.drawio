@@ -115,6 +115,24 @@
                 <mxCell id="nTeamsBot" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=26;imageHeight=26;spacingLeft=38;align=left;fontSize=11;fillColor=#FDEDEC;strokeColor=#D24726;fontColor=#5A1B10;image=https://tomkiljo.github.io/ms-icons/icons/Microsoft_365_Content_Icons/Teams%20Purple/48x48%20Dark%20Purple%20Icon/Bot.svg;" value="Teams Bot&#xa;(manifest · messaging endpoint)" vertex="1">
                     <mxGeometry height="70" width="240" x="1410" y="610" as="geometry"/>
                 </mxCell>
+                <mxCell id="gModels" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF2FF;strokeColor=#3B5BDB;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#3B5BDB;spacing=8;" value="Modèles Foundry — déploiements (var.model_* · quota TPM · reasoning_effort)" vertex="1">
+                    <mxGeometry height="250" width="550" x="1130" y="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="nModelOrch" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=24;imageHeight=24;spacingLeft=34;align=left;fontSize=10;fillColor=#E8EDFF;strokeColor=#3B5BDB;fontColor=#1E293B;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg;" value="Orchestration · var.model_orchestrator&#xa;→ Triage (small/rapide)&#xa;reasoning_effort: minimal · quota TPM élevé" vertex="1">
+                    <mxGeometry height="80" width="250" x="1150" y="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="nModelReason" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=24;imageHeight=24;spacingLeft=34;align=left;fontSize=10;fillColor=#E8EDFF;strokeColor=#3B5BDB;fontColor=#1E293B;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg;" value="Raisonnement · var.model_reasoning&#xa;→ investigation · AML (strong)&#xa;reasoning_effort: high · quota TPM modéré" vertex="1">
+                    <mxGeometry height="80" width="250" x="1420" y="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="nModelExtract" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=24;imageHeight=24;spacingLeft=34;align=left;fontSize=10;fillColor=#E8EDFF;strokeColor=#3B5BDB;fontColor=#1E293B;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg;" value="Extraction · var.model_extraction&#xa;→ claims (small)&#xa;reasoning_effort: n/a · quota TPM standard" vertex="1">
+                    <mxGeometry height="80" width="250" x="1150" y="890" as="geometry"/>
+                </mxCell>
+                <mxCell id="nModelEmbed" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=24;imageHeight=24;spacingLeft=34;align=left;fontSize=10;fillColor=#E8EDFF;strokeColor=#3B5BDB;fontColor=#1E293B;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg;" value="Embeddings · var.model_embeddings&#xa;text-embedding-3-large&#xa;sans reasoning_effort · quota TPM batch" vertex="1">
+                    <mxGeometry height="80" width="250" x="1420" y="890" as="geometry"/>
+                </mxCell>
+                <mxCell id="eModels" edge="1" parent="1" source="nFoundrySvc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#3B5BDB;strokeColor=#3B5BDB;" target="nModelOrch" value="consomme les déploiements de modèles">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
                 <mxCell id="e1" edge="1" parent="1" source="nAnalyst" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#333333;strokeColor=#444444;" target="nSPA" value="HTTPS · Fabric SSO&#xa;(identité analyste)">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
