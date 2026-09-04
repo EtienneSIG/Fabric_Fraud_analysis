@@ -19,7 +19,7 @@
                 <mxCell id="nTeamsClient" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=26;imageHeight=26;spacingLeft=38;align=left;fontSize=11;fillColor=#FDEDEC;strokeColor=#D24726;fontColor=#5A1B10;image=https://tomkiljo.github.io/ms-icons/icons/Microsoft_365_Content_Icons/Teams%20Purple/48x48%20Dark%20Purple%20Icon/Chat.svg;" value="Client Microsoft Teams" vertex="1">
                     <mxGeometry height="56" width="190" x="60" y="240" as="geometry"/>
                 </mxCell>
-                <mxCell id="gFabric" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#0F6C5C;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#0F6C5C;spacing=8;" value="Microsoft Fabric — workspace da93926e… (capacité F2)" vertex="1">
+                <mxCell id="gFabric" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D6F0E6;strokeColor=#0F6C5C;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#0F6C5C;spacing=8;" value="Microsoft Fabric — workspace da93926e… (capacité F2)" vertex="1">
                     <mxGeometry height="640" width="790" x="300" y="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="nSPA" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=28;imageHeight=28;spacingLeft=40;align=left;fontSize=11;fontStyle=1;fillColor=#E9F7F3;strokeColor=#0F6C5C;fontColor=#0B3B33;image=https://tomkiljo.github.io/ms-icons/icons/Microsoft_Fabric_icons/general/app_development_48_color.svg;" value="Rayfin Fabric App (SPA)&#xa;React 19 · Vite · TS · webapp.fabricapps.net" vertex="1">
@@ -107,28 +107,28 @@
                     <mxGeometry height="56" width="230" x="580" y="870" as="geometry"/>
                 </mxCell>
                 <mxCell id="gM365" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCEEEA;strokeColor=#D24726;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#D24726;spacing=8;" value="Microsoft 365 / Graph (délégué + OBO)" vertex="1">
-                    <mxGeometry height="180" width="550" x="1130" y="560" as="geometry"/>
+                    <mxGeometry height="180" width="550" x="1130" y="790" as="geometry"/>
                 </mxCell>
                 <mxCell id="nGraph" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=26;imageHeight=26;spacingLeft=38;align=left;fontSize=11;fillColor=#FDEDEC;strokeColor=#D24726;fontColor=#5A1B10;image=https://tomkiljo.github.io/ms-icons/icons/Azure_UX_Patterns_icons/microsoft.svg;" value="Microsoft Graph&#xa;(Work IQ · mail · Teams · OneNote)" vertex="1">
-                    <mxGeometry height="70" width="240" x="1150" y="610" as="geometry"/>
+                    <mxGeometry height="70" width="240" x="1150" y="840" as="geometry"/>
                 </mxCell>
                 <mxCell id="nTeamsBot" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=26;imageHeight=26;spacingLeft=38;align=left;fontSize=11;fillColor=#FDEDEC;strokeColor=#D24726;fontColor=#5A1B10;image=https://tomkiljo.github.io/ms-icons/icons/Microsoft_365_Content_Icons/Teams%20Purple/48x48%20Dark%20Purple%20Icon/Bot.svg;" value="Teams Bot&#xa;(manifest · messaging endpoint)" vertex="1">
-                    <mxGeometry height="70" width="240" x="1410" y="610" as="geometry"/>
+                    <mxGeometry height="70" width="240" x="1410" y="840" as="geometry"/>
                 </mxCell>
                 <mxCell id="gModels" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF2FF;strokeColor=#3B5BDB;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#3B5BDB;spacing=8;" value="Modèles Foundry — déploiements (var.model_* · quota TPM · reasoning_effort)" vertex="1">
-                    <mxGeometry height="250" width="550" x="1130" y="760" as="geometry"/>
+                    <mxGeometry height="230" width="550" x="1130" y="540" as="geometry"/>
                 </mxCell>
                 <mxCell id="nModelOrch" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=24;imageHeight=24;spacingLeft=34;align=left;fontSize=10;fillColor=#E8EDFF;strokeColor=#3B5BDB;fontColor=#1E293B;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg;" value="Orchestration · var.model_orchestrator&#xa;→ Triage (small/rapide)&#xa;reasoning_effort: minimal · quota TPM élevé" vertex="1">
-                    <mxGeometry height="80" width="250" x="1150" y="800" as="geometry"/>
+                    <mxGeometry height="80" width="250" x="1150" y="580" as="geometry"/>
                 </mxCell>
                 <mxCell id="nModelReason" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=24;imageHeight=24;spacingLeft=34;align=left;fontSize=10;fillColor=#E8EDFF;strokeColor=#3B5BDB;fontColor=#1E293B;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg;" value="Raisonnement · var.model_reasoning&#xa;→ investigation · AML (strong)&#xa;reasoning_effort: high · quota TPM modéré" vertex="1">
-                    <mxGeometry height="80" width="250" x="1420" y="800" as="geometry"/>
+                    <mxGeometry height="80" width="250" x="1420" y="580" as="geometry"/>
                 </mxCell>
                 <mxCell id="nModelExtract" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=24;imageHeight=24;spacingLeft=34;align=left;fontSize=10;fillColor=#E8EDFF;strokeColor=#3B5BDB;fontColor=#1E293B;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg;" value="Extraction · var.model_extraction&#xa;→ claims (small)&#xa;reasoning_effort: n/a · quota TPM standard" vertex="1">
-                    <mxGeometry height="80" width="250" x="1150" y="890" as="geometry"/>
+                    <mxGeometry height="80" width="250" x="1150" y="670" as="geometry"/>
                 </mxCell>
                 <mxCell id="nModelEmbed" parent="1" style="label;html=1;rounded=0;whiteSpace=wrap;imageAlign=left;imageVerticalAlign=middle;imageWidth=24;imageHeight=24;spacingLeft=34;align=left;fontSize=10;fillColor=#E8EDFF;strokeColor=#3B5BDB;fontColor=#1E293B;image=https://tomkiljo.github.io/ms-icons/icons/Azure_Public_Service_Icons/Icons/ai%20+%20machine%20learning/03438-icon-service-Azure-OpenAI.svg;" value="Embeddings · var.model_embeddings&#xa;text-embedding-3-large&#xa;sans reasoning_effort · quota TPM batch" vertex="1">
-                    <mxGeometry height="80" width="250" x="1420" y="890" as="geometry"/>
+                    <mxGeometry height="80" width="250" x="1420" y="670" as="geometry"/>
                 </mxCell>
                 <mxCell id="eModels" edge="1" parent="1" source="nFoundrySvc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#3B5BDB;strokeColor=#3B5BDB;" target="nModelOrch" value="consomme les déploiements de modèles">
                     <mxGeometry relative="1" as="geometry"/>

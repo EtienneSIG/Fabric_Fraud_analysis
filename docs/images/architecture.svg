@@ -22,7 +22,7 @@
   <rect x="40" y="120" width="300" height="360" fill="#F4F4F5" stroke="#6B7280" stroke-dasharray="6 4"/>
   <text x="58" y="146" class="pt" fill="#4B5563">Client / Analyste</text>
 
-  <rect x="370" y="112" width="790" height="700" fill="#EAF7F3" stroke="#0F6C5C" stroke-dasharray="6 4"/>
+  <rect x="370" y="112" width="790" height="700" fill="#D6F0E6" stroke="#0F6C5C" stroke-dasharray="6 4"/>
   <text x="388" y="138" class="pt" fill="#0F6C5C">Microsoft Fabric — workspace F2</text>
 
   <rect x="1190" y="112" width="690" height="470" fill="#F3EEFC" stroke="#6E4BD0" stroke-dasharray="6 4"/>
@@ -31,8 +31,10 @@
   <rect x="370" y="838" width="790" height="212" fill="#EAF3FB" stroke="#0078D4" stroke-dasharray="6 4"/>
   <text x="388" y="864" class="pt" fill="#0078D4">Azure — couche support (Terraform)</text>
 
+  <g transform="translate(0,224)">
   <rect x="1190" y="602" width="690" height="210" fill="#FCEEEA" stroke="#D24726" stroke-dasharray="6 4"/>
   <text x="1208" y="628" class="pt" fill="#D24726">Microsoft 365 / Graph (délégué + OBO)</text>
+  </g>
 
   <!-- ===================== CLIENT NODES ===================== -->
   <rect x="66" y="176" width="248" height="66" fill="#475569"/>
@@ -167,6 +169,7 @@
   <text x="666" y="1007" class="ts">MSAL + OBO · délégué</text>
 
   <!-- ===================== M365 NODES ===================== -->
+  <g transform="translate(0,224)">
   <rect x="1210" y="654" width="300" height="80" fill="#C4472A"/>
   <text x="1226" y="686" class="t">Microsoft Graph</text>
   <text x="1226" y="708" class="ts">Work IQ · mail · Teams · OneNote</text>
@@ -174,6 +177,7 @@
   <rect x="1540" y="654" width="320" height="80" fill="#A83318"/>
   <text x="1556" y="686" class="t">Teams Bot</text>
   <text x="1556" y="708" class="ts">manifest · messaging endpoint</text>
+  </g>
 
   <!-- ===================== ARROWS ===================== -->
   <path d="M314,205 L392,200" fill="none" stroke="#334155" stroke-width="2.5" marker-end="url(#arr)"/>
@@ -216,6 +220,7 @@
   <text x="590" y="958" fill="#64748b" font-size="11">MSAL / OBO</text>
 
   <!-- ===================== MODÈLES FOUNDRY (déploiements) ===================== -->
+  <g transform="translate(0,-226)">
   <rect x="1190" y="822" width="690" height="216" fill="#EEF2FF" stroke="#3B5BDB" stroke-dasharray="6 4"/>
   <text x="1208" y="848" class="pt" fill="#3B5BDB">Modèles Foundry — déploiements (IDs via Terraform · var.model_*)</text>
 
@@ -244,8 +249,9 @@
   <text x="1720" y="962" class="ts" font-size="10.5">sans effort · TPM batch</text>
 
   <text x="1210" y="1004" fill="#3B5BDB" font-size="12.5">Les agents connectés consomment ces déploiements (1 modèle adapté par tâche · IDs var.model_*).</text>
+  </g>
 
   <!-- Agent Service → déploiements de modèles -->
-  <path d="M1860,185 L1898,185 L1898,860 L1880,860" fill="none" stroke="#3B5BDB" stroke-width="2.5" marker-end="url(#arr)"/>
+  <path d="M1860,185 L1898,185 L1898,636 L1880,636" fill="none" stroke="#3B5BDB" stroke-width="2.5" marker-end="url(#arr)"/>
   <text x="1908" y="520" fill="#3B5BDB" font-size="12.5" transform="rotate(90 1908 520)">consomme les déploiements de modèles</text>
 </svg>
