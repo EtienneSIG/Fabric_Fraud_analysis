@@ -42,9 +42,10 @@ export const slides: SlideData[] = [
   {
     image: 'architecture.png',
     frames: 9 * FPS,
+    callouts: [],
     screen: 'Architecture',
-    title: 'Real deployed architecture',
-    caption: 'Rayfin SPA (Fabric-hosted, analyst identity) → Foundry Agent Service (fraud-iq-orchestrator + Web IQ) grounded on Fabric via OBO; server-side traces flow to Application Insights.',
+    title: 'Architecture technique',
+    caption: 'SPA Rayfin (hébergée Fabric, identité analyste) → Foundry Agent Service (fraud-iq-orchestrator + Web IQ) ancré sur Fabric via OBO ; le pipeline seed→OneLake→Delta alimente le lakehouse ; les traces serveur partent vers Application Insights.',
     say: "L'architecture réelle déployée : la SPA Rayfin (identité de l'analyste) appelle en direct l'agent Foundry fraud-iq-orchestrator. Web IQ interroge les sources réglementaires officielles, l'agent est ancré sur Fabric (Data Agent, OBO), et les traces partent dans Application Insights.",
   },
   {

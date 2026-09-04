@@ -1,5 +1,9 @@
 # Fabric Fraud Intelligence
 
+![Architecture technique — Rayfin Fabric Fraud Intelligence](docs/images/architecture.png)
+
+> Architecture technique et flux de bout en bout (source éditable : [docs/architecture.drawio](docs/architecture.drawio) · vectoriel : [docs/images/architecture.svg](docs/images/architecture.svg)).
+
 An end-to-end fraud detection and investigation solution built on **Microsoft Fabric**,
 combining a **Rayfin Fabric App** (React frontend + Fabric SQL backend), a governed
 **Lakehouse**, and a **Fabric IQ Ontology** semantic layer.
