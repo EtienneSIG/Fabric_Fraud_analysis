@@ -19,32 +19,32 @@
   <text x="40" y="86" font-size="18" fill="#4B5563">Rayfin · Fabric Fraud Intelligence — mock-first · identité analyste passée de bout en bout (RLS/PII) · HITL (sortie agent consultative)</text>
 
   <!-- ===================== PANELS ===================== -->
-  <rect x="40" y="120" width="300" height="360" rx="14" fill="#F4F4F5" stroke="#6B7280" stroke-dasharray="6 4"/>
+  <rect x="40" y="120" width="300" height="360" fill="#F4F4F5" stroke="#6B7280" stroke-dasharray="6 4"/>
   <text x="58" y="146" class="pt" fill="#4B5563">Client / Analyste</text>
 
-  <rect x="370" y="112" width="790" height="700" rx="14" fill="#EAF7F3" stroke="#0F6C5C" stroke-dasharray="6 4"/>
+  <rect x="370" y="112" width="790" height="700" fill="#EAF7F3" stroke="#0F6C5C" stroke-dasharray="6 4"/>
   <text x="388" y="138" class="pt" fill="#0F6C5C">Microsoft Fabric — workspace F2</text>
 
-  <rect x="1190" y="112" width="690" height="470" rx="14" fill="#F3EEFC" stroke="#6E4BD0" stroke-dasharray="6 4"/>
+  <rect x="1190" y="112" width="690" height="470" fill="#F3EEFC" stroke="#6E4BD0" stroke-dasharray="6 4"/>
   <text x="1208" y="138" class="pt" fill="#6E4BD0">Azure AI Foundry — projet fraud-intelligence</text>
 
-  <rect x="370" y="838" width="790" height="212" rx="14" fill="#EAF3FB" stroke="#0078D4" stroke-dasharray="6 4"/>
+  <rect x="370" y="838" width="790" height="212" fill="#EAF3FB" stroke="#0078D4" stroke-dasharray="6 4"/>
   <text x="388" y="864" class="pt" fill="#0078D4">Azure — couche support (Terraform)</text>
 
-  <rect x="1190" y="602" width="690" height="210" rx="14" fill="#FCEEEA" stroke="#D24726" stroke-dasharray="6 4"/>
+  <rect x="1190" y="602" width="690" height="210" fill="#FCEEEA" stroke="#D24726" stroke-dasharray="6 4"/>
   <text x="1208" y="628" class="pt" fill="#D24726">Microsoft 365 / Graph (délégué + OBO)</text>
 
   <!-- ===================== CLIENT NODES ===================== -->
-  <rect x="66" y="176" width="248" height="66" rx="10" fill="#4B5563"/>
+  <rect x="66" y="176" width="248" height="66" fill="#475569"/>
   <text x="82" y="204" class="t">Analyste fraude</text>
   <text x="82" y="224" class="ts">navigateur · Fabric SSO</text>
 
-  <rect x="66" y="286" width="248" height="66" rx="10" fill="#C4472A"/>
+  <rect x="66" y="286" width="248" height="66" fill="#B4471F"/>
   <text x="82" y="314" class="t">Client Microsoft Teams</text>
   <text x="82" y="334" class="ts">cartes d'approbation</text>
 
   <!-- Legend -->
-  <rect x="40" y="500" width="300" height="300" rx="12" fill="#FBFBFC" stroke="#CBD5E1"/>
+  <rect x="40" y="500" width="300" height="300" fill="#FBFBFC" stroke="#CBD5E1"/>
   <text x="58" y="528" font-size="15" font-weight="700" fill="#334155">Légende</text>
   <line x1="58" y1="548" x2="98" y2="548" stroke="#334155" stroke-width="3" marker-end="url(#arr)"/>
   <text x="106" y="552" class="lbl">flux runtime</text>
@@ -52,187 +52,166 @@
   <text x="106" y="580" class="lbl">chemin backend (proxy Foundry)</text>
   <line x1="58" y1="604" x2="98" y2="604" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="4 4"/>
   <text x="106" y="608" class="lbl">identité / télémétrie / RBAC</text>
-  <rect x="58" y="628" width="18" height="14" rx="3" fill="#12836F"/><text x="106" y="640" class="lbl">Fabric</text>
-  <rect x="58" y="652" width="18" height="14" rx="3" fill="#6E4BD0"/><text x="106" y="664" class="lbl">Azure AI Foundry</text>
-  <rect x="58" y="676" width="18" height="14" rx="3" fill="#0078D4"/><text x="106" y="688" class="lbl">Azure</text>
-  <rect x="58" y="700" width="18" height="14" rx="3" fill="#C4472A"/><text x="106" y="712" class="lbl">Microsoft 365</text>
+  <rect x="58" y="628" width="18" height="14" fill="#0F6C5C"/><text x="106" y="640" class="lbl">Fabric</text>
+  <rect x="58" y="652" width="18" height="14" fill="#6E4BD0"/><text x="106" y="664" class="lbl">Azure AI Foundry</text>
+  <rect x="58" y="676" width="18" height="14" fill="#0078D4"/><text x="106" y="688" class="lbl">Azure</text>
+  <rect x="58" y="700" width="18" height="14" fill="#C4472A"/><text x="106" y="712" class="lbl">Microsoft 365</text>
   <text x="58" y="748" class="lbl" font-size="11">Ontologie/Data Agent ancrés</text>
   <text x="58" y="766" class="lbl" font-size="11">sur Fabric via OBO (identité</text>
   <text x="58" y="784" class="lbl" font-size="11">analyste, RLS/PII).</text>
 
   <!-- ===================== FABRIC NODES ===================== -->
-  <rect x="392" y="164" width="256" height="72" rx="10" fill="#12836F"/>
+  <rect x="392" y="164" width="256" height="72" fill="#0F6C5C"/>
   <text x="408" y="192" class="t">Rayfin Fabric App (SPA)</text>
   <text x="408" y="212" class="ts">React 19 · Vite · TS</text>
   <text x="408" y="230" class="ts">webapp.fabricapps.net</text>
 
-  <rect x="392" y="262" width="256" height="66" rx="10" fill="#12836F"/>
+  <rect x="392" y="262" width="256" height="66" fill="#127A6A"/>
   <text x="408" y="290" class="t">Rayfin functions (backend)</text>
   <text x="408" y="310" class="ts">/api · Graph OBO · writeback</text>
 
   <!-- Pipeline sub-box -->
-  <rect x="392" y="360" width="256" height="428" rx="10" fill="#F4FBF9" stroke="#0F6C5C" stroke-dasharray="4 3"/>
+  <rect x="392" y="360" width="256" height="428" fill="#F4FBF9" stroke="#0F6C5C" stroke-dasharray="4 3"/>
   <text x="408" y="384" font-size="13" font-style="italic" fill="#0F6C5C">Pipeline (seed → lakehouse)</text>
-  <rect x="410" y="398" width="220" height="52" rx="8" fill="#ffffff" stroke="#0F6C5C"/>
+  <rect x="410" y="398" width="220" height="52" fill="#E0F2F1" stroke="#0F6C5C"/>
   <text x="422" y="420" class="dark" font-size="12.5">exportLakehouse.ts</text>
   <text x="422" y="438" class="lbl" font-size="11">seed → JSONL</text>
-  <rect x="410" y="464" width="220" height="52" rx="8" fill="#ffffff" stroke="#0F6C5C"/>
+  <rect x="410" y="464" width="220" height="52" fill="#E8F5E9" stroke="#0F6C5C"/>
   <text x="422" y="486" class="dark" font-size="12.5">upload_lakehouse_data.ps1</text>
   <text x="422" y="504" class="lbl" font-size="11">OneLake DFS (ADLS Gen2)</text>
-  <rect x="410" y="530" width="220" height="52" rx="8" fill="#ffffff" stroke="#0F6C5C"/>
+  <rect x="410" y="530" width="220" height="52" fill="#E0F7FA" stroke="#0F6C5C"/>
   <text x="422" y="552" class="dark" font-size="12.5">run_load → load_app_data</text>
   <text x="422" y="570" class="lbl" font-size="11">RunNotebook (Spark, overwrite)</text>
-  <rect x="410" y="596" width="220" height="52" rx="8" fill="#ffffff" stroke="#0F6C5C"/>
+  <rect x="410" y="596" width="220" height="52" fill="#F1F8E9" stroke="#0F6C5C"/>
   <text x="422" y="618" class="dark" font-size="12.5">build_ontology.py</text>
   <text x="422" y="636" class="lbl" font-size="11">Fabric IQ (ontologie)</text>
 
   <!-- Fabric col B -->
-  <rect x="682" y="164" width="262" height="74" rx="10" fill="#12836F"/>
+  <rect x="682" y="164" width="262" height="74" fill="#0E7490"/>
   <text x="698" y="192" class="t">Fabric Data Agent</text>
   <text x="698" y="212" class="ts">conn-fabric-fraud-dataagent</text>
   <text x="698" y="230" class="ts">NL2SQL gouverné</text>
 
-  <rect x="682" y="396" width="262" height="60" rx="10" fill="#12836F"/>
+  <rect x="682" y="396" width="262" height="60" fill="#15803D"/>
   <text x="698" y="422" class="t">Fabric SQL Database</text>
   <text x="698" y="442" class="ts">Ontologie (Fabric IQ)</text>
 
-  <rect x="682" y="468" width="262" height="60" rx="10" fill="#12836F"/>
+  <rect x="682" y="468" width="262" height="60" fill="#0D9488"/>
   <text x="698" y="494" class="t">Lakehouse fraud_lakehouse</text>
   <text x="698" y="514" class="ts">OneLake · Delta (12 361 evts)</text>
 
-  <rect x="682" y="540" width="262" height="52" rx="10" fill="#12836F"/>
+  <rect x="682" y="540" width="262" height="52" fill="#047857"/>
   <text x="698" y="571" class="t">SQL analytics endpoint</text>
 
-  <rect x="682" y="650" width="262" height="60" rx="10" fill="#12836F"/>
+  <rect x="682" y="650" width="262" height="60" fill="#0891B2"/>
   <text x="698" y="676" class="t">Eventhouse / KQL</text>
   <text x="698" y="696" class="ts">temps réel</text>
 
   <!-- Power BI -->
-  <rect x="964" y="396" width="184" height="60" rx="10" fill="#E8A400"/>
+  <rect x="964" y="396" width="184" height="60" fill="#E8A400"/>
   <text x="980" y="422" font-size="15" font-weight="700" fill="#3a2d00">Power BI</text>
   <text x="980" y="442" font-size="12.5" fill="#5a4a00">rapport exécutif</text>
 
   <!-- ===================== FOUNDRY NODES ===================== -->
-  <rect x="1210" y="160" width="650" height="50" rx="10" fill="#6E4BD0"/>
+  <rect x="1210" y="160" width="650" height="50" fill="#5B3FB0"/>
   <text x="1226" y="191" class="t" font-size="16">Foundry Agent Service (GA · API 2025-11-15-preview)</text>
 
-  <rect x="1210" y="238" width="300" height="72" rx="10" fill="#6E4BD0"/>
+  <rect x="1210" y="238" width="300" height="72" fill="#6E4BD0"/>
   <text x="1226" y="266" class="t">Triage orchestrator</text>
   <text x="1226" y="286" class="ts">fraud-iq-orchestrator</text>
   <text x="1226" y="304" class="ts">var.model_orchestrator (small)</text>
 
-  <rect x="1210" y="330" width="300" height="54" rx="10" fill="#7C5AD6"/>
+  <rect x="1210" y="330" width="300" height="54" fill="#8250C4"/>
   <text x="1226" y="352" class="t" font-size="14">Agent investigation</text>
   <text x="1226" y="371" class="ts">var.model_reasoning</text>
 
-  <rect x="1210" y="398" width="300" height="54" rx="10" fill="#7C5AD6"/>
+  <rect x="1210" y="398" width="300" height="54" fill="#9333EA"/>
   <text x="1226" y="420" class="t" font-size="14">Agent AML · SAR</text>
   <text x="1226" y="439" class="ts">RAFT student</text>
 
-  <rect x="1210" y="466" width="300" height="54" rx="10" fill="#7C5AD6"/>
+  <rect x="1210" y="466" width="300" height="54" fill="#7048C0"/>
   <text x="1226" y="488" class="t" font-size="14">Agent claims</text>
   <text x="1226" y="507" class="ts">var.model_extraction</text>
 
-  <rect x="1540" y="238" width="320" height="54" rx="10" fill="#8A6BE0"/>
+  <rect x="1540" y="238" width="320" height="54" fill="#5A4FCF"/>
   <text x="1556" y="260" class="t" font-size="14">Web IQ — outil MCP</text>
   <text x="1556" y="279" class="ts">mode approbation</text>
 
-  <rect x="1540" y="306" width="320" height="64" rx="10" fill="#8A6BE0"/>
+  <rect x="1540" y="306" width="320" height="64" fill="#6D4AC4"/>
   <text x="1556" y="330" class="t" font-size="14">Connexion Fabric (OBO)</text>
   <text x="1556" y="350" class="ts">outil Fabric natif</text>
 
-  <rect x="1540" y="384" width="320" height="54" rx="10" fill="#8A6BE0"/>
+  <rect x="1540" y="384" width="320" height="54" fill="#7C3AED"/>
   <text x="1556" y="406" class="t" font-size="14">Embeddings / knowledge</text>
   <text x="1556" y="425" class="ts">var.model_embeddings</text>
 
   <!-- ===================== AZURE NODES ===================== -->
-  <rect x="392" y="884" width="238" height="60" rx="10" fill="#0078D4"/>
+  <rect x="392" y="884" width="238" height="60" fill="#0078D4"/>
   <text x="408" y="910" class="t" font-size="14">Azure Function (Flex)</text>
   <text x="408" y="929" class="ts">endpoint bot Teams + fallback</text>
 
-  <rect x="650" y="884" width="238" height="60" rx="10" fill="#0078D4"/>
+  <rect x="650" y="884" width="238" height="60" fill="#1565C0"/>
   <text x="666" y="910" class="t" font-size="14">Storage (durci)</text>
   <text x="666" y="929" class="ts">shared-key / public OFF</text>
 
-  <rect x="908" y="884" width="234" height="60" rx="10" fill="#0078D4"/>
+  <rect x="908" y="884" width="234" height="60" fill="#0F6CBD"/>
   <text x="924" y="910" class="t" font-size="14">Managed Identity</text>
   <text x="924" y="929" class="ts">Blob Data Contributor</text>
 
-  <rect x="392" y="962" width="238" height="60" rx="10" fill="#0078D4"/>
+  <rect x="392" y="962" width="238" height="60" fill="#2563EB"/>
   <text x="408" y="988" class="t" font-size="14">Application Insights</text>
   <text x="408" y="1007" class="ts">OpenTelemetry</text>
 
-  <rect x="650" y="962" width="238" height="60" rx="10" fill="#0078D4"/>
+  <rect x="650" y="962" width="238" height="60" fill="#0B5CAD"/>
   <text x="666" y="988" class="t" font-size="14">Microsoft Entra ID</text>
   <text x="666" y="1007" class="ts">MSAL + OBO · délégué</text>
 
   <!-- ===================== M365 NODES ===================== -->
-  <rect x="1210" y="654" width="300" height="80" rx="10" fill="#C4472A"/>
+  <rect x="1210" y="654" width="300" height="80" fill="#C4472A"/>
   <text x="1226" y="686" class="t">Microsoft Graph</text>
   <text x="1226" y="708" class="ts">Work IQ · mail · Teams · OneNote</text>
 
-  <rect x="1540" y="654" width="320" height="80" rx="10" fill="#C4472A"/>
+  <rect x="1540" y="654" width="320" height="80" fill="#A83318"/>
   <text x="1556" y="686" class="t">Teams Bot</text>
   <text x="1556" y="708" class="ts">manifest · messaging endpoint</text>
 
   <!-- ===================== ARROWS ===================== -->
-  <!-- Analyste -> SPA -->
   <path d="M314,205 L392,200" fill="none" stroke="#334155" stroke-width="2.5" marker-end="url(#arr)"/>
-  <!-- SPA -> functions -->
   <path d="M520,236 L520,262" fill="none" stroke="#334155" stroke-width="2.5" marker-end="url(#arr)"/>
-  <!-- SPA -> Foundry (MSAL direct) -->
   <path d="M520,164 L520,150 L1210,150 L1210,160" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
   <text x="820" y="144" fill="#6E4BD0" font-size="12.5">Direct SPA · MSAL popup · ai.azure.com/user_impersonation</text>
-  <!-- functions -> Foundry (proxy, dashed) -->
   <path d="M648,300 L1176,300 L1176,274 L1210,274" fill="none" stroke="#6E4BD0" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrP)"/>
   <text x="960" y="294" fill="#6E4BD0" font-size="12.5">proxy /api/agents/run</text>
-  <!-- functions -> Lakehouse (writeback) -->
   <path d="M648,312 L664,312 L664,498 L682,498" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
   <text x="668" y="360" fill="#0F6C5C" font-size="11">OneLake writeback</text>
-  <!-- Orchestrator -> sub-agents -->
   <path d="M1360,310 L1360,330" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
   <path d="M1210,302 L1201,302 L1201,425 L1210,425" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
   <path d="M1210,306 L1196,306 L1196,493 L1210,493" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
   <text x="1318" y="326" fill="#6E4BD0" font-size="11">délègue</text>
-  <!-- Orchestrator -> Web IQ / Connexion -->
   <path d="M1510,268 L1540,265" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
   <text x="1512" y="258" fill="#6E4BD0" font-size="11">MCP</text>
   <path d="M1510,290 L1540,332" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
-  <!-- Connexion -> Data Agent (OBO grounding) -->
   <path d="M1540,338 L1170,338 L1170,201 L944,201" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
   <text x="972" y="195" fill="#0F6C5C" font-size="12.5">ancrage Fabric · outil natif · OBO</text>
-  <!-- Data Agent -> Ontologie -->
   <path d="M813,238 L813,396" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
-  <!-- Data Agent -> SQL endpoint -->
   <path d="M944,201 L962,201 L962,566 L944,566" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
   <text x="968" y="470" fill="#0F6C5C" font-size="11">NL2SQL (RLS/PII)</text>
-  <!-- pipeline chain -->
   <path d="M520,450 L520,464" fill="none" stroke="#0F6C5C" stroke-width="2" marker-end="url(#arrG)"/>
   <path d="M520,516 L520,530" fill="none" stroke="#0F6C5C" stroke-width="2" marker-end="url(#arrG)"/>
-  <!-- notebook -> Lakehouse -->
   <path d="M630,556 L666,556 L666,522 L682,522" fill="none" stroke="#0F6C5C" stroke-width="2" marker-end="url(#arrG)"/>
   <text x="636" y="546" fill="#0F6C5C" font-size="11">Delta overwrite</text>
-  <!-- build_ontology -> Ontologie -->
   <path d="M630,622 L672,622 L672,456 L682,456" fill="none" stroke="#0F6C5C" stroke-width="2" marker-end="url(#arrG)"/>
-  <!-- Lakehouse -> SQL endpoint -->
   <path d="M813,528 L813,540" fill="none" stroke="#0F6C5C" stroke-width="2" marker-end="url(#arrG)"/>
-  <!-- SQL endpoint -> Power BI -->
   <path d="M944,558 L1056,558 L1056,456" fill="none" stroke="#E8A400" stroke-width="2.5" marker-end="url(#arr)"/>
   <text x="1000" y="552" fill="#8a6a00" font-size="11">DirectLake</text>
-  <!-- SPA -> functions already; functions used -->
-  <!-- Teams client -> Azure Function -->
   <path d="M314,318 L356,318 L356,914 L392,914" fill="none" stroke="#D24726" stroke-width="2.5" marker-end="url(#arr)"/>
   <text x="360" y="720" fill="#D24726" font-size="11" transform="rotate(90 360 720)">messaging endpoint</text>
-  <!-- Function -> Foundry (agent run, dashed) -->
   <path d="M511,884 L511,830 L1176,830 L1176,210 L1210,210" fill="none" stroke="#6E4BD0" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrP)"/>
   <text x="760" y="824" fill="#6E4BD0" font-size="12.5">agent run</text>
-  <!-- MI -> Storage -->
   <path d="M908,914 L888,914" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arr)"/>
   <text x="812" y="878" fill="#64748b" font-size="11">MI → Blob</text>
-  <!-- Function -> App Insights -->
   <path d="M470,944 L470,962" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arr)"/>
   <text x="476" y="957" fill="#64748b" font-size="11">OTel</text>
-  <!-- Entra -> Function (auth) -->
   <path d="M700,962 L560,946" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arr)"/>
   <text x="590" y="958" fill="#64748b" font-size="11">MSAL / OBO</text>
 </svg>
