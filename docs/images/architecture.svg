@@ -214,4 +214,34 @@
   <text x="476" y="957" fill="#64748b" font-size="11">OTel</text>
   <path d="M700,962 L560,946" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arr)"/>
   <text x="590" y="958" fill="#64748b" font-size="11">MSAL / OBO</text>
+
+  <!-- ===================== MODÈLES FOUNDRY (déploiements) ===================== -->
+  <rect x="1190" y="822" width="690" height="216" fill="#EEF2FF" stroke="#3B5BDB" stroke-dasharray="6 4"/>
+  <text x="1208" y="848" class="pt" fill="#3B5BDB">Modèles Foundry — déploiements (IDs via Terraform · var.model_*)</text>
+
+  <rect x="1210" y="884" width="158" height="80" fill="#2563EB"/>
+  <text x="1224" y="910" class="t" font-size="14">Orchestration</text>
+  <text x="1224" y="930" class="ts" font-size="11.5">var.model_orchestrator</text>
+  <text x="1224" y="948" class="ts" font-size="11.5">→ Triage (small/fast)</text>
+
+  <rect x="1378" y="884" width="158" height="80" fill="#1E40AF"/>
+  <text x="1392" y="910" class="t" font-size="14">Raisonnement</text>
+  <text x="1392" y="930" class="ts" font-size="11.5">var.model_reasoning</text>
+  <text x="1392" y="948" class="ts" font-size="11.5">→ investigation · AML</text>
+
+  <rect x="1546" y="884" width="150" height="80" fill="#0E7490"/>
+  <text x="1560" y="910" class="t" font-size="14">Extraction</text>
+  <text x="1560" y="930" class="ts" font-size="11.5">var.model_extraction</text>
+  <text x="1560" y="948" class="ts" font-size="11.5">→ claims (small)</text>
+
+  <rect x="1706" y="884" width="166" height="80" fill="#0F766E"/>
+  <text x="1720" y="910" class="t" font-size="14">Embeddings</text>
+  <text x="1720" y="930" class="ts" font-size="11.5">var.model_embeddings</text>
+  <text x="1720" y="948" class="ts" font-size="11.5">text-embedding-3-large</text>
+
+  <text x="1210" y="990" fill="#3B5BDB" font-size="12.5">Les agents connectés consomment ces déploiements (1 modèle adapté par tâche).</text>
+
+  <!-- Agent Service → déploiements de modèles -->
+  <path d="M1860,185 L1898,185 L1898,860 L1880,860" fill="none" stroke="#3B5BDB" stroke-width="2.5" marker-end="url(#arr)"/>
+  <text x="1908" y="520" fill="#3B5BDB" font-size="12.5" transform="rotate(90 1908 520)">consomme les déploiements de modèles</text>
 </svg>
