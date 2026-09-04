@@ -12,16 +12,20 @@ import {
   type IqId,
   type IqResult,
 } from '@/backend/api/microsoftIq';
-import { isWorkIqEnabled } from '@/backend/config';
+import { isWorkIqEnabled, isFoundryEnabled } from '@/backend/config';
 import { workIq } from '@/backend/services/WorkIqGraphClient';
-import { askFoundryAgent } from '@/services/FoundryAgentClient';
+import { askFoundryAgent, foundryDirectConfigured } from '@/services/FoundryAgentClient';
+import { diag, startTimer } from '@/backend/diag';
 
+// Foundry + Web are "live" only when the deployed agent is actually wired (direct SPA path or
+// backend proxy). A configured-but-degraded run flips the badge back to Simulated at render time.
+const foundryConfigured = (): boolean => isFoundryEnabled() || foundryDirectConfigured();
 const isLive = (id: IqId): boolean =>
   id === 'fabric'
     ? true
     : id === 'work'
       ? isWorkIqEnabled()
-      : true;
+      : foundryConfigured();
 const COLOR: Record<IqId, string> = {
   fabric: 'var(--ffi-iq-fabric)',
   work: 'var(--ffi-iq-work)',
@@ -89,11 +93,13 @@ function IqColumn({
   items,
   revealed,
   embedded = false,
+  live,
 }: {
   id: IqId;
   items: string[];
   revealed: boolean;
   embedded?: boolean;
+  live?: boolean;
 }) {
   const { t } = useTranslation();
   const iq = IQ_BY_ID[id];
@@ -103,7 +109,8 @@ function IqColumn({
         <h4 className="text-sm font-semibold" style={{ color: COLOR[id] }}>
           {iq.name}
         </h4>
-        <Badge live={isLive(id)} />
+        {/* Resolve the Live/Simulated pill only once the column reveals, so it can't flash "Simulated" while auth/grounding is still running. */}
+        {revealed && <Badge live={live ?? isLive(id)} />}
       </div>
       <p className="text-[11px] text-gray-400">{t(`fraudIqPage.iq.${id}.grounds`)}</p>
       {revealed ? (
@@ -163,18 +170,20 @@ function FoundryWebColumn({
   foundry,
   web,
   revealed,
+  live,
 }: {
   foundry: string[];
   web: string[];
   revealed: boolean;
+  live?: boolean;
 }) {
   return (
     <div className="min-w-0 overflow-hidden rounded-xl border border-gray-100 sm:col-span-2">
       <div className="grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0 border-b border-gray-100 lg:border-b-0 lg:border-r">
-          <IqColumn id="foundry" items={foundry} revealed={revealed} embedded />
+          <IqColumn id="foundry" items={foundry} revealed={revealed} embedded live={live} />
         </div>
-        <IqColumn id="web" items={web} revealed={revealed} embedded />
+        <IqColumn id="web" items={web} revealed={revealed} embedded live={live} />
       </div>
     </div>
   );
@@ -191,6 +200,7 @@ export function FraudIQ() {
   const [phase, setPhase] = useState(0); // 1 work · 2 fabric · 3 foundry · 4 recommendation
   const [scenarioFoundry, setScenarioFoundry] = useState<string[]>([]);
   const [scenarioWeb, setScenarioWeb] = useState<string[]>(scenario.web);
+  const [scenarioFoundryLive, setScenarioFoundryLive] = useState(false);
   const [scenarioError, setScenarioError] = useState<string | null>(null);
   const [scenarioRunning, setScenarioRunning] = useState(false);
   const timers = useRef<number[]>([]);
@@ -203,8 +213,11 @@ export function FraudIQ() {
     setScenarioError(null);
     setScenarioWeb(scenario.web);
     setScenarioRunning(true);
-    timers.current.push(window.setTimeout(() => setPhase(1), 600));
-    timers.current.push(window.setTimeout(() => setPhase(2), 1200));
+    timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 1)), 600));
+    timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 2)), 1200));
+    const configured = foundryConfigured();
+    const elapsed = startTimer();
+    diag('fraudiq', `scenario run \u2014 foundry ${configured ? 'configured (live path)' : 'not configured (mock)'}`, { alertId: scenario.alertId }, 'info');
     try {
       const foundry = await askFoundryAgent(
         `${scenario.prompt}\n\nContexte Fabric : alerte ${scenario.alertId}, client ${scenario.customerId}. ` +
@@ -212,13 +225,24 @@ export function FraudIQ() {
         'à soumettre à validation humaine. Cite uniquement des sources officielles.',
         i18n.resolvedLanguage
       );
+      const live = configured && !foundry.degraded;
+      setScenarioFoundryLive(live);
       setScenarioFoundry([foundry.answer]);
       if (foundry.citations.length) {
-        setScenarioWeb(foundry.citations.map((citation) => `${citation.title} · ${citation.url}`));
+        setScenarioWeb(foundry.citations.map((citation) => `${citation.title} \u00b7 ${citation.url}`));
       }
-      setPhase(3);
-      timers.current.push(window.setTimeout(() => setPhase(4), 500));
+      diag(
+        'fraudiq',
+        `scenario result \u2014 ${live ? 'LIVE Foundry agent' : 'DEGRADED \u2192 mock'} in ${elapsed()}ms (${foundry.answer.length} chars, ${foundry.citations.length} citations)`,
+        { live, degraded: !!foundry.degraded, configured },
+        live ? 'info' : 'warn'
+      );
+      // Reveal Foundry/Web then the recommendation. Monotonic + timed so an instant mock resolve
+      // can't let the 600/1200ms phase timers roll the phase backward (Foundry/Web would never show).
+      timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 3)), 1800));
+      timers.current.push(window.setTimeout(() => setPhase((p) => Math.max(p, 4)), 2400));
     } catch (error) {
+      diag('fraudiq', `scenario run failed after ${elapsed()}ms`, error, 'error');
       setScenarioError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
     } finally {
       setScenarioRunning(false);
@@ -243,8 +267,17 @@ export function FraudIQ() {
     setAskError(null);
     setAskRunning(true);
     setAskPhase(0);
+    const elapsed = startTimer();
+    diag('fraudiq', `free ask \u2014 foundry ${foundryConfigured() ? 'configured (live path)' : 'not configured (mock)'}`, { question: question.slice(0, 80) }, 'info');
     try {
-      setResult(await askMicrosoftIq(question, i18n.resolvedLanguage));
+      const res = await askMicrosoftIq(question, i18n.resolvedLanguage);
+      setResult(res);
+      diag(
+        'fraudiq',
+        `free ask result \u2014 ${res.foundryLive ? 'LIVE Foundry agent' : 'DEGRADED \u2192 mock'} in ${elapsed()}ms`,
+        { foundryLive: res.foundryLive },
+        res.foundryLive ? 'info' : 'warn'
+      );
       [400, 800, 1200, 1600].forEach((ms, i) =>
         askTimers.current.push(window.setTimeout(() => setAskPhase(i + 1), ms))
       );
@@ -254,6 +287,7 @@ export function FraudIQ() {
         });
       }
     } catch (error) {
+      diag('fraudiq', `free ask failed after ${elapsed()}ms`, error, 'error');
       setAskError(error instanceof Error ? error.message : 'Foundry IQ request failed.');
     } finally {
       setAskRunning(false);
@@ -322,7 +356,7 @@ export function FraudIQ() {
         <div className="ffi-alert-context mt-3 rounded-xl border border-red-200 bg-red-50 p-4">
           <div className="flex items-center gap-2">
             <span aria-hidden>🚨</span>
-            <span className="text-sm font-semibold text-red-700">
+            <span className="text-sm font-semibold text-red-700 dark:text-red-300">
               {t('fraudIqPage.alertLine', { alertId: scenario.alertId, name: scenario.customerName, customerId: scenario.customerId })}
             </span>
           </div>
@@ -390,11 +424,11 @@ export function FraudIQ() {
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <IqColumn id="work" items={scenario.work} revealed={phase >= 1} />
               <IqColumn id="fabric" items={scenario.fabric} revealed={phase >= 2} />
-              <FoundryWebColumn foundry={scenarioFoundry} web={scenarioWeb} revealed={phase >= 3} />
+              <FoundryWebColumn foundry={scenarioFoundry} web={scenarioWeb} revealed={phase >= 3} live={scenarioFoundryLive} />
             </div>
 
             {scenarioError && (
-              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
                 Foundry IQ indisponible : {scenarioError}
               </p>
             )}
@@ -421,7 +455,7 @@ export function FraudIQ() {
                         style={{ width: `${Math.round(scenario.recommendation.confidence * 100)}%` }}
                       />
                     </div>
-                    <span className="text-sm font-bold text-red-700">
+                    <span className="text-sm font-bold text-red-700 dark:text-red-300">
                       {Math.round(scenario.recommendation.confidence * 100)}%
                     </span>
                   </div>
@@ -483,7 +517,7 @@ export function FraudIQ() {
           </button>
         </div>
         {askError && (
-          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
             Foundry IQ indisponible : {askError}
           </p>
         )}
@@ -492,7 +526,7 @@ export function FraudIQ() {
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <IqColumn id="fabric" items={result.fabric} revealed={askPhase >= 1} />
               <IqColumn id="work" items={result.work} revealed={askPhase >= 2} />
-              <FoundryWebColumn foundry={result.foundry} web={result.web} revealed={askPhase >= 3} />
+              <FoundryWebColumn foundry={result.foundry} web={result.web} revealed={askPhase >= 3} live={result.foundryLive} />
             </div>
             <div
               className={`mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 dark:bg-indigo-500/10 p-4 transition-opacity ${

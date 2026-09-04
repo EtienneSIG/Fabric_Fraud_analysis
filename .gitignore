@@ -11,11 +11,18 @@ foundry/main.json
 # Node
 node_modules/
 
+# Stray root-level Node manifests: the rayfin CLI is run via npx from fabric-fraud-intelligence/,
+# so a package.json/lock at the repo ROOT is an accidental artifact. Anchored with '/' so the real
+# subproject manifests (fabric-fraud-intelligence, backend, video/remotion-slidedeck) stay tracked.
+/package.json
+/package-lock.json
+
 # Local env / secrets
 *.local
 .venv/
 rayfin/.env*
 rayfin/.deployments.json
+local.secrets.md
 
 # Terraform local state, plans, and secrets
 **/.terraform/
@@ -25,6 +32,13 @@ rayfin/.deployments.json
 **/terraform.tfvars
 **/*.auto.tfvars
 
+# Generated Fabric ontology definition (rebuilt per-workspace by build_ontology.py at deploy time)
+fabric/ontology/create_body.json
+fabric/ontology/parts/
+
 # OS / editor
 .DS_Store
 .idea/
+
+# Large raw screen recordings (source for deck clips; keep only the processed public/*.mp4)
+video/*.mp4

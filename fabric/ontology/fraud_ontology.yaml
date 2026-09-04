@@ -4,11 +4,12 @@
 
 deployment:
   item_type: Ontology
-  ontology_id: 63594cf9-f0d8-477b-ae09-01702415fb7b
   ontology_name: fraud_ontology
-  workspace_id: c57a379b-7e6d-481a-9c9b-662bb0bae77d
+  # Bindings are generated per-workspace by build_ontology.py --workspace-id / --lakehouse-id
+  # (run automatically by deploy.ps1 -Fabric). These are placeholders, not a fixed environment.
+  workspace_id: <set at deploy time>
   lakehouse: fraud_lakehouse
-  lakehouse_id: 257366a1-4675-4c66-a69e-1ec7ab653706
+  lakehouse_id: <set at deploy time>
   binding_type: LakehouseTable  # NonTimeSeries static bindings
   note: >-
     Upstream row changes require a manual graph-model refresh in the ontology

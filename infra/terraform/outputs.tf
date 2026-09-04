@@ -2,9 +2,24 @@ output "resource_group_name" {
   value = local.resource_group_name
 }
 
+output "fabric_workspace_id" {
+  description = "Fabric workspace GUID for `rayfin up --workspace-id` (empty unless enable_fabric_workspace)."
+  value       = var.enable_fabric_workspace ? fabric_workspace.this[0].id : ""
+}
+
+output "fabric_capacity_name" {
+  description = "Fabric capacity name (empty unless enable_fabric_workspace)."
+  value       = var.enable_fabric_workspace ? azurerm_fabric_capacity.this[0].name : ""
+}
+
 output "ai_foundry_endpoint" {
   description = "Microsoft Foundry (AI Services) endpoint — VITE_FOUNDRY_ENDPOINT."
   value       = local.foundry_endpoint
+}
+
+output "foundry_project_endpoint" {
+  description = "Foundry PROJECT endpoint (…/api/projects/<name>) — Agent Service base; pass to deploy_agents.ps1 and the app (VITE_FOUNDRY_ENDPOINT)."
+  value       = local.foundry_project_endpoint
 }
 
 output "ai_foundry_name" {
@@ -38,12 +53,17 @@ output "bot_messaging_endpoint" {
 
 output "bot_app_id" {
   description = "Bot Entra app (client) id — used in the Teams app manifest."
-  value       = azuread_application.bot.client_id
+  value       = try(azuread_application.bot[0].client_id, null)
 }
 
 output "graph_obo_client_id" {
   description = "Delegated Graph app (client) id — VITE_GRAPH_OBO_CLIENT_ID."
-  value       = azuread_application.graph_obo.client_id
+  value       = try(azuread_application.graph_obo[0].client_id, null)
+}
+
+output "fraudiq_spa_client_id" {
+  description = "Public SPA app (client) id for the direct-browser Foundry IQ path — paste into Settings › Agents › Client ID (SPA)."
+  value       = try(azuread_application.fraudiq_spa[0].client_id, null)
 }
 
 output "tenant_id" {

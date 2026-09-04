@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,6 +16,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const { role, setRole, user } = useRole();
   const { theme, toggle } = useTheme();
   const { t, i18n } = useTranslation();
+  const { pathname } = useLocation();
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem(NAV_KEY) === '1';
@@ -153,7 +154,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 overflow-auto ffi-scroll px-6 py-6">{children}</main>
+        <main className="flex-1 overflow-auto ffi-scroll px-6 py-6">
+          <div key={pathname} className="ffi-fade-in">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
