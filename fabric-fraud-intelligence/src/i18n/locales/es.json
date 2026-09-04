@@ -74,7 +74,7 @@
     "manualSteps": "10 pasos manuales, varias herramientas, una llamada a un colega.",
     "launch": "▶ Ejecutar la investigación agéntica",
     "rerun": "↻ Reejecutar",
-    "foundryRecommendation": "Recomendación de Foundry IQ",
+    "foundryRecommendation": "Recomendación de Fraud IQ",
     "groundedMultiIq": "razonamiento fundamentado multi-IQ",
     "fraudConfidence": "Confianza de fraude",
     "caseCreated": "Caso {{caseId}} creado",

@@ -13,7 +13,7 @@ export function KPIGrid({ items }: { items: Kpi[] }) {
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
             {k.label}
           </p>
-          <p className="mt-1 text-2xl font-bold" style={{ color: k.accent ?? '#111827' }}>
+          <p className="mt-1 text-2xl font-bold" style={{ color: k.accent ?? 'var(--ffi-ink)' }}>
             {k.value}
           </p>
           {k.hint && <p className="mt-1 text-xs text-gray-400">{k.hint}</p>}

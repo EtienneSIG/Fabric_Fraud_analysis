@@ -15,8 +15,8 @@ import { canDecide, maskPII, type Decision } from '@/backend/models';
 
 const DECISIONS: { labelKey: string; decision: Decision; tone: string }[] = [
   { labelKey: 'pages.caseDetail.decisions.escalate', decision: 'Escalate', tone: 'bg-red-600 hover:bg-red-700' },
-  { labelKey: 'pages.caseDetail.decisions.monitor', decision: 'Monitor', tone: 'bg-amber-600 hover:bg-amber-700' },
-  { labelKey: 'pages.caseDetail.decisions.closeFalsePositive', decision: 'Close - False Positive', tone: 'bg-emerald-600 hover:bg-emerald-700' },
+  { labelKey: 'pages.caseDetail.decisions.monitor', decision: 'Monitor', tone: 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800' },
+  { labelKey: 'pages.caseDetail.decisions.closeFalsePositive', decision: 'Close - False Positive', tone: 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800' },
   { labelKey: 'pages.caseDetail.decisions.requestDocuments', decision: 'Request Documents', tone: 'bg-indigo-600 hover:bg-indigo-700' },
 ];
 

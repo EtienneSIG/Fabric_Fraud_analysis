@@ -162,7 +162,7 @@ export function FraudFlow() {
                   <tr key={e.id} className={`border-b border-gray-50 ${fraud ? 'bg-red-50' : ''}`}>
                     <td className="py-1.5 pr-3 text-gray-600">{e.customerId}</td>
                     <td className={`py-1.5 pr-3 font-medium ${fraud ? 'text-red-700' : 'text-gray-800'}`}>{e.event}</td>
-                    <td className="py-1.5 pr-3 text-gray-500 whitespace-nowrap">
+                    <td className={`py-1.5 pr-3 whitespace-nowrap ${fraud ? 'text-gray-600' : 'text-gray-500'}`}>
                       {new Date(e.occurredAt).toLocaleString()}
                     </td>
                     <td className={`py-1.5 pr-3 ${e.location.includes('China') || e.location.includes('Nigeria') || e.location.includes('Romania') ? 'text-red-600' : 'text-gray-600'}`}>
@@ -172,7 +172,7 @@ export function FraudFlow() {
                     <td className="py-1.5 pr-3 text-right text-gray-700">
                       {e.amount == null ? '—' : `€${e.amount}`}
                     </td>
-                    <td className="py-1.5 text-gray-500">{e.description}</td>
+                    <td className={`py-1.5 ${fraud ? 'text-gray-600' : 'text-gray-500'}`}>{e.description}</td>
                   </tr>
                 );
               })}

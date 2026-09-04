@@ -83,14 +83,16 @@ export function AMLCopilot() {
                   setAb(null);
                 }}
                 className={`rounded-lg px-3 py-2 cursor-pointer ${
-                  a.caseId === caseId ? 'bg-indigo-50 dark:bg-indigo-500/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800'
+                  a.caseId === caseId ? 'bg-indigo-50 dark:bg-indigo-500/20' : 'hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-800">{a.id}</span>
                   <RiskScoreBadge score={a.riskScore} severity={a.severity} size="sm" />
                 </div>
-                <p className="text-xs text-gray-500 truncate">{a.customerName}</p>
+                <p className={`truncate text-xs ${a.caseId === caseId ? 'text-gray-600' : 'text-gray-500'}`}>
+                  {a.customerName}
+                </p>
               </li>
             ))}
           </ul>
@@ -248,8 +250,8 @@ export function AMLCopilot() {
                       <Section label={t('pages.aml.pattern')}>{p.pattern}</Section>
                       <Section label={t('pages.aml.assessment')}>{p.assessment}</Section>
 
-                      <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 p-3">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+                      <div className="ffi-aml-recommendation rounded-xl border-l-4 p-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
                           {t('pages.aml.recommendation')}
                         </p>
                         <p className="mt-0.5 text-sm leading-relaxed text-gray-700">{p.recommendation}</p>

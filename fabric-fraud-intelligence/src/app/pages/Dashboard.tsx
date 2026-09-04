@@ -24,7 +24,7 @@ export function Dashboard() {
 
       <KPIGrid
         items={[
-          { label: t('pages.dashboard.kpiAlertsToday'), value: String(k.alertsToday), accent: '#4f46e5' },
+          { label: t('pages.dashboard.kpiAlertsToday'), value: String(k.alertsToday), accent: 'var(--ffi-brand-text)' },
           { label: t('pages.dashboard.kpiHighRisk'), value: String(k.highRiskAlerts), accent: '#dc2626' },
           { label: t('pages.dashboard.kpiAvgInvestigation'), value: `${k.avgInvestigationHours}h` },
           { label: t('pages.dashboard.kpiFraudExposure'), value: eur(k.estimatedFraudExposure), accent: '#dc2626' },
