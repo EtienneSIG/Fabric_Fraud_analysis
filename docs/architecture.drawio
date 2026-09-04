@@ -1,0 +1,235 @@
+<mxfile host="app.diagrams.net" agent="Rayfin Fraud Intelligence" version="24.7.7">
+    <diagram id="rayfin-arch" name="Rayfin – Architecture et flux">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Rayfin – Fabric Fraud Intelligence · Architecture technique &amp; flux (démo)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#1B1B1B;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Mock-first · identité analyste passée de bout en bout (RLS/PII) · HITL (toute sortie agent est consultative)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontColor=#555555;" vertex="1" parent="1">
+          <mxGeometry x="40" y="48" width="900" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ============ CLIENT ============ -->
+        <mxCell id="gClient" value="Client / Analyste" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#444444;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="220" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="nAnalyst" value="Analyste fraude&#10;(navigateur)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontColor=#222222;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="140" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nTeamsClient" value="Client Microsoft Teams" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDEDEC;strokeColor=#D24726;fontColor=#5A1B10;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="240" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ============ MICROSOFT FABRIC ============ -->
+        <mxCell id="gFabric" value="Microsoft Fabric — workspace da93926e… (capacité F2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#0F6C5C;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#0F6C5C;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="300" y="90" width="780" height="620" as="geometry" />
+        </mxCell>
+
+        <mxCell id="nSPA" value="Rayfin Fabric App (SPA)&#10;React 19 · Vite · TypeScript&#10;webapp.fabricapps.net" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F7F3;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="130" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nFunctions" value="Rayfin functions (backend)&#10;/api/agents/run · Graph OBO&#10;OneLake writeback" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F7F3;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="320" y="250" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Data pipeline -->
+        <mxCell id="gPipe" value="Pipeline de données (seed → lakehouse)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4FBF9;strokeColor=#0F6C5C;dashed=1;verticalAlign=top;fontStyle=2;fontSize=11;fontColor=#0F6C5C;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="380" width="220" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="nExport" value="exportLakehouse.ts&#10;seed → JSONL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="340" y="410" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="nUpload" value="upload_lakehouse_data.ps1&#10;OneLake DFS (ADLS Gen2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="340" y="480" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="nNotebook" value="run_load.ps1 → load_app_data&#10;RunNotebook (Spark, overwrite)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="340" y="550" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="nOntoBuild" value="build_ontology.py&#10;Fabric IQ (ontologie)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="340" y="620" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Fabric data assets -->
+        <mxCell id="nDataAgent" value="Fabric Data Agent&#10;conn-fabric-fraud-dataagent&#10;(NL2SQL gouverné)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F7F3;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="130" width="230" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nOntology" value="Fabric SQL Database&#10;Ontologie (Fabric IQ)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F7F3;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="380" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nLakehouse" value="Lakehouse fraud_lakehouse&#10;OneLake · tables Delta (12 361 evts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F7F3;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="460" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nSqlEp" value="SQL analytics endpoint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F7F3;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="540" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="nEventhouse" value="Eventhouse / KQL&#10;(temps réel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F7F3;strokeColor=#0F6C5C;fontColor=#0B3B33;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="610" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nPowerBI" value="Power BI&#10;(rapport exécutif)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF6E7;strokeColor=#E8A400;fontColor=#5A4300;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="850" y="380" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ============ AZURE AI FOUNDRY ============ -->
+        <mxCell id="gFoundry" value="Azure AI Foundry — aif-fraudintel-demo / projet fraud-intelligence (API 2025-11-15-preview)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6E4BD0;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#6E4BD0;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="90" width="540" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="nFoundrySvc" value="Foundry Agent Service (GA)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1ECFB;strokeColor=#6E4BD0;fontColor=#2E1A63;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="130" width="500" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="nOrch" value="Triage orchestrator&#10;fraud-iq-orchestrator&#10;var.model_orchestrator (small)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F3FF;strokeColor=#6E4BD0;fontColor=#2E1A63;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="200" width="230" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="nInvest" value="Agent investigation&#10;var.model_reasoning (strong)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F3FF;strokeColor=#6E4BD0;fontColor=#2E1A63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="290" width="230" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="nAml" value="Agent AML (narratif SAR)&#10;RAFT student (var.model_reasoning)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F3FF;strokeColor=#6E4BD0;fontColor=#2E1A63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="360" width="230" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="nClaims" value="Agent claims (extraction)&#10;var.model_extraction (small)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F3FF;strokeColor=#6E4BD0;fontColor=#2E1A63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="430" width="230" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="nWebIQ" value="Web IQ&#10;outil MCP (mode approbation)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE7FF;strokeColor=#6E4BD0;fontColor=#2E1A63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="200" width="220" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="nConn" value="Connexion Fabric&#10;conn-fabric-fraud-dataagent&#10;(outil Fabric natif · OBO)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE7FF;strokeColor=#6E4BD0;fontColor=#2E1A63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="290" width="220" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="nEmbed" value="Embeddings / knowledge&#10;var.model_embeddings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE7FF;strokeColor=#6E4BD0;fontColor=#2E1A63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="380" width="220" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- ============ AZURE SUPPORT LAYER (Terraform) ============ -->
+        <mxCell id="gAzure" value="Azure — couche support (Terraform)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#0078D4;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#0078D4;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="300" y="740" width="780" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="nFunc" value="Azure Function&#10;(Flex Consumption)&#10;endpoint bot Teams + fallback" style="sketch=0;html=1;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=11;fontColor=#0B3C5D;shape=mxgraph.mscae.compute.function_apps;fillColor=#0072C6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="340" y="790" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nStorage" value="Storage (durci)&#10;shared-key OFF · public OFF" style="sketch=0;html=1;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=11;fontColor=#0B3C5D;shape=mxgraph.mscae.storage.storage_accounts;fillColor=#0072C6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="520" y="790" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nMi" value="Managed Identity&#10;Storage Blob Data Contributor" style="sketch=0;html=1;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=11;fontColor=#0B3C5D;shape=mxgraph.mscae.identity.managed_identities;fillColor=#0072C6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="700" y="790" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nAppInsights" value="Application Insights&#10;OpenTelemetry" style="sketch=0;html=1;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=11;fontColor=#0B3C5D;shape=mxgraph.mscae.devops.application_insights;fillColor=#0072C6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="880" y="790" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="nEntra" value="Microsoft Entra ID&#10;MSAL + OBO · délégué" style="sketch=0;html=1;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=11;fontColor=#0B3C5D;shape=mxgraph.mscae.identity.azure_active_directory;fillColor=#0072C6;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="790" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ============ MICROSOFT 365 / GRAPH ============ -->
+        <mxCell id="gM365" value="Microsoft 365 / Graph (délégué + OBO)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#D24726;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;fontColor=#D24726;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="560" width="540" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="nGraph" value="Microsoft Graph&#10;(Work IQ · mail · Teams · OneNote)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDEDEC;strokeColor=#D24726;fontColor=#5A1B10;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="610" width="230" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="nTeamsBot" value="Teams Bot&#10;(manifest · messaging endpoint)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDEDEC;strokeColor=#D24726;fontColor=#5A1B10;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="610" width="230" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ============ EDGES / FLOWS ============ -->
+        <mxCell id="e1" value="HTTPS · Fabric SSO&#10;(identité analyste)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#333333;strokeColor=#444444;" edge="1" parent="1" source="nAnalyst" target="nSPA">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="Direct SPA · MSAL popup&#10;ai.azure.com/user_impersonation" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#6E4BD0;strokeColor=#6E4BD0;" edge="1" parent="1" source="nSPA" target="nFoundrySvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="backendApi (/api/*)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#0F6C5C;strokeColor=#0F6C5C;" edge="1" parent="1" source="nSPA" target="nFunctions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="proxy /api/agents/run" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;dashed=1;fontSize=10;fontColor=#6E4BD0;strokeColor=#6E4BD0;" edge="1" parent="1" source="nFunctions" target="nFoundrySvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="OBO délégué" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#D24726;strokeColor=#D24726;" edge="1" parent="1" source="nFunctions" target="nGraph">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="OneLake writeback" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#0F6C5C;strokeColor=#0F6C5C;" edge="1" parent="1" source="nFunctions" target="nLakehouse">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="délègue (connected agents)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#6E4BD0;strokeColor=#6E4BD0;" edge="1" parent="1" source="nOrch" target="nInvest">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#6E4BD0;" edge="1" parent="1" source="nOrch" target="nAml">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7c" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#6E4BD0;" edge="1" parent="1" source="nOrch" target="nClaims">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="MCP tool (approval)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#6E4BD0;" edge="1" parent="1" source="nOrch" target="nWebIQ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="outil Fabric natif · OBO" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#6E4BD0;" edge="1" parent="1" source="nOrch" target="nConn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="ancrage Fabric (OBO)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#0F6C5C;strokeColor=#0F6C5C;" edge="1" parent="1" source="nConn" target="nDataAgent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="NL2SQL gouverné (RLS/PII)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#0F6C5C;strokeColor=#0F6C5C;" edge="1" parent="1" source="nDataAgent" target="nSqlEp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#0F6C5C;" edge="1" parent="1" source="nDataAgent" target="nOntology">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- pipeline chain -->
+        <mxCell id="p1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#0F6C5C;" edge="1" parent="1" source="nExport" target="nUpload">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#0F6C5C;" edge="1" parent="1" source="nUpload" target="nNotebook">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="Delta overwrite" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#0F6C5C;" edge="1" parent="1" source="nNotebook" target="nLakehouse">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p3b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#0F6C5C;" edge="1" parent="1" source="nOntoBuild" target="nOntology">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" value="sync auto" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#0F6C5C;" edge="1" parent="1" source="nLakehouse" target="nSqlEp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p5" value="DirectLake" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#E8A400;strokeColor=#E8A400;" edge="1" parent="1" source="nSqlEp" target="nPowerBI">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Teams / bot -->
+        <mxCell id="t1" value="messaging endpoint" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;fontColor=#D24726;strokeColor=#D24726;" edge="1" parent="1" source="nTeamsClient" target="nFunc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=10;strokeColor=#D24726;" edge="1" parent="1" source="nTeamsBot" target="nFunc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t3" value="agent run" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;dashed=1;fontSize=10;fontColor=#6E4BD0;strokeColor=#6E4BD0;" edge="1" parent="1" source="nFunc" target="nFoundrySvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- identity + telemetry (governance, dashed grey) -->
+        <mxCell id="i1" value="auth MSAL" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;fontSize=9;fontColor=#888888;strokeColor=#999999;" edge="1" parent="1" source="nEntra" target="nSPA">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i2" value="OBO" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;fontSize=9;fontColor=#888888;strokeColor=#999999;" edge="1" parent="1" source="nEntra" target="nFunc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i3" value="MI → Blob" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;fontSize=9;fontColor=#888888;strokeColor=#999999;" edge="1" parent="1" source="nMi" target="nStorage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i4" value="OTel" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;fontSize=9;fontColor=#888888;strokeColor=#999999;" edge="1" parent="1" source="nFunc" target="nAppInsights">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i5" value="OTel (traces agents)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;fontSize=9;fontColor=#888888;strokeColor=#999999;" edge="1" parent="1" source="nFoundrySvc" target="nAppInsights">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- legend -->
+        <mxCell id="legend" value="Légende&#10;— Trait plein = flux runtime&#10;— Pointillé violet = chemin backend (proxy Foundry)&#10;— Pointillé gris = identité / télémétrie / RBAC&#10;— Vert = Fabric · Violet = Foundry · Bleu = Azure · Rouge = M365" style="text;html=1;align=left;verticalAlign=top;fillColor=#FBFBFB;strokeColor=#CCCCCC;rounded=1;fontSize=10;fontColor=#333333;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="410" width="220" height="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
