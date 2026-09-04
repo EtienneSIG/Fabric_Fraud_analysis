@@ -182,8 +182,8 @@
   <!-- ===================== ARROWS ===================== -->
   <path d="M314,205 L392,200" fill="none" stroke="#334155" stroke-width="2.5" marker-end="url(#arr)"/>
   <path d="M520,236 L520,262" fill="none" stroke="#334155" stroke-width="2.5" marker-end="url(#arr)"/>
-  <path d="M520,164 L520,150 L1210,150 L1210,160" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
-  <text x="820" y="144" fill="#6E4BD0" font-size="12.5">Direct SPA · MSAL popup · ai.azure.com/user_impersonation</text>
+  <path d="M520,164 L520,100 L1210,100 L1210,160" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
+  <text x="820" y="94" fill="#6E4BD0" font-size="12.5">Direct SPA · MSAL popup · ai.azure.com/user_impersonation</text>
   <path d="M648,300 L1176,300 L1176,274 L1210,274" fill="none" stroke="#6E4BD0" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrP)"/>
   <text x="960" y="294" fill="#6E4BD0" font-size="12.5">proxy /api/agents/run</text>
   <path d="M648,312 L664,312 L664,498 L682,498" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
@@ -195,7 +195,7 @@
   <path d="M1510,268 L1540,265" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
   <text x="1512" y="258" fill="#6E4BD0" font-size="11">MCP</text>
   <path d="M1510,290 L1540,332" fill="none" stroke="#6E4BD0" stroke-width="2.5" marker-end="url(#arrP)"/>
-  <path d="M1540,338 L1170,338 L1170,201 L944,201" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <path d="M1540,338 L1525,338 L1525,552 L1168,552 L1168,201 L944,201" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
   <text x="972" y="195" fill="#0F6C5C" font-size="12.5">ancrage Fabric · outil natif · OBO</text>
   <path d="M813,238 L813,396" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
   <path d="M944,201 L962,201 L962,566 L944,566" fill="none" stroke="#0F6C5C" stroke-width="2.5" marker-end="url(#arrG)"/>
