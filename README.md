@@ -29,10 +29,10 @@ innovation highlights and the roadmap of evolutions still to build.
 ## Demo video
 
 
-https://github.com/user-attachments/assets/ccec2599-2d85-422a-b76b-db16fc66f93f
+<video controls width="100%" src="https://raw.githubusercontent.com/EtienneSIG/Fabric_Fraud_analysis/main/video/Fabric%20Fraud%20Intelligence%20%28live%29.mp4.mp4"></video>
 
 
-> Full quality (with sound): **[Fabric Fraud Intelligence (live).mp4](https://raw.githubusercontent.com/EtienneSIG/Fabric_Fraud_analysis/main/video/Fabric%20Fraud%20Intelligence%20%28live%29.mp4)**
+> Full quality (with sound): **[Fabric Fraud Intelligence (live).mp4.mp4](https://raw.githubusercontent.com/EtienneSIG/Fabric_Fraud_analysis/main/video/Fabric%20Fraud%20Intelligence%20%28live%29.mp4.mp4)**
 
 ---
 
