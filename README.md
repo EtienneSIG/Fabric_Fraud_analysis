@@ -1,5 +1,9 @@
 # Fabric Fraud Intelligence
 
+![Architecture technique — Rayfin Fabric Fraud Intelligence](docs/images/architecture.png)
+
+> Architecture technique et flux de bout en bout (source éditable : [docs/architecture.drawio](docs/architecture.drawio) · vectoriel : [docs/images/architecture.svg](docs/images/architecture.svg)).
+
 An end-to-end fraud detection and investigation solution built on **Microsoft Fabric**,
 combining a **Rayfin Fabric App** (React frontend + Fabric SQL backend), a governed
 **Lakehouse**, and a **Fabric IQ Ontology** semantic layer.
@@ -211,20 +215,6 @@ a ranked table of the top high-risk alerts with risk scores and explanations.
 
 ![Dashboard — Fraud Command Center](docs/images/dashboard.png)
 
-#### Alert Queue
-The working list of open alerts across every fraud type, with risk scoring,
-severity and status — the analyst's entry point into a case.
-
-![Alert Queue](docs/images/alert-queue.png)
-
-#### Case Detail
-A single investigation view: alert context, customer 360, a case timeline, an
-evidence panel, and a grounded **agent chat** that can investigate the alert and
-suggest next actions. Decisions (escalate / close / request documents) are explicit
-and logged.
-
-![Case Detail](docs/images/case-detail.png)
-
 #### Fraud Flow — Customer 360 event journeys
 A Sankey of customer journeys: pick a final event and see the five events that most
 often precede it, with a fraud-only filter and hover counts. A geographic **event
@@ -250,7 +240,21 @@ manual, 10-step investigation with a single agentic prompt that grounds across
 enterprise data, work context and agent knowledge, then returns an explainable,
 human-approvable recommendation.
 
-![Fraud IQ — the fraud application of Microsoft IQ](docs/images/fraud-iq.png)
+![Fraud IQ](docs/images/fraud-iq.png)
+
+#### Alert Queue
+The working list of open alerts across every fraud type, with risk scoring,
+severity and status — the analyst's entry point into a case.
+
+![Alert Queue](docs/images/alert-queue.png)
+
+#### Case Detail
+A single investigation view: alert context, customer 360, a case timeline, an
+evidence panel, and a grounded **agent chat** that can investigate the alert and
+suggest next actions. Decisions (escalate / close / request documents) are explicit
+and logged.
+
+![Case Detail](docs/images/case-detail.png)
 
 #### AML Copilot
 Transaction-monitoring narrative and **SAR readiness**, grounded on Fabric data:
@@ -267,10 +271,26 @@ provider-concentration bars that expose organised rings.
 
 ![Claims Fraud](docs/images/claims-fraud.png)
 
+#### Fraud IQ — the fraud application of Microsoft IQ
+A flagship **"90 min → 30 sec"** real-time card-fraud scenario plus free-form
+investigation, combining the four IQs: **Fabric IQ** (live, from the deployed
+ontology + lakehouse), **Work IQ** (simulated), **Foundry IQ** (implemented in
+Foundry and represented by deterministic responses in this app) and **Web IQ**
+(real-time regulatory web grounding, restricted to official domains, returning cited
+obligations with source links). It contrasts the manual, 10-step investigation with a
+single agentic prompt that grounds across enterprise data, work context, agent
+knowledge and the live regulatory web, then returns an explainable, human-approvable
+recommendation.
+
+![Fraud IQ — the fraud application of Microsoft IQ](docs/images/fraud-iq.png)
+
 #### Settings & Governance
 The **role & access matrix** (View PII / Make decisions / Audit access per role),
 environment configuration (app mode, workspace, Data Agent, tenant), and the
-**audit trail** of every agent run and decision.
+**audit trail** of every agent run and decision. An **Agents** tab lets the analyst
+select the **Foundry orchestrator agent** for the wired project and manage the
+**Microsoft Web IQ** API key — both stored in the browser and passed to the backend
+proxy per request.
 
 ![Settings & Governance](docs/images/settings.png)
 

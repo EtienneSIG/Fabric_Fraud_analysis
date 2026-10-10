@@ -59,6 +59,7 @@
       "Tool: risk scoring and screening were executed with grounded context."
     ]
   },
+  "mockAgentAnswer": "**Facts (unverified context)** — Alert signals supplied by the analyst; none on its own confirms fraud or an illicit origin.\n\n**Obligations** — Risk-based transaction monitoring; if an AML/CTF suspicion persists after review, a written report to the financial intelligence unit.\n\n**Actions for human validation** — Check customer/transaction consistency and authentication signals; document the analysis; escalate if signals corroborate. Any restriction, filing or customer decision requires authorised approval.",
   "web": {
     "aml": [
       "Web IQ · EUR-Lex: EU obligations on suspicious-transaction detection and reporting, with source link.",

@@ -2,16 +2,50 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useRole } from '@/app/RoleContext';
-import { fabricConfig } from '@/backend/config';
+import { fabricConfig, integrationConfig, isFoundryEnabled } from '@/backend/config';
 import { audit } from '@/backend/services/AuditService';
-import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
+import { foundryAgent } from '@/backend/services/FoundryAgentClient';
+import type { ProbeState, ProbeResult } from '@/backend/services/probe';
+import {
+  DEFAULT_FOUNDRY_AGENT,
+  KNOWN_FOUNDRY_AGENTS,
+  getFoundryAgent,
+  setFoundryAgent,
+  getFoundryTenantId,
+  setFoundryTenantId,
+  getFoundryClientId,
+  setFoundryClientId,
+  getFoundryProjectEndpoint,
+  setFoundryProjectEndpoint,
+  getForceDemo,
+  setForceDemo,
+} from '@/backend/services/foundrySettings';
+import { foundryDirectConfigured, probeFoundryDirect } from '@/services/FoundryAgentClient';import { raftEval, type RaftEvaluation } from '@/backend/services/RaftEvalClient';
+import {
+  getAppInsightsConnectionString,
+  setAppInsightsConnectionString,
+  getAgentTimeoutMs,
+  setAgentTimeoutMs,
+  getBackendApiUrl,
+  setBackendApiUrl,
+} from '@/backend/services/generalSettings';
+import { initTelemetry } from '@/backend/telemetry';
 import { ROLES, ROLE_PERMISSIONS } from '@/backend/models';
+
+type SettingsTab = 'governance' | 'agents' | 'quality' | 'general';
+const TAB_LABELS: Record<SettingsTab, string> = {
+  governance: 'pages.settings.tabGovernance',
+  agents: 'pages.settings.tabAgents',
+  quality: 'pages.settings.tabModelQuality',
+  general: 'pages.settings.tabGeneral',
+};
 
 export function Settings() {
   const { t } = useTranslation();
   const { role } = useRole();
   const [, refresh] = useState(0);
-  const [tab, setTab] = useState<'governance' | 'quality'>('governance');
+  const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState<SettingsTab>('governance');
   const entries = audit.listEntries();
 
   return (
@@ -22,7 +56,7 @@ export function Settings() {
       </div>
 
       <div className="flex gap-1 border-b border-gray-100">
-        {(['governance', 'quality'] as const).map((k) => (
+        {(['governance', 'quality', 'agents', 'general'] as const).map((k) => (
           <button
             key={k}
             onClick={() => setTab(k)}
@@ -30,10 +64,14 @@ export function Settings() {
               tab === k ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}
           >
-            {t(k === 'governance' ? 'pages.settings.tabGovernance' : 'pages.settings.tabModelQuality')}
+            {t(TAB_LABELS[k])}
           </button>
         ))}
       </div>
+
+      {tab === 'agents' && <AgentsTab />}
+
+      {tab === 'general' && <GeneralTab />}
 
       {tab === 'quality' && <ModelQualityTab />}
 
@@ -75,15 +113,24 @@ export function Settings() {
         <dl className="grid grid-cols-2 gap-y-2 text-sm max-w-lg">
           <dt className="text-gray-400">{t('pages.settings.appMode')}</dt>
           <dd className="text-gray-800 font-medium">
-            {fabricConfig.mode}
-            {fabricConfig.mode === 'mock' && t('pages.settings.mockSuffix')}
+            {fabricConfig.mode === 'mock' ? t('pages.settings.demoLabel') : fabricConfig.mode}
           </dd>
           <dt className="text-gray-400">{t('pages.settings.workspaceId')}</dt>
           <dd className="text-gray-800 font-medium">{fabricConfig.workspaceId || '—'}</dd>
           <dt className="text-gray-400">{t('pages.settings.dataAgentId')}</dt>
           <dd className="text-gray-800 font-medium">{fabricConfig.dataAgentId || t('pages.settings.notConfigured')}</dd>
+          <dt className="text-gray-400">{t('pages.settings.foundryEndpoint')}</dt>
+          <dd className="truncate text-gray-800 font-medium">
+            {getFoundryProjectEndpoint() || integrationConfig.foundryEndpoint || t('pages.settings.notConfigured')}
+          </dd>
+          <dt className="text-gray-400">{t('pages.settings.foundryAgent')}</dt>
+          <dd className="text-gray-800 font-medium">{getFoundryAgent() || 'fraud-iq-orchestrator'}</dd>
           <dt className="text-gray-400">{t('pages.settings.tenantId')}</dt>
-          <dd className="text-gray-800 font-medium">{fabricConfig.tenantId || '—'}</dd>
+          <dd className="text-gray-800 font-medium">{getFoundryTenantId() || fabricConfig.tenantId || '—'}</dd>
+          <dt className="text-gray-400">{t('pages.settings.deployedAt')}</dt>
+          <dd className="text-gray-800 font-medium">{new Date(__BUILD_TIME__).toLocaleString()}</dd>
+          <dt className="text-gray-400">{t('pages.settings.commit')}</dt>
+          <dd className="font-mono text-gray-800 font-medium">{__COMMIT__}</dd>
         </dl>
         <p className="mt-3 text-xs text-gray-400">{t('pages.settings.envNote')}</p>
       </section>
@@ -92,9 +139,22 @@ export function Settings() {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.auditTrail')}</h3>
           <button
-            onClick={() => refresh((n) => n + 1)}
-            className="text-xs text-indigo-600 hover:text-indigo-800"
+            onClick={() => {
+              setRefreshing(true);
+              refresh((n) => n + 1);
+              setTimeout(() => setRefreshing(false), 600);
+            }}
+            className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800"
           >
+            <svg
+              className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             {t('pages.settings.refresh')}
           </button>
         </div>
@@ -134,6 +194,377 @@ export function Settings() {
         </>
       )}
     </div>
+  );
+}
+
+// Shared form styling. NOTE: the dark theme auto-inverts the gray ramp via CSS variables
+// (see main.css), so use light-mode gray classes only — adding dark: gray variants double-inverts
+// (dark text on dark bg). Non-gray accents (indigo/emerald) still need their own dark: variants.
+const FIELD_INPUT =
+  'w-full min-w-0 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30';
+const BTN_PRIMARY =
+  'shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-40';
+const BTN_GHOST =
+  'shrink-0 rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-not-allowed disabled:opacity-40';
+
+function AgentsTab() {
+  return (
+    <>
+      <FoundryAgentCard />
+    </>
+  );
+}
+
+function GeneralTab() {
+  const { t } = useTranslation();
+  const { role } = useRole();
+  const [ai, setAi] = useState(getAppInsightsConnectionString());
+  const [timeoutMs, setTimeoutInput] = useState(String(getAgentTimeoutMs()));
+  const [backend, setBackend] = useState(getBackendApiUrl());
+  const [, bump] = useState(0);
+
+  const aiOn = getAppInsightsConnectionString().length > 0;
+  const backendOn = getBackendApiUrl().length > 0;
+
+  const saveAi = () => {
+    setAppInsightsConnectionString(ai);
+    if (ai.trim()) {
+      initTelemetry();
+      audit.logConfigChange(role, 'Application Insights', t('pages.settings.general.auditAppInsightsSet'));
+    } else {
+      audit.logConfigChange(role, 'Application Insights', t('pages.settings.general.auditAppInsightsClear'));
+    }
+    bump((n) => n + 1);
+  };
+  const clearAi = () => {
+    setAppInsightsConnectionString('');
+    setAi('');
+    audit.logConfigChange(role, 'Application Insights', t('pages.settings.general.auditAppInsightsClear'));
+    bump((n) => n + 1);
+  };
+  const saveTimeout = () => {
+    const n = Number(timeoutMs);
+    setAgentTimeoutMs(Number.isFinite(n) ? n : '');
+    setTimeoutInput(String(getAgentTimeoutMs()));
+    audit.logConfigChange(role, 'Agent timeout', t('pages.settings.general.auditTimeout', { ms: getAgentTimeoutMs() }));
+    bump((n) => n + 1);
+  };
+
+  const saveBackend = () => {
+    setBackendApiUrl(backend);
+    setBackend(getBackendApiUrl());
+    audit.logConfigChange(
+      role,
+      'Backend URL',
+      backend.trim() ? t('pages.settings.general.auditBackendSet') : t('pages.settings.general.auditBackendClear')
+    );
+    bump((n) => n + 1);
+  };
+  const clearBackend = () => {
+    setBackendApiUrl('');
+    setBackend('');
+    audit.logConfigChange(role, 'Backend URL', t('pages.settings.general.auditBackendClear'));
+    bump((n) => n + 1);
+  };
+
+  return (
+    <section className="ffi-card p-6">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.general.title')}</h3>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            aiOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-gray-100 text-gray-500'
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${aiOn ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+          {aiOn ? t('pages.settings.general.statusOn') : t('pages.settings.general.statusOff')}
+        </span>
+      </div>
+      <p className="mb-4 max-w-lg text-xs text-gray-400">{t('pages.settings.general.desc')}</p>
+
+      <p className="mb-1 text-xs font-medium text-gray-500">{t('pages.settings.general.appInsightsTitle')}</p>
+      <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.appInsightsLabel')}</label>
+      <div className="max-w-lg">
+        <input
+          type="password"
+          autoComplete="off"
+          spellCheck={false}
+          value={ai}
+          onChange={(e) => setAi(e.target.value)}
+          placeholder={t('pages.settings.general.appInsightsPlaceholder')}
+          aria-label={t('pages.settings.general.appInsightsLabel')}
+          className={FIELD_INPUT}
+        />
+        <div className="mt-2 flex justify-end gap-2">
+          <button onClick={clearAi} disabled={!aiOn} className={BTN_GHOST}>
+            {t('pages.settings.general.clear')}
+          </button>
+          <button onClick={saveAi} className={BTN_PRIMARY}>
+            {t('pages.settings.general.save')}
+          </button>
+        </div>
+      </div>
+      <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.appInsightsNote')}</p>
+
+      <p className="mb-1 mt-5 text-xs font-medium text-gray-500">{t('pages.settings.general.backendTitle')}</p>
+      <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.backendLabel')}</label>
+      <div className="max-w-lg">
+        <input
+          type="url"
+          autoComplete="off"
+          spellCheck={false}
+          value={backend}
+          onChange={(e) => setBackend(e.target.value)}
+          placeholder={t('pages.settings.general.backendPlaceholder')}
+          aria-label={t('pages.settings.general.backendLabel')}
+          className={FIELD_INPUT}
+        />
+        <div className="mt-2 flex justify-end gap-2">
+          <button onClick={clearBackend} disabled={!backendOn} className={BTN_GHOST}>
+            {t('pages.settings.general.clear')}
+          </button>
+          <button onClick={saveBackend} className={BTN_PRIMARY}>
+            {t('pages.settings.general.save')}
+          </button>
+        </div>
+      </div>
+      <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.backendNote')}</p>
+
+      <p className="mb-1 mt-5 text-xs font-medium text-gray-500">{t('pages.settings.general.timeoutTitle')}</p>
+      <label className="mb-1 block text-xs text-gray-400">{t('pages.settings.general.timeoutLabel')}</label>
+      <div className="flex max-w-xs items-center gap-2">
+        <input
+          type="number"
+          min={1000}
+          max={120000}
+          step={500}
+          value={timeoutMs}
+          onChange={(e) => setTimeoutInput(e.target.value)}
+          aria-label={t('pages.settings.general.timeoutLabel')}
+          className={FIELD_INPUT}
+        />
+        <button onClick={saveTimeout} className={BTN_PRIMARY}>
+          {t('pages.settings.general.save')}
+        </button>
+      </div>
+      <p className="mt-2 max-w-lg text-xs text-gray-400">{t('pages.settings.general.timeoutNote')}</p>
+    </section>
+  );
+}
+
+// On-demand connectivity check: pings the backend and shows the real availability (green = live).
+const PROBE_DOT: Record<ProbeState | 'idle' | 'testing', string> = {
+  live: 'bg-emerald-500',
+  mock: 'bg-amber-500',
+  unreachable: 'bg-red-500',
+  off: 'bg-gray-400',
+  idle: 'bg-gray-300',
+  testing: 'bg-indigo-400 animate-pulse',
+};
+
+function ConnectionProbe({ run }: { run: () => Promise<ProbeResult> }) {
+  const { t } = useTranslation();
+  const [state, setState] = useState<ProbeState | 'idle' | 'testing'>('idle');
+  const [detail, setDetail] = useState<string>();
+  const test = async () => {
+    setState('testing');
+    setDetail(undefined);
+    const r = await run();
+    setState(r.state);
+    setDetail(r.detail);
+  };
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <button
+        onClick={test}
+        disabled={state === 'testing'}
+        className="inline-flex items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-40 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+      >
+        {state === 'testing' ? t('pages.settings.probe.testing') : t('pages.settings.probe.test')}
+      </button>
+      {state !== 'idle' && (
+        <span className="inline-flex items-center gap-1.5 text-xs text-gray-500" title={detail}>
+          <span className={`h-2 w-2 rounded-full ${PROBE_DOT[state]}`} />
+          {state !== 'testing' && t(`pages.settings.probe.${state}`)}
+        </span>
+      )}
+      {detail && state !== 'testing' && (
+        <code className="max-w-60 truncate text-[11px] text-gray-400 dark:text-gray-500" title={detail}>
+          {detail}
+        </code>
+      )}
+    </div>
+  );
+}
+
+function FoundryAgentCard() {
+  const { t } = useTranslation();
+  const { role } = useRole();
+  const [value, setValue] = useState(getFoundryAgent());
+  const [tenant, setTenant] = useState(getFoundryTenantId());
+  const [client, setClient] = useState(getFoundryClientId());
+  const [endpointIn, setEndpointIn] = useState(getFoundryProjectEndpoint());
+  const [demo, setDemo] = useState(getForceDemo());
+  const [, bump] = useState(0);
+
+  const direct = foundryDirectConfigured();
+  const live = isFoundryEnabled() || direct;
+  const custom = getFoundryAgent().length > 0;
+  const hasConnection =
+    getFoundryTenantId().length > 0 || getFoundryClientId().length > 0 || getFoundryProjectEndpoint().length > 0;
+  const effective = value.trim() || DEFAULT_FOUNDRY_AGENT;
+  const projectBase = getFoundryProjectEndpoint() || integrationConfig.foundryEndpoint;
+  // The project name is encoded in the endpoint (…/projects/<name>) — surfaced read-only.
+  const projectMatch = projectBase.match(/\/projects\/([^/?#]+)/i);
+  const projectName = projectMatch ? decodeURIComponent(projectMatch[1]) : '';
+
+  const save = () => {
+    if (!value.trim()) return;
+    setFoundryAgent(value);
+    audit.logConfigChange(role, 'Foundry agent', t('pages.settings.foundry.auditSet', { name: value.trim() }));
+    bump((n) => n + 1);
+  };
+  const reset = () => {
+    setFoundryAgent('');
+    setValue('');
+    audit.logConfigChange(role, 'Foundry agent', t('pages.settings.foundry.auditReset'));
+    bump((n) => n + 1);
+  };
+  const saveConnection = () => {
+    setFoundryTenantId(tenant);
+    setFoundryClientId(client);
+    setFoundryProjectEndpoint(endpointIn);
+    audit.logConfigChange(role, 'Foundry connection', t('pages.settings.foundry.auditConnection'));
+    bump((n) => n + 1);
+  };
+  const clearConnection = () => {
+    setFoundryTenantId('');
+    setFoundryClientId('');
+    setFoundryProjectEndpoint('');
+    setTenant('');
+    setClient('');
+    setEndpointIn('');
+    audit.logConfigChange(role, 'Foundry connection', t('pages.settings.foundry.auditConnectionClear'));
+    bump((n) => n + 1);
+  };
+  const toggleDemo = (next: boolean) => {
+    setForceDemo(next);
+    setDemo(next);
+    audit.logConfigChange(
+      role,
+      'Foundry demo',
+      next ? t('pages.settings.foundry.auditDemoOn') : t('pages.settings.foundry.auditDemoOff')
+    );
+    bump((n) => n + 1);
+  };
+
+  return (
+    <section className="ffi-card p-6">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-700">{t('pages.settings.foundry.title')}</h3>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            live ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-gray-100 text-gray-500'
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+          {live ? t('pages.settings.foundry.statusLive') : t('pages.settings.foundry.statusMock')}
+        </span>
+      </div>
+      <p className="mb-3 max-w-lg text-xs text-gray-400">{t('pages.settings.foundry.desc')}</p>
+      <dl className="mb-4 grid max-w-lg grid-cols-[8rem_1fr] gap-y-1 text-sm">
+        <dt className="text-gray-400">{t('pages.settings.foundry.project')}</dt>
+        <dd className="truncate font-medium text-gray-800">{projectBase || t('pages.settings.notConfigured')}</dd>
+        {projectName && (
+          <>
+            <dt className="text-gray-400">{t('pages.settings.foundry.projectName')}</dt>
+            <dd className="font-medium text-gray-800">{projectName}</dd>
+          </>
+        )}
+        <dt className="text-gray-400">{t('pages.settings.foundry.active')}</dt>
+        <dd className="font-medium text-gray-800">{effective}</dd>
+      </dl>
+
+      <p className="mb-2 text-xs font-medium text-gray-500">{t('pages.settings.foundry.connectionTitle')}</p>
+      <div className="mb-2 grid max-w-lg gap-2">
+        <input
+          autoComplete="off"
+          spellCheck={false}
+          value={endpointIn}
+          onChange={(e) => setEndpointIn(e.target.value)}
+          placeholder={t('pages.settings.foundry.endpointPlaceholder')}
+          aria-label={t('pages.settings.foundry.endpointLabel')}
+          className={FIELD_INPUT}
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            autoComplete="off"
+            spellCheck={false}
+            value={tenant}
+            onChange={(e) => setTenant(e.target.value)}
+            placeholder={t('pages.settings.foundry.tenantLabel')}
+            aria-label={t('pages.settings.foundry.tenantLabel')}
+            className={FIELD_INPUT}
+          />
+          <input
+            autoComplete="off"
+            spellCheck={false}
+            value={client}
+            onChange={(e) => setClient(e.target.value)}
+            placeholder={t('pages.settings.foundry.clientLabel')}
+            aria-label={t('pages.settings.foundry.clientLabel')}
+            className={FIELD_INPUT}
+          />
+        </div>
+      </div>
+      <div className="mb-4 flex max-w-lg justify-end gap-2">
+        <button onClick={clearConnection} disabled={!hasConnection} className={BTN_GHOST}>
+          {t('pages.settings.foundry.reset')}
+        </button>
+        <button onClick={saveConnection} className={BTN_PRIMARY}>
+          {t('pages.settings.foundry.saveConnection')}
+        </button>
+      </div>
+
+      <label className="mb-3 flex max-w-lg items-center gap-2 text-sm text-gray-600">
+        <input
+          type="checkbox"
+          checked={demo}
+          onChange={(e) => toggleDemo(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        />
+        {t('pages.settings.foundry.forceDemoLabel')}
+      </label>
+
+      <label className="mb-1 block text-xs font-medium text-gray-500">{t('pages.settings.foundry.agentLabel')}</label>
+      <div className="max-w-lg">
+        <input
+          list="ffi-foundry-agents"
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={DEFAULT_FOUNDRY_AGENT}
+          className={FIELD_INPUT}
+        />
+        <datalist id="ffi-foundry-agents">
+          {KNOWN_FOUNDRY_AGENTS.map((a) => (
+            <option key={a} value={a} />
+          ))}
+        </datalist>
+        <div className="mt-2 flex justify-end gap-2">
+          <button onClick={reset} disabled={!custom} className={BTN_GHOST}>
+            {t('pages.settings.foundry.reset')}
+          </button>
+          <button onClick={save} disabled={!value.trim()} className={BTN_PRIMARY}>
+            {t('pages.settings.foundry.save')}
+          </button>
+        </div>
+      </div>
+      {custom && <p className="mt-2 text-xs text-amber-600">{t('pages.settings.foundry.overrideNote')}</p>}
+      <p className="mt-2 text-xs text-gray-400">{t('pages.settings.foundry.connectionNote')}</p>
+      <ConnectionProbe run={() => (foundryDirectConfigured() ? probeFoundryDirect() : foundryAgent.probe())} />
+    </section>
   );
 }
 

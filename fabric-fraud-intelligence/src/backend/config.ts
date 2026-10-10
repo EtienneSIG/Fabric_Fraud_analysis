@@ -1,4 +1,6 @@
 // Central configuration read from Vite env vars. Fabric Apps inject VITE_*.
+import { getBackendApiUrl } from '@/backend/services/generalSettings';
+
 export type AppMode = 'mock' | 'fabric';
 
 interface FabricConfig {
@@ -47,8 +49,10 @@ export const integrationConfig: IntegrationConfig = {
 
 export const isMock = (): boolean => fabricConfig.mode !== 'fabric' || !fabricConfig.dataAgentId;
 
-// A real integration also needs a reachable backend endpoint; otherwise fall back to mock.
-const backendReady = (): boolean => !isMock() && !!integrationConfig.backendApiUrl;
+// A backend-gated live pillar (Foundry proxy, Web IQ, Work IQ, Teams, RAFT) needs a reachable
+// backend endpoint — defined by the URL alone (build-time env OR the runtime Settings > Général
+// override), independent of the Fabric data mode. No URL → the pillar stays on its mock path.
+const backendReady = (): boolean => !!getBackendApiUrl();
 
 export const isFoundryEnabled = (): boolean => backendReady() && integrationConfig.foundryEnabled;
 export const isWorkIqEnabled = (): boolean => backendReady() && integrationConfig.workIqEnabled;

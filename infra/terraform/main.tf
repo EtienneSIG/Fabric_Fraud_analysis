@@ -77,6 +77,10 @@ resource "azurerm_cognitive_account" "this" {
   custom_subdomain_name = local.names.ai_foundry
   local_auth_enabled    = false
 
+  # Reflects the allowProjectManagement patch below; without it azurerm sees drift and
+  # would try to REPLACE the account (destroying project/agent/models).
+  project_management_enabled = true
+
   identity {
     type = "SystemAssigned"
   }
@@ -84,19 +88,97 @@ resource "azurerm_cognitive_account" "this" {
   tags = var.tags
 }
 
+# The AIServices account must allow project management before a project can be created.
+# azurerm doesn't expose this property, so patch it in place (no recreate -> models preserved).
+resource "azapi_update_resource" "enable_project_mgmt" {
+  count       = var.existing_foundry_project_endpoint == "" ? 1 : 0
+  type        = "Microsoft.CognitiveServices/accounts@2025-06-01"
+  resource_id = azurerm_cognitive_account.this.id
+
+  body = {
+    properties = {
+      allowProjectManagement = true
+    }
+  }
+}
+
+# Foundry PROJECT (Agent Service host). Child of the AI Services account; created only when we are
+# not reusing an existing project. Agents themselves are data-plane (foundry/agents/deploy_agents.ps1).
+resource "azapi_resource" "foundry_project" {
+  count     = var.existing_foundry_project_endpoint == "" ? 1 : 0
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-06-01"
+  name      = var.foundry_project_name
+  parent_id = azurerm_cognitive_account.this.id
+  location  = var.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  body = {
+    properties = {
+      displayName = var.foundry_project_name
+      description = "Fraud IQ orchestration project (Agent Service, API 2025-11-15-preview)."
+    }
+  }
+
+  schema_validation_enabled = false
+  depends_on                = [azapi_update_resource.enable_project_mgmt]
+}
+
+# --------------------------------------------------------------------------
+# Foundry observability: connect Application Insights to the project so the
+# Agent Service emits server-side agent traces (latency, tool calls, prompts).
+# Auth = Project Managed Identity (AAD) — matches the account's local_auth_enabled=false;
+# Entra ingestion requires the project MI to hold "Monitoring Metrics Publisher" on the AI resource.
+# --------------------------------------------------------------------------
+resource "azapi_resource" "foundry_appinsights_connection" {
+  count     = var.existing_foundry_project_endpoint == "" && var.enable_foundry_appinsights ? 1 : 0
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
+  name      = "appinsights"
+  parent_id = azapi_resource.foundry_project[0].id
+
+  body = {
+    properties = {
+      category      = "AppInsights"
+      target        = azurerm_application_insights.this.id
+      authType      = "AAD"
+      isSharedToAll = true
+      metadata = {
+        ApiType    = "Azure"
+        ResourceId = azurerm_application_insights.this.id
+      }
+    }
+  }
+
+  schema_validation_enabled = false
+  depends_on                = [azapi_resource.foundry_project]
+}
+
+# The Foundry project managed identity ingests agent traces into Application Insights (the portal
+# grants this automatically when you pick "Project managed identity"; Terraform grants it explicitly).
+resource "azurerm_role_assignment" "foundry_mi_metrics_publisher" {
+  count                = var.existing_foundry_project_endpoint == "" && var.enable_foundry_appinsights ? 1 : 0
+  scope                = azurerm_application_insights.this.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azapi_resource.foundry_project[0].identity[0].principal_id
+}
+
 resource "azurerm_cognitive_deployment" "models" {
   for_each = local.model_deployments
 
-  name                 = each.key
+  # Deployment name == model name (matches foundry/models.json + config.json agent references).
+  name                 = each.value.name
   cognitive_account_id = azurerm_cognitive_account.this.id
 
   model {
-    format = "OpenAI"
-    name   = each.value
+    format  = "OpenAI"
+    name    = each.value.name
+    version = each.value.version
   }
 
   sku {
-    name     = "GlobalStandard"
+    name     = var.model_deployment_sku
     capacity = var.model_capacity
   }
 }
@@ -163,26 +245,22 @@ resource "azurerm_eventhub" "transactions" {
 # Storage + Function App (Flex Consumption) hosting the Teams Bot endpoint
 # --------------------------------------------------------------------------
 resource "azurerm_storage_account" "func" {
-  name                          = local.names.storage
-  resource_group_name           = local.resource_group_name
-  location                      = var.location
-  account_tier                  = "Standard"
-  account_replication_type      = "LRS"
-  min_tls_version               = "TLS1_2"
-  shared_access_key_enabled     = false
-  public_network_access_enabled = false
-  tags                          = var.tags
+  name                     = local.names.storage
+  resource_group_name      = local.resource_group_name
+  location                 = var.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  min_tls_version          = "TLS1_2"
+  # Tenant policy forbids shared-key auth; use Entra ID (managed identity) only.
+  shared_access_key_enabled       = false
+  default_to_oauth_authentication = true
+  tags                            = var.tags
 }
 
-resource "azurerm_role_assignment" "storage_blob_deployer" {
+# Data-plane access for the deployer so the package container can be created over Entra ID.
+resource "azurerm_role_assignment" "deployer_storage" {
   scope                = azurerm_storage_account.func.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azurerm_client_config.current.object_id
-}
-
-resource "azurerm_role_assignment" "storage_queue_deployer" {
-  scope                = azurerm_storage_account.func.id
-  role_definition_name = "Storage Queue Data Contributor"
+  role_definition_name = "Storage Blob Data Owner"
   principal_id         = data.azurerm_client_config.current.object_id
 }
 
@@ -190,6 +268,7 @@ resource "azurerm_storage_container" "func" {
   name                  = "app-package"
   storage_account_id    = azurerm_storage_account.func.id
   container_access_type = "private"
+  depends_on            = [azurerm_role_assignment.deployer_storage]
 }
 
 resource "azurerm_service_plan" "func" {
@@ -224,24 +303,25 @@ resource "azurerm_function_app_flex_consumption" "bot" {
     application_insights_connection_string = azurerm_application_insights.this.connection_string
   }
 
-  app_settings = {
+  app_settings = merge({
     AZURE_TENANT_ID                       = var.tenant_id
     KEY_VAULT_URI                         = azurerm_key_vault.this.vault_uri
-    BOT_APP_ID                            = azuread_application.bot.client_id
-    AI_FOUNDRY_ENDPOINT                   = local.foundry_endpoint
+    AI_FOUNDRY_ENDPOINT                   = local.foundry_project_endpoint
     EVENTHUB_NAMESPACE                    = "${azurerm_eventhub_namespace.this.name}.servicebus.windows.net"
     EVENTHUB_NAME                         = azurerm_eventhub.transactions.name
-    GRAPH_OBO_CLIENT_ID                   = azuread_application.graph_obo.client_id
-    GRAPH_OBO_CLIENT_SECRET_NAME          = azurerm_key_vault_secret.graph_obo.name
     APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.this.connection_string
-  }
+    }, var.enable_entra_apps ? {
+    BOT_APP_ID                   = azuread_application.bot[0].client_id
+    GRAPH_OBO_CLIENT_ID          = azuread_application.graph_obo[0].client_id
+    GRAPH_OBO_CLIENT_SECRET_NAME = azurerm_key_vault_secret.graph_obo[0].name
+  } : {})
 
   tags = var.tags
 }
 
 resource "azurerm_role_assignment" "func_storage" {
   scope                = azurerm_storage_account.func.id
-  role_definition_name = "Storage Blob Data Owner"
+  role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_function_app_flex_consumption.bot.identity[0].principal_id
 }
 
@@ -261,27 +341,31 @@ resource "azurerm_role_assignment" "func_eventhub" {
 # Azure Bot + Teams channel (own app identity — not mixed with Graph OBO app)
 # --------------------------------------------------------------------------
 resource "azuread_application" "bot" {
+  count            = var.enable_entra_apps ? 1 : 0
   display_name     = "bot-${local.suffix}"
   sign_in_audience = "AzureADMultipleOrgs"
 }
 
 resource "azuread_application_password" "bot" {
-  application_id = azuread_application.bot.id
+  count          = var.enable_entra_apps ? 1 : 0
+  application_id = azuread_application.bot[0].id
   display_name   = "bot-secret"
 }
 
 resource "azurerm_key_vault_secret" "bot" {
+  count        = var.enable_entra_apps ? 1 : 0
   name         = "bot-app-secret"
-  value        = azuread_application_password.bot.value
+  value        = azuread_application_password.bot[0].value
   key_vault_id = azurerm_key_vault.this.id
   depends_on   = [azurerm_role_assignment.kv_deployer]
 }
 
 resource "azurerm_bot_service_azure_bot" "this" {
+  count               = var.enable_entra_apps ? 1 : 0
   name                = local.names.bot
   resource_group_name = local.resource_group_name
   location            = "global"
-  microsoft_app_id    = azuread_application.bot.client_id
+  microsoft_app_id    = azuread_application.bot[0].client_id
   microsoft_app_type  = "MultiTenant"
   sku                 = "F0"
   endpoint            = "https://${azurerm_function_app_flex_consumption.bot.default_hostname}/api/messages"
@@ -289,8 +373,9 @@ resource "azurerm_bot_service_azure_bot" "this" {
 }
 
 resource "azurerm_bot_channel_ms_teams" "this" {
-  bot_name            = azurerm_bot_service_azure_bot.this.name
-  location            = azurerm_bot_service_azure_bot.this.location
+  count               = var.enable_entra_apps ? 1 : 0
+  bot_name            = azurerm_bot_service_azure_bot.this[0].name
+  location            = azurerm_bot_service_azure_bot.this[0].location
   resource_group_name = local.resource_group_name
 }
 
@@ -300,11 +385,13 @@ resource "azurerm_bot_channel_ms_teams" "this" {
 data "azuread_application_published_app_ids" "well_known" {}
 
 resource "azuread_service_principal" "msgraph" {
+  count        = var.enable_entra_apps ? 1 : 0
   client_id    = data.azuread_application_published_app_ids.well_known.result["MicrosoftGraph"]
   use_existing = true
 }
 
 resource "azuread_application" "graph_obo" {
+  count            = var.enable_entra_apps ? 1 : 0
   display_name     = local.names.entra_app
   sign_in_audience = "AzureADMyOrg"
 
@@ -314,7 +401,7 @@ resource "azuread_application" "graph_obo" {
     dynamic "resource_access" {
       for_each = local.graph_delegated_scopes
       content {
-        id   = azuread_service_principal.msgraph.oauth2_permission_scope_ids[resource_access.value]
+        id   = azuread_service_principal.msgraph[0].oauth2_permission_scope_ids[resource_access.value]
         type = "Scope"
       }
     }
@@ -322,13 +409,59 @@ resource "azuread_application" "graph_obo" {
 }
 
 resource "azuread_application_password" "graph_obo" {
-  application_id = azuread_application.graph_obo.id
+  count          = var.enable_entra_apps ? 1 : 0
+  application_id = azuread_application.graph_obo[0].id
   display_name   = "graph-obo-secret"
 }
 
 resource "azurerm_key_vault_secret" "graph_obo" {
+  count        = var.enable_entra_apps ? 1 : 0
   name         = "graph-obo-client-secret"
-  value        = azuread_application_password.graph_obo.value
+  value        = azuread_application_password.graph_obo[0].value
   key_vault_id = azurerm_key_vault.this.id
   depends_on   = [azurerm_role_assignment.kv_deployer]
+}
+
+# --------------------------------------------------------------------------
+# Public SPA app registration for the direct-browser Foundry IQ path
+# (MSAL PublicClientApplication → signed-in user calls the agent responses API).
+# Off by default; enable with enable_fraudiq_spa and paste the client id into
+# Settings › Agents › Client ID (SPA). The analyst also needs a data-plane role
+# on the Foundry account (fraudiq_analyst_object_ids below) for the ai.azure.com
+# token to be authorized — Owner/Contributor grant no dataActions.
+# --------------------------------------------------------------------------
+resource "azuread_application" "fraudiq_spa" {
+  count            = var.enable_fraudiq_spa ? 1 : 0
+  display_name     = "rayfin-fraudiq-spa"
+  sign_in_audience = "AzureADMyOrg"
+
+  single_page_application {
+    redirect_uris = var.fraudiq_spa_redirect_uris
+  }
+
+  # Delegated permission so the signed-in analyst can call the Foundry agent responses API
+  # (aud https://ai.azure.com). Without it the token request fails AADSTS650057 (invalid resource).
+  # Consent is interactive: the SPA requests the specific user_impersonation scope (not .default),
+  # so the analyst consents at sign-in — the deploying principal usually can't admin-consent for the org.
+  required_resource_access {
+    resource_app_id = "18a66f5f-dbdf-4c17-9dd7-1634712a9cbe" # Azure Machine Learning Services (https://ai.azure.com)
+    resource_access {
+      id   = "1a7925b5-f871-417a-9b8b-303f9f29fa10" # user_impersonation (delegated)
+      type = "Scope"
+    }
+  }
+}
+
+resource "azuread_service_principal" "fraudiq_spa" {
+  count     = var.enable_fraudiq_spa ? 1 : 0
+  client_id = azuread_application.fraudiq_spa[0].client_id
+}
+
+# Data-plane grant so signed-in analysts can call the agent responses API on the
+# Foundry account (the SPA direct path). Empty list by default → manages none.
+resource "azurerm_role_assignment" "fraudiq_analyst" {
+  for_each             = toset(var.fraudiq_analyst_object_ids)
+  scope                = azurerm_cognitive_account.this.id
+  role_definition_name = var.fraudiq_analyst_role
+  principal_id         = each.value
 }

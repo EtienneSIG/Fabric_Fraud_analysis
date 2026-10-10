@@ -59,6 +59,7 @@
       "Outil : scoring de risque et criblage exécutés avec un contexte ancré."
     ]
   },
+  "mockAgentAnswer": "**Faits (contexte non vérifié)** — Signaux d'alerte fournis par l'analyste ; aucun ne confirme à lui seul une fraude ou une origine illicite.\n\n**Obligations** — Surveillance des opérations adaptée au risque ; si un soupçon LCB-FT persiste après examen, déclaration écrite à la cellule de renseignement financier (TRACFIN).\n\n**Actions à valider humainement** — Vérifier la cohérence client/transaction et les signaux d'authentification ; documenter l'analyse ; escalader si les signaux se corroborent. Toute restriction, déclaration ou décision client requiert une approbation habilitée.",
   "web": {
     "aml": [
       "Web IQ · EUR-Lex : obligations européennes de détection et de déclaration des opérations suspectes, avec lien source.",

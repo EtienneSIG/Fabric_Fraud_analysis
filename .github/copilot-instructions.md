@@ -38,6 +38,15 @@ deployed by PowerShell + REST, and an Azure support layer provisioned by Terrafo
   `functions` service** (shares Fabric SSO context). A single Terraform-provisioned **Azure Function
   (Flex Consumption)** hosts the Teams Bot messaging endpoint and is the fallback for anything the
   Rayfin functions can't do.
+- **Deploying the Function code** — Terraform (`-Infra`) creates the *empty* app; the `backend/` code
+  is a **separate publish** step, and the app is **optional** (the SPA is mock-first; the direct
+  Foundry path is SPA-only; only Web IQ / Teams / OBO / OneLake need it). The deployment storage is
+  **hardened** (`allowSharedKeyAccess=false` + `publicNetworkAccess=Disabled`), so the **only** working
+  path is **OneDeploy over managed identity**: `deploy.ps1 -Backend` → `func azure functionapp publish`
+  (or a `Azure/functions-action` GitHub workflow). `az functionapp deployment source config-zip`
+  (Kudu → 403 storage) and `az webapp deploy --type zip` (SCM → 502) both fail here — do NOT chase
+  them, and do NOT relax the storage lockdown to force a deploy. If `func` is broken locally
+  (e.g. Node 26), publish from a Node LTS env or via CI.
 
 ## Microsoft Graph / O365
 - Use **delegated permissions + OBO** (analyst-driven scenarios). Do NOT mix application and
@@ -65,6 +74,44 @@ deployed by PowerShell + REST, and an Azure support layer provisioned by Terrafo
 - PowerShell deploy scripts: mind the pitfalls recorded in user memory (`-var=$x` no expansion,
   `az` errors via `$LASTEXITCODE`, HTTP error body in `$_.ErrorDetails.Message`).
 
+## Gotchas — don't re-learn these
+- **Two Foundry clients, don't confuse them.** `src/backend/services/FoundryAgentClient.ts` is the
+  backend-proxy path (`isFoundryEnabled()` → `/api/agents/run`, needs `VITE_FOUNDRY_ENABLED` + a
+  reachable backend). `src/services/FoundryAgentClient.ts` is the **direct SPA** path (MSAL popup +
+  `askFoundryAgent`, gated by `foundryDirectConfigured()` reading the tenant/client/endpoint the
+  analyst types in **Settings › Agents**). A Settings "Test connection" probe MUST hit the same path
+  the tab configures (direct → `probeFoundryDirect()`, else the backend `foundryAgent.probe()`),
+  otherwise it always reports mock.
+- **Simulated/staggered loaders must advance monotonically.** Phase timers scheduled *before* an
+  awaited call (e.g. `setTimeout(setPhase(1), 600)`) roll the phase **backward** when the mock
+  resolves in ~0 ms, so later columns never reveal (stuck loader). Use `setPhase(p => Math.max(p, n))`.
+- **RBAC stays coupled.** The Function-MI storage role in `infra/terraform/main.tf`
+  (`azurerm_role_assignment.func_storage`, now `Storage Blob Data Contributor`) and the
+  `Test-IdentitiesAndRbac` check in `deploy.ps1` must change **together**, or the self-heal flags a
+  false "MISSING" and re-creates the old role.
+- **No root-level Node manifest.** The Rayfin CLI runs via `npx` from `fabric-fraud-intelligence/`.
+  A `package.json`/`package-lock.json` at the repo **root** is a stray `npm`-at-root artifact —
+  gitignored (`/package.json`, `/package-lock.json`), never commit it.
+- **Run the SPA from its folder.** `npm run dev` / `rayfin up` only work from
+  `fabric-fraud-intelligence/`, never the repo root (root vite runs fail).
+- **Build-time vs runtime config.** SPA `VITE_*` (incl. `VITE_APPINSIGHTS_CONNECTION_STRING`,
+  `VITE_FOUNDRY_*`) are wired by `deploy.ps1 Set-PublicEnv` into `.env.public.local`; the same knobs
+  have a no-rebuild runtime twin in **Settings › Général / Agents** (localStorage). Keep both paths.
+
+## Demo assets — keep screenshots & slide deck in sync (MANDATORY)
+When a change adds, removes, or visibly alters a UI screen/feature, you MUST update the demo
+assets in the same change so the guided demo stays accurate:
+- Regenerate the affected screenshot(s) in `docs/images/*.png` (used by the README).
+- Copy them into the Remotion deck: `video/remotion-slidedeck/public/` (same filenames)
+  — e.g. `Copy-Item docs/images/*.png video/remotion-slidedeck/public/ -Force`.
+- If a screen is added / removed / reordered, update the flow in
+  `video/remotion-slidedeck/src/slides.ts` (order, title, caption, `say` cue) AND the
+  README "Screens" section.
+- Never ship a feature change that leaves the README screenshots or the slide deck stale.
+
 ## Verify after changes
 - `cd fabric-fraud-intelligence && npm run build && npm test` must pass (mock mode).
 - `cd infra/terraform && terraform validate` for infra changes.
+- If UI screens changed: screenshots in `docs/images/` and `video/remotion-slidedeck/public/`
+  (+ `slides.ts` flow) are refreshed and consistent.
+
