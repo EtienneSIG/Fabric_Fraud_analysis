@@ -1,0 +1,51 @@
+%% Fabric Fraud Intelligence (Rayfin) — real deployed architecture.
+%% Canonical source: editable in mermaid.live or draw.io (import Mermaid).
+%% Rendered to public/architecture.png by fabric-fraud-intelligence/scripts/render-architecture.mjs.
+flowchart TB
+  analyst(["🕵️ Fraud analyst"])
+
+  subgraph app["Microsoft Fabric · Rayfin App (static hosting)"]
+    spa["Rayfin SPA — React 19<br/>MSAL sign-in · user identity / RLS"]
+  end
+
+  subgraph foundry["Microsoft Foundry · Agent Service"]
+    orch["fraud-iq-orchestrator<br/>gpt-5.6-terra · reasoning (effort=low)"]
+    webiq["Web IQ · Web Search tool<br/>official regulatory domains"]
+    fabrictool["Fabric tool (OBO)<br/>conn-fabric-fraud-dataagent"]
+    orch --> webiq
+    orch --> fabrictool
+  end
+
+  subgraph fabric["Microsoft Fabric · Data platform"]
+    da["Fabric Data Agent"]
+    onelake[("Lakehouse · OneLake")]
+    sql[("SQL DB — Ontology<br/>Fabric IQ")]
+    kql[("Eventhouse · KQL")]
+    pbi["Power BI"]
+    da --> onelake
+    da --> sql
+    kql --> pbi
+  end
+
+  web[("Official regulatory<br/>websites")]
+  ai[("Application Insights<br/>server-side agent traces")]
+
+  analyst --> spa
+  spa -- "direct · MSAL · ai.azure.com (OBO)" --> orch
+  spa -- "data reads · user identity" --> sql
+  fabrictool --> da
+  webiq -- "citations" --> web
+  orch -. "traces" .-> ai
+  spa -. "diag" .-> ai
+
+  classDef spa fill:#111a2e,stroke:#6366f1,color:#e5e7eb,stroke-width:2px;
+  classDef agent fill:#2e1065,stroke:#7c3aed,color:#ede9fe,stroke-width:2px;
+  classDef web fill:#3b1705,stroke:#ea580c,color:#fed7aa,stroke-width:2px;
+  classDef data fill:#0b2e2a,stroke:#0d9488,color:#ccfbf1,stroke-width:2px;
+  classDef obs fill:#111a2e,stroke:#64748b,color:#cbd5e1,stroke-width:1px;
+
+  class spa spa;
+  class orch,fabrictool agent;
+  class webiq,web web;
+  class da,onelake,sql,kql,pbi data;
+  class ai obs;

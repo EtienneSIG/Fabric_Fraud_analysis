@@ -93,7 +93,7 @@ export function FraudFlow() {
             <select
               value={terminal}
               onChange={(e) => startTransition(() => setTerminal(e.target.value))}
-              className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none"
+              className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none dark:border-gray-300"
             >
               {visibleTerminals.map((t) => (
                 <option key={t} value={t}>

@@ -12,6 +12,7 @@ services:
       - http://localhost:5173
       - https://fleet-north-8c279cc767-swedencentral.webapp.fabricapps.net
       - https://tangy-cove-9493188f6d-centralus.webapp.fabricapps.net
+      - https://mild-falls-763438f7b8-swedencentral.webapp.fabricapps.net
   data:
     enabled: true
     dialect: mssql
@@ -22,8 +23,5 @@ services:
     indexDocument: index.html
   storage:
     enabled: false
-  # Native Rayfin functions = Azure Functions (local port 7071). Preferred host for ../../backend
-  # (shares Fabric SSO/OBO). Kept disabled until the Rayfin functions folder convention is documented
-  # in the installed guide; until then the backend deploys as the standalone Azure Function (Terraform).
   functions:
     enabled: false

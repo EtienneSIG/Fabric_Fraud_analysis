@@ -81,6 +81,35 @@ three short sections: assessment, obligations, and recommended actions. You can
 also inspect `fraud-iq-orchestrator` in the
 Foundry portal and confirm that its tool list contains `web_search`.
 
+## Configure Web IQ as an MCP tool (approval mode)
+
+Web IQ can be provided two ways on `fraud-iq-orchestrator`:
+
+1. **Native `web_search`** (what `deploy_agents.py` / `deploy_agents.ps1` deploy) — the agent runs the
+   search itself and returns the final answer in **one** call. Nothing else to configure.
+2. **MCP server tool "WebIQ"** (added in the Foundry portal, e.g. a Bing/SERP MCP) — richer tools
+   (web / news / images / places / sonic) but MCP tools default to **`require_approval: always`**, so the
+   first response is an `mcp_approval_request` with **no message**. A single-shot caller then sees an
+   empty answer and (in Rayfin) the Foundry IQ pillar degrades to the deterministic demo answer.
+
+**Configure it (portal):** open the agent → **Tools** → **WebIQ** → *Configure* → **Approval setting
+for tools in this MCP server for this agent**:
+
+| Setting | Effect |
+| --- | --- |
+| **Never auto-approve tools** | every call needs approval (the SPA auto-approves — see below) |
+| **Always auto-approve all tools** | agent runs the tool and answers in **one** call — lowest latency, recommended for the demo |
+| **Always auto-approve specific tools** | list the `allowed_tools` (e.g. `web`) that skip approval |
+
+Equivalent via REST/SDK when creating/updating the agent: set the `mcp` tool's `require_approval` to
+`"never"` (or `{"never":["web"]}`), with `server_label`, `server_url` and `project_connection_id`.
+
+**SPA behavior (works with either setting):** the direct path (`src/services/FoundryAgentClient.ts`)
+**auto-approves** MCP calls — on an `mcp_approval_request` it replays with `previous_response_id` +
+`mcp_approval_response(approve:true)` (up to 3 rounds) until a message returns. So Web IQ works whether
+approval is `always` or `never`; choosing **auto-approve** in the portal just removes the extra
+round-trip (~10-20 s faster). The answer text is in the message item's `content[].text`.
+
 ## Fabric connection consent
 
 The optional Fabric Data Agent connection uses delegated user authentication. Consumers

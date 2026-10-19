@@ -11,7 +11,8 @@
 
 import { DATASET } from '@/data/seed';
 import i18n from '@/i18n/i18n';
-import { askFoundryAgent } from '@/services/FoundryAgentClient';
+import { isFoundryEnabled } from '@/backend/config';
+import { askFoundryAgent, foundryDirectConfigured } from '@/services/FoundryAgentClient';
 
 export type IqId = 'fabric' | 'work' | 'foundry' | 'web';
 
@@ -99,6 +100,9 @@ export interface IqResult {
   foundry: string[];
   web: string[];
   synthesis: Synthesis;
+  // True only when the deployed Foundry agent actually answered (configured AND not degraded to the
+  // demo fallback). Drives the honest Live/Simulated badge on the Foundry + Web pillars.
+  foundryLive: boolean;
 }
 
 export const flavor = (q: string): IqFlavor => {
@@ -203,6 +207,7 @@ export async function askMicrosoftIq(question: string, language = i18n.resolvedL
     confidence: IQ_CONFIDENCE[f],
   };
   const foundry = await askFoundryAgent(question, language);
+  const foundryLive = (isFoundryEnabled() || foundryDirectConfigured()) && !foundry.degraded;
   const webItems = foundry.citations.length
     ? foundry.citations.map((citation) => `${citation.title} · ${citation.url}`)
     : t(`web.${f}`, { returnObjects: true }) as string[];
@@ -211,6 +216,7 @@ export async function askMicrosoftIq(question: string, language = i18n.resolvedL
     work: t(`work.${f}`, { returnObjects: true }) as string[],
     foundry: [foundry.answer],
     web: webItems,
+    foundryLive,
     synthesis: {
       ...synthesis,
       rationale: foundry.answer,

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildFoundryRequest,
+  foundryRetryDelayMs,
   getVersionedAgentEndpoint,
   normalizeFoundryLocale,
   parseFoundryResponse,
@@ -37,6 +38,21 @@ describe('shouldRetryFoundryRequest', () => {
   });
 });
 
+describe('foundryRetryDelayMs', () => {
+  it('honors a numeric Retry-After (seconds), capped at 8s', () => {
+    expect(foundryRetryDelayMs('2', 0)).toBe(2000);
+    expect(foundryRetryDelayMs('30', 0)).toBe(8000); // capped
+  });
+
+  it('falls back to bounded jittered backoff when no Retry-After is present', () => {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const d = foundryRetryDelayMs(null, attempt);
+      expect(d).toBeGreaterThan(0);
+      expect(d).toBeLessThanOrEqual(8000);
+    }
+  });
+});
+
 describe('normalizeFoundryLocale', () => {
   it('maps Rayfin languages to supported Foundry output locales', () => {
     expect(normalizeFoundryLocale('fr-FR')).toBe('fr');
@@ -54,7 +70,7 @@ describe('buildFoundryRequest', () => {
   it('pins the output locale and bounds the generated response', () => {
     expect(buildFoundryRequest('Analyse cette alerte.', 'fr-FR')).toEqual({
       input: '[OUTPUT_LOCALE=fr]\nAnalyse cette alerte.',
-      max_output_tokens: 1200,
+      max_output_tokens: 6000,
     });
   });
 });

@@ -5,6 +5,7 @@ from pathlib import Path
 from azure.ai.projects import AIProjectClient
 from azure.ai.projects.models import (
     PromptAgentDefinition,
+    Reasoning,
     WebSearchApproximateLocation,
     WebSearchTool,
 )
@@ -63,6 +64,9 @@ def main() -> None:
         model=config["modelDeploymentName"],
         instructions=build_instructions(config["regulatoryDomains"]),
         tools=tools,
+        # Low effort: the answer is short + web-grounded; medium spent the token budget on reasoning
+        # (30-60s, responses came back `incomplete`). Low keeps it responsive for the live demo.
+        reasoning=Reasoning(effort="low"),
     )
     agent = project.agents.create_version(
         agent_name=config["agentName"],

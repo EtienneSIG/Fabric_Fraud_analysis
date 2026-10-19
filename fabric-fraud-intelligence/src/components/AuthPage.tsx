@@ -44,14 +44,14 @@ export function AuthPage() {
     : t('components.auth.signIn');
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="relative min-h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Decorative background shapes */}
       <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-blue-100/50 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full bg-indigo-100/40 blur-3xl" />
 
       <div className="relative flex flex-1 items-center justify-center p-4">
         <div className="w-full max-w-sm">
-          <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur-sm">
+          <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/80">
             <div className="mb-8 text-center">
               <h1 className="text-2xl font-bold text-gray-900">{t('components.auth.appName')}</h1>
               <p className="mt-2 text-sm text-gray-500">

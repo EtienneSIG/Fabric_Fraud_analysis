@@ -19,6 +19,9 @@ dist-ssr
 # Test coverage
 coverage
 
+# Playwright capture profile (persistent MSAL session — contains tokens; never commit)
+.cache/
+
 # Local env files (`*.local` matches `.env.local`, `.env.*.local`, etc.)
 *.local
 
