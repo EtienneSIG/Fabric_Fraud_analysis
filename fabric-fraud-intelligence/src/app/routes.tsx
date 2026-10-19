@@ -10,7 +10,6 @@ const AMLCopilot = lazy(() => import('@/app/pages/AMLCopilot').then((m) => ({ de
 const ClaimsFraud = lazy(() => import('@/app/pages/ClaimsFraud').then((m) => ({ default: m.ClaimsFraud })));
 const EntityGraph = lazy(() => import('@/app/pages/EntityGraph').then((m) => ({ default: m.EntityGraph })));
 const FraudIQ = lazy(() => import('@/app/pages/FraudIQ').then((m) => ({ default: m.FraudIQ })));
-const DemoVideo = lazy(() => import('@/app/pages/DemoVideo').then((m) => ({ default: m.DemoVideo })));
 const Settings = lazy(() => import('@/app/pages/Settings').then((m) => ({ default: m.Settings })));
 
 export interface NavItem {
@@ -27,7 +26,6 @@ export const NAV: NavItem[] = [
   { path: '/claims', label: 'nav.claims', icon: 'M6 2h9l5 5v15H6zM14 2v6h6' },
   { path: '/graph', label: 'nav.graph', icon: 'M5 6a2 2 0 100-4 2 2 0 000 4zM19 8a2 2 0 100-4 2 2 0 000 4zM12 22a2 2 0 100-4 2 2 0 000 4zM6 6l5 10M18 6l-6 10' },
   { path: '/fraud-iq', label: 'nav.fraudIq', icon: 'M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4z' },
-  { path: '/demo-video', label: 'nav.demoVideo', icon: 'M4 6h12a2 2 0 012 2v1.5l3-2v9l-3-2V16a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z' },
   { path: '/settings', label: 'nav.settings', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zM3 12h3M18 12h3M12 3v3M12 18v3' },
 ];
 
@@ -45,6 +43,5 @@ export const ROUTES: RouteDef[] = [
   { path: '/claims', element: <ClaimsFraud /> },
   { path: '/graph', element: <EntityGraph /> },
   { path: '/fraud-iq', element: <FraudIQ /> },
-  { path: '/demo-video', element: <DemoVideo /> },
   { path: '/settings', element: <Settings /> },
 ];
