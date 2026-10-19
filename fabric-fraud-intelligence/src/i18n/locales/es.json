@@ -7,6 +7,7 @@
     "claims": "Fraude en siniestros",
     "graph": "Grafo de entidades",
     "fraudIq": "Fraud IQ",
+    "demoVideo": "Vídeo demo",
     "settings": "Configuración"
   },
   "common": {
@@ -120,6 +121,15 @@
     }
   },
   "pages": {
+    "demoVideo": {
+      "title": "Vídeo demo de Fabric Fraud Intelligence",
+      "subtitle": "Mira el recorrido de la app en vivo directamente desde el MP4 alojado en GitHub.",
+      "playerLabel": "Reproductor del vídeo demo en vivo de Fabric Fraud Intelligence",
+      "unsupported": "Tu navegador no admite la reproducción de vídeo integrada.",
+      "cardTitle": "Recorrido en vivo",
+      "cardDescription": "El reproductor transmite el vídeo en calidad completa almacenado en el repositorio GitHub de Fabric Fraud Analysis.",
+      "openSource": "Abrir fuente del vídeo"
+    },
     "dashboard": {
       "title": "Centro de mando de fraude",
       "subtitle": "Datos gobernados + IA en Microsoft Fabric · fraude, AML, KYC, identidad y siniestros en tiempo real.",

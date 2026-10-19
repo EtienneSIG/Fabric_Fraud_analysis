@@ -7,6 +7,7 @@
     "claims": "Claims Fraud",
     "graph": "Entity Graph",
     "fraudIq": "Fraud IQ",
+    "demoVideo": "Demo video",
     "settings": "Settings"
   },
   "common": {
@@ -120,6 +121,15 @@
     }
   },
   "pages": {
+    "demoVideo": {
+      "title": "Fabric Fraud Intelligence demo video",
+      "subtitle": "Watch the live app walkthrough directly from the GitHub-hosted MP4.",
+      "playerLabel": "Fabric Fraud Intelligence live demo video player",
+      "unsupported": "Your browser does not support embedded video playback.",
+      "cardTitle": "Live walkthrough",
+      "cardDescription": "The player streams the full-quality video stored in the Fabric Fraud Analysis GitHub repository.",
+      "openSource": "Open video source"
+    },
     "dashboard": {
       "title": "Fraud Command Center",
       "subtitle": "Governed data + AI on Microsoft Fabric · real-time fraud, AML, KYC, identity & claims.",
